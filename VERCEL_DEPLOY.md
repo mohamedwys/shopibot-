@@ -4,6 +4,14 @@ Deploy your ShopiBot to Vercel with serverless functions.
 
 ---
 
+## ⚠️ Deployment Error? See Troubleshooting Guide
+
+If you're getting a **500 error** or **FUNCTION_INVOCATION_FAILED** after deploying, check:
+- **[VERCEL_FIX.md](./VERCEL_FIX.md)** - Complete troubleshooting guide
+- **[VERCEL_ENVIRONMENT_VARIABLES.md](./VERCEL_ENVIRONMENT_VARIABLES.md)** - Environment variable setup
+
+---
+
 ## 🎯 Prerequisites
 
 - [ ] Vercel account ([vercel.com](https://vercel.com))
