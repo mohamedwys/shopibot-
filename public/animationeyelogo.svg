@@ -1,0 +1,104 @@
+<svg
+  width="100"
+  height="100"
+  viewBox="0 -8 100 116"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <defs>
+    <radialGradient id="eyeGradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#a2f0ff" />
+      <stop offset="50%" stop-color="#70bfff" />
+      <stop offset="100%" stop-color="#7b8eff" />
+    </radialGradient>
+
+    <clipPath id="eyeClip">
+      <circle cx="50" cy="50" r="45" />
+    </clipPath>
+
+    <style>
+      <![CDATA[
+        .animated-eye {
+          animation: float 3s ease-in-out infinite;
+          transform-origin: center;
+        }
+
+        .eye-glow {
+          opacity: 0.3;
+          filter: blur(6px);
+          animation: glowPulse 2s ease-in-out infinite;
+        }
+
+        .pupil {
+          transform-origin: bottom center;
+          animation: pupilBlink 4.5s ease-in-out infinite;
+        }
+
+        .eyelid {
+          animation: slowBlink 4.5s ease-in-out infinite;
+          transform-box: fill-box;
+        }
+
+        .eyelid-top { transform-origin: top; }
+        .eyelid-bottom { transform-origin: bottom; }
+
+        .highlight {
+          animation: highlightPulse 2s ease-in-out infinite;
+          opacity: 0.4;
+          transform-origin: center;
+        }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-8px) rotate(2deg); }
+          75% { transform: rotate(-2deg); }
+        }
+
+        @keyframes glowPulse {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 0.6; transform: scale(1.2); }
+        }
+
+        @keyframes pupilBlink {
+          0%, 88%, 100% { transform: scaleY(1); }
+          90% { transform: scaleY(0.3); }
+          94% { transform: scaleY(1); }
+          96% { transform: scaleY(0.3); }
+          99% { transform: scaleY(1); }
+        }
+
+        @keyframes slowBlink {
+          0%, 88%, 100% { scale: 1 0; }
+          90% { scale: 1 0.3; }
+          92% { scale: 1 0.6; }
+          94% { scale: 1 1; }
+          96% { scale: 1 0.6; }
+          98% { scale: 1 0.3; }
+          99% { scale: 1 0; }
+        }
+
+        @keyframes highlightPulse {
+          0%, 100% { transform: scale(1); opacity: 0.4; }
+          50% { transform: scale(1.2); opacity: 0.7; }
+        }
+      ]]>
+    </style>
+  </defs>
+
+  <g class="animated-eye">
+    <circle cx="50" cy="50" r="45" fill="url(#eyeGradient)" />
+
+    <g clip-path="url(#eyeClip)">
+      <circle cx="50" cy="50" r="45" fill="url(#eyeGradient)" class="eye-glow" />
+    </g>
+
+    <g clip-path="url(#eyeClip)">
+      <rect x="46" y="60" width="8" height="30" rx="2" fill="#111827" class="pupil" />
+    </g>
+
+    <g clip-path="url(#eyeClip)">
+      <circle cx="65" cy="35" r="4" fill="white" class="highlight" />
+      <rect x="0" y="0" width="100" height="50" fill="black" class="eyelid eyelid-top" />
+      <rect x="0" y="50" width="100" height="50" fill="black" class="eyelid eyelid-bottom" />
+    </g>
+  </g>
+</svg>

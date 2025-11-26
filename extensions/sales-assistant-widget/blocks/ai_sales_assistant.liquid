@@ -1,0 +1,1652 @@
+{% comment %}
+AI Sales Assistant Widget Block
+This creates a floating chat widget that can be added to any page
+{% endcomment %}
+
+{% schema %}
+{
+  "name": "AI Sales Assistant",
+  "target": "body",
+  "stylesheet": "ai-sales-assistant.css",
+  "javascript": "ai-sales-assistant.js",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enabled",
+      "label": "Enable AI Assistant",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "position",
+      "label": "Position",
+      "options": [
+        {
+          "value": "bottom-right",
+          "label": "Bottom Right"
+        },
+        {
+          "value": "bottom-left", 
+          "label": "Bottom Left"
+        },
+        {
+          "value": "top-right",
+          "label": "Top Right"
+        },
+        {
+          "value": "top-left",
+          "label": "Top Left"
+        },
+        {
+          "value": "center-right",
+          "label": "Center Right"
+        },
+        {
+          "value": "center-left",
+          "label": "Center Left"
+        }
+      ],
+      "default": "bottom-right"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button Text",
+      "default": "Ask AI Assistant"
+    },
+    {
+      "type": "text",
+      "id": "chat_title",
+      "label": "Chat Title",
+      "default": "AI Sales Assistant"
+    },
+    {
+      "type": "textarea",
+      "id": "welcome_message",
+      "label": "Welcome Message",
+      "default": "Hello! I'm your AI sales assistant. I can help you find products, answer questions about pricing, shipping, and provide personalized recommendations. How can I assist you today?"
+    },
+    {
+      "type": "text",
+      "id": "input_placeholder",
+      "label": "Input Placeholder",
+      "default": "Ask me anything about our products..."
+    },
+    {
+      "type": "color",
+      "id": "primary_color",
+      "label": "Primary Color",
+      "default": "#ee5cee"
+    }
+  ]
+}
+{% endschema %}
+
+<!-- AI Sales Assistant Widget will be dynamically loaded -->
+<div id="ai-sales-assistant-container"></div>
+
+<script>
+// AI Sales Assistant Widget JavaScript
+(function() {
+  let chatOpen = false;
+  let conversationHistory = [];
+  let widgetSettings = null;
+  
+  // Get settings from block settings or fetch from API
+  const blockSettings = {
+    enabled: {{ block.settings.enabled | json }},
+    position: {{ block.settings.position | json }},
+    buttonText: {{ block.settings.button_text | json }},
+    chatTitle: {{ block.settings.chat_title | json }},
+    welcomeMessage: {{ block.settings.welcome_message | json }},
+    inputPlaceholder: {{ block.settings.input_placeholder | json }},
+    primaryColor: {{ block.settings.primary_color | json }}
+  };
+  
+  // Toggle chat window
+  window.toggleAIChat = function() {
+    console.log('🔄 AI Widget: toggleAIChat called, current state:', chatOpen);
+    const chatWindow = document.getElementById('ai-chat-window');
+    
+    if (!chatWindow) {
+      console.error('❌ AI Widget: Chat window not found!');
+      return;
+    }
+    
+    chatOpen = !chatOpen;
+    
+    // Use CSS classes for better control and smoother animations
+    if (chatOpen) {
+      chatWindow.classList.add('ai-chat-open');
+    } else {
+      chatWindow.classList.remove('ai-chat-open');
+    }
+    
+    console.log('✅ AI Widget: Chat window toggled to:', chatOpen ? 'open' : 'closed');
+    console.log('🔍 AI Widget: Chat window classes:', chatWindow.className);
+    console.log('🔍 AI Widget: Chat window computed display:', window.getComputedStyle(chatWindow).display);
+    
+    if (chatOpen) {
+      const inputField = document.getElementById('ai-chat-input-field');
+      if (inputField) {
+        // Wait for CSS transition to start before focusing
+        setTimeout(() => inputField.focus(), 200);
+      }
+      // Ensure scroll starts at the top when chat opens
+      setTimeout(() => {
+        scrollToTop();
+      }, 250);
+    }
+  };
+  
+  // Handle enter key press
+  window.handleChatKeyPress = function(event) {
+    if (event.key === 'Enter') {
+      sendAIMessage();
+    }
+  };
+  
+  // Send message to AI
+  window.sendAIMessage = function() {
+    const inputField = document.getElementById('ai-chat-input-field');
+    const message = inputField.value.trim();
+    
+    if (!message) return;
+    
+    // Hide welcome screen after first message
+    hideWelcomeScreen();
+    
+    // Add user message to chat
+    addMessageToChat('user', message);
+    inputField.value = '';
+    
+    // Show loading
+    showLoading(true);
+    
+    // Send to AI service using the app proxy (single endpoint for both settings and chat)
+    const shopUrl = '{{ shop.url }}';
+    
+    // Function to send message via app proxy
+    const sendChatMessage = async () => {
+      console.log('🚀 Sending chat message via app proxy');
+      try {
+        const response = await fetch(`${shopUrl}/apps/widget-settings`, {
+           method: 'POST',
+           headers: {
+             'Content-Type': 'application/json',
+             'X-Shopify-Shop-Domain': '{{ shop.myshopify_domain }}',
+             'X-Shopify-Customer-Access-Token': '{{ customer.access_token | default: "" }}',
+           },
+           body: JSON.stringify({
+             userMessage: message,
+             products: [],
+             context: {
+               page: window.location.pathname,
+               productId: getProductIdFromPage(),
+               conversationHistory: conversationHistory,
+               shopDomain: '{{ shop.myshopify_domain }}'
+             }
+           })
+         });
+         
+         if (response.ok) {
+           console.log('✅ Success! Chat message sent via app proxy');
+           return await response.json();
+         } else {
+           console.log(`❌ App proxy request failed with status: ${response.status}`);
+           throw new Error(`Request failed with status ${response.status}`);
+         }
+       } catch (error) {
+         console.log('❌ Failed to send chat message via app proxy:', error);
+         throw error;
+       }
+     };
+     
+     // Send the chat message
+     sendChatMessage()
+      .then(data => {
+      showLoading(false);
+      
+      // Handle both old format (data.response) and new N8N format (data.message)
+      let responseMessage = data.response || data.message;
+      
+      if (responseMessage) {
+        // Add the main AI response
+        addMessageToChat('assistant', responseMessage);
+        
+        // If there are product recommendations, display them
+        if (data.recommendations && data.recommendations.length > 0) {
+          displayProductRecommendations(data.recommendations);
+        }
+        
+        // Update conversation history
+        conversationHistory.push(
+          { role: 'user', content: message },
+          { role: 'assistant', content: responseMessage }
+        );
+        
+        // Keep only last 10 messages
+        if (conversationHistory.length > 10) {
+          conversationHistory = conversationHistory.slice(-10);
+        }
+      } else {
+        addMessageToChat('assistant', 'Sorry, I encountered an error. Please try again.');
+      }
+    })
+    .catch(error => {
+      showLoading(false);
+      console.error('AI Assistant Error:', error);
+      addMessageToChat('assistant', 'Sorry, I encountered an error. Please try again.');
+    });
+  };
+  
+  // Add message to chat
+  function addMessageToChat(sender, message) {
+    const messagesContainer = document.getElementById('ai-chat-messages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `ai-message ${sender}-message`;
+    
+    // Force spacing with inline styles to override any CSS
+    messageDiv.style.marginBottom = '0px';
+    messageDiv.style.marginTop = '0px';
+    messageDiv.style.display = 'block';
+    
+    const messageContent = document.createElement('div');
+    messageContent.className = 'message-content';
+    
+    // Trim whitespace and handle line breaks properly
+    const cleanMessage = message.trim().replace(/\n/g, '<br>');
+    messageContent.innerHTML = cleanMessage;
+    
+    // Apply proper styling for text wrapping
+    messageContent.style.wordWrap = 'break-word';
+    messageContent.style.wordBreak = 'break-word';
+    messageContent.style.overflowWrap = 'break-word';
+    messageContent.style.whiteSpace = 'normal'; // Normal whitespace handling
+    messageContent.style.maxWidth = '100%';
+    messageContent.style.boxSizing = 'border-box';
+    
+    if (sender === 'user') {
+      messageContent.style.backgroundColor = widgetSettings.primaryColor;
+      messageContent.style.color = 'white';
+    } else {
+      messageContent.style.backgroundColor = '#f1f1f1';
+      messageContent.style.color = '#333';
+    }
+    
+    messageDiv.appendChild(messageContent);
+    messagesContainer.appendChild(messageDiv);
+    
+    // Scroll to bottom with smooth animation
+    scrollToBottom();
+  }
+  
+  // Smooth scroll to bottom function
+  function scrollToBottom() {
+    const messagesContainer = document.getElementById('ai-chat-messages');
+    if (messagesContainer) {
+      // Use setTimeout to ensure the new message is rendered before scrolling
+      setTimeout(() => {
+        messagesContainer.scrollTo({
+          top: messagesContainer.scrollHeight,
+          behavior: 'smooth'
+        });
+      }, 10);
+    }
+  }
+  
+  // Smooth scroll to top function
+  function scrollToTop() {
+    const messagesContainer = document.getElementById('ai-chat-messages');
+    if (messagesContainer) {
+      // Use setTimeout to ensure the chat window is fully rendered before scrolling
+      setTimeout(() => {
+        messagesContainer.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      }, 10);
+    }
+  }
+  
+  // Display enhanced product recommendations
+  function displayProductRecommendations(recommendations) {
+    const messagesContainer = document.getElementById('ai-chat-messages');
+    
+    // Add a container for all product cards
+    const productsContainer = document.createElement('div');
+    productsContainer.className = 'ai-message assistant-message products-grid-container';
+    productsContainer.style.marginBottom = '16px';
+    productsContainer.style.maxWidth = '100%';
+    productsContainer.style.width = '100%';
+    
+    const gridContent = document.createElement('div');
+    gridContent.className = 'products-grid';
+    gridContent.style.display = 'grid';
+    gridContent.style.gridTemplateColumns = recommendations.length === 1 ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))';
+    gridContent.style.gap = '12px';
+    gridContent.style.padding = '0';
+    gridContent.style.width = '100%';
+    
+    recommendations.forEach((product, index) => {
+      // Create individual product card
+      const productCard = document.createElement('div');
+      productCard.className = 'product-card clickable-product';
+      productCard.style.backgroundColor = '#fff';
+      productCard.style.border = '1px solid #e5e7eb';
+      productCard.style.borderRadius = '12px';
+      productCard.style.overflow = 'hidden';
+      productCard.style.cursor = 'pointer';
+      productCard.style.transition = 'all 0.3s ease';
+      productCard.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+      productCard.style.position = 'relative';
+      
+      // Product image (if available)
+      let imageSection = '';
+      if (product.image) {
+        imageSection = `
+          <div class="product-image" style="
+            width: 100%; 
+            height: 160px; 
+            background-image: url('${product.image}'); 
+            background-size: cover; 
+            background-position: center;
+            background-color: #f8f9fa;
+            position: relative;
+          ">
+            <div style="
+              position: absolute;
+              top: 8px;
+              right: 8px;
+              background: ${widgetSettings.primaryColor};
+              color: white;
+              padding: 4px 8px;
+              border-radius: 12px;
+              font-size: 11px;
+              font-weight: 600;
+            ">${product.relevanceScore || 85}% match</div>
+          </div>
+        `;
+      }
+      
+      // Product details
+      const productDetails = `
+        <div style="padding: 16px;">
+          <!-- Product Title -->
+          <h4 style="
+            margin: 0 0 8px 0; 
+            font-size: 16px; 
+            font-weight: 600; 
+            color: #1f2937;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+          ">${product.title}</h4>
+          
+          <!-- Price and Category -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div style="font-size: 20px; font-weight: 700; color: ${widgetSettings.primaryColor};">
+              $${parseFloat(product.price || '0').toFixed(2)}
+            </div>
+            ${product.category ? `<div style="
+              background: #f3f4f6; 
+              color: #6b7280; 
+              padding: 2px 8px; 
+              border-radius: 8px; 
+              font-size: 11px; 
+              font-weight: 500;
+            ">${product.category}</div>` : ''}
+          </div>
+          
+          <!-- Description -->
+          <p style="
+            margin: 0 0 12px 0; 
+            font-size: 13px; 
+            color: #6b7280; 
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+          ">${product.description || 'No description available'}</p>
+          
+          <!-- Tags (if available) -->
+          ${product.tags && product.tags.length > 0 ? `
+            <div style="margin-bottom: 12px;">
+              ${product.tags.slice(0, 3).map(tag => `
+                <span style="
+                  display: inline-block;
+                  background: #e5e7eb;
+                  color: #374151;
+                  padding: 2px 6px;
+                  border-radius: 6px;
+                  font-size: 10px;
+                  margin-right: 4px;
+                  margin-bottom: 4px;
+                ">${tag}</span>
+              `).join('')}
+            </div>
+          ` : ''}
+          
+          <!-- Action Button -->
+          <div style="
+            background: ${widgetSettings.primaryColor};
+            color: white;
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: auto;
+          ">
+            View Product →
+          </div>
+        </div>
+      `;
+      
+      productCard.innerHTML = imageSection + productDetails;
+      
+      // Add click handler to open product page
+      productCard.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Use full URL if available, otherwise construct relative URL
+        const productUrl = product.fullUrl || `/products/${product.handle}`;
+        window.open(productUrl, '_blank');
+        
+        // Add visual feedback
+        this.style.transform = 'scale(0.98)';
+        setTimeout(() => {
+          this.style.transform = 'scale(1)';
+        }, 150);
+      });
+      
+      // Add hover effects
+      productCard.addEventListener('mouseenter', function() {
+        this.style.borderColor = widgetSettings.primaryColor;
+        this.style.transform = 'translateY(-4px)';
+        this.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
+      });
+      
+      productCard.addEventListener('mouseleave', function() {
+        this.style.borderColor = '#e5e7eb';
+        this.style.transform = 'translateY(0)';
+        this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+      });
+      
+      gridContent.appendChild(productCard);
+    });
+    
+    productsContainer.appendChild(gridContent);
+    messagesContainer.appendChild(productsContainer);
+    
+    // Add a "Browse More Products" button if there are multiple recommendations
+    if (recommendations.length > 2) {
+      const browseMoreDiv = document.createElement('div');
+      browseMoreDiv.className = 'ai-message assistant-message';
+      browseMoreDiv.style.marginTop = '8px';
+      browseMoreDiv.style.textAlign = 'center';
+      
+      const browseButton = document.createElement('button');
+      browseButton.style.background = 'transparent';
+      browseButton.style.border = `2px solid ${widgetSettings.primaryColor}`;
+      browseButton.style.color = widgetSettings.primaryColor;
+      browseButton.style.padding = '10px 20px';
+      browseButton.style.borderRadius = '25px';
+      browseButton.style.fontSize = '14px';
+      browseButton.style.fontWeight = '600';
+      browseButton.style.cursor = 'pointer';
+      browseButton.style.transition = 'all 0.2s ease';
+      browseButton.textContent = 'Browse All Products';
+      
+      browseButton.addEventListener('click', function() {
+        window.open('/collections/all', '_blank');
+      });
+      
+      browseButton.addEventListener('mouseenter', function() {
+        this.style.backgroundColor = widgetSettings.primaryColor;
+        this.style.color = 'white';
+      });
+      
+      browseButton.addEventListener('mouseleave', function() {
+        this.style.backgroundColor = 'transparent';
+        this.style.color = widgetSettings.primaryColor;
+      });
+      
+      browseMoreDiv.appendChild(browseButton);
+      messagesContainer.appendChild(browseMoreDiv);
+    }
+    
+    // Scroll to bottom after adding recommendations
+    scrollToBottom();
+  }
+  
+  // Show/hide loading indicator
+  function showLoading(show) {
+    const messagesContainer = document.getElementById('ai-chat-messages');
+    let loadingDiv = document.getElementById('ai-loading');
+    
+    if (show) {
+      // Remove any existing loading indicator first
+      if (loadingDiv) {
+        loadingDiv.remove();
+      }
+      
+      // Create new loading indicator
+      loadingDiv = document.createElement('div');
+      loadingDiv.id = 'ai-loading';
+      loadingDiv.className = 'ai-loading';
+      
+      const loadingDots = document.createElement('div');
+      loadingDots.className = 'loading-dots';
+      
+      // Create the three dots
+      for (let i = 0; i < 3; i++) {
+        const dot = document.createElement('span');
+        loadingDots.appendChild(dot);
+      }
+      
+      loadingDiv.appendChild(loadingDots);
+      
+      // Find the last actual message (excluding welcome message) and insert loading after it
+      if (messagesContainer) {
+        // Get all message elements, excluding the welcome message
+        const allMessages = messagesContainer.querySelectorAll('.ai-message:not(.ai-welcome-message)');
+        
+        if (allMessages.length > 0) {
+          // Insert after the last actual message
+          const lastMessage = allMessages[allMessages.length - 1];
+          lastMessage.insertAdjacentElement('afterend', loadingDiv);
+        } else {
+          // If no actual messages yet, append to container
+          messagesContainer.appendChild(loadingDiv);
+        }
+        
+        // Auto-scroll to show the loading indicator
+        scrollToBottom();
+      }
+    } else {
+      // Hide/remove loading indicator
+      if (loadingDiv) {
+        loadingDiv.remove();
+      }
+    }
+  }
+  
+  // Hide welcome screen after first interaction
+  function hideWelcomeScreen() {
+    const welcomeMessage = document.querySelector('.ai-welcome-message');
+    if (welcomeMessage) {
+      welcomeMessage.style.display = 'none';
+      console.log('✅ AI Widget: Welcome screen hidden');
+    }
+  }
+  
+  // Get product ID from current page
+  function getProductIdFromPage() {
+    const productMatch = window.location.pathname.match(/\/products\/([^\/]+)/);
+    if (productMatch) {
+      return productMatch[1];
+    }
+    return null;
+  }
+  
+  // Load widget settings and initialize
+  async function initializeWidget() {
+    try {
+      // Use block settings or fetch from API as fallback
+      widgetSettings = blockSettings;
+      
+      // Debug current context
+      console.log('🏪 Current shop domain:', window.Shopify?.shop || '{{ shop.permanent_domain }}');
+      console.log('🌐 Current location:', window.location.href);
+      console.log('🔧 Block settings:', blockSettings);
+      
+      // Try to fetch updated settings from API
+      const shopDomain = window.Shopify?.shop || '{{ shop.permanent_domain }}';
+      // Use app proxy URL (proper way for theme extensions)
+      const shopUrl = '{{ shop.url }}';
+      const possibleSettingsUrls = [
+        // Use app proxy URL - requests are forwarded to your app server
+        shopUrl + '/apps/widget-settings',
+        // Fallback to current host
+        window.location.protocol + '//' + window.location.host + '/apps/widget-settings'
+      ];
+      
+      let apiSuccess = false;
+      for (const appUrl of possibleSettingsUrls) {
+        try {
+          console.log(`🔄 AI Widget: Trying to fetch settings from ${appUrl}`);
+          const timestamp = Date.now();
+          const response = await fetch(`${appUrl}?shop=${shopDomain}&t=${timestamp}`);
+          if (response.ok) {
+            const data = await response.json();
+            console.log(`✅ AI Widget: Successfully fetched settings from ${appUrl}`, data.settings);
+            
+            // Prioritize API settings over block settings
+            widgetSettings = { ...blockSettings, ...data.settings };
+            apiSuccess = true;
+            
+            // Initialize lastSettingsUpdate with current timestamp for auto-refresh
+            if (typeof window.lastSettingsUpdate === 'undefined') {
+              window.lastSettingsUpdate = data.settings.updatedAt;
+            }
+            break;
+          } else {
+            console.log(`❌ AI Widget: Failed to fetch from ${appUrl} - Status: ${response.status}`);
+          }
+        } catch (e) {
+          console.log(`❌ AI Widget: Error fetching from ${appUrl}:`, e);
+          continue;
+        }
+      }
+      
+      if (!apiSuccess) {
+        console.log('⚠️ AI Widget: Could not fetch settings from API, using block settings', blockSettings);
+      }
+      
+      // Debug logging
+      console.log('AI Widget: Settings loaded (updated):', widgetSettings);
+      
+      // Only create widget if enabled
+      if (!widgetSettings.enabled) {
+        console.log('AI Widget: Disabled, not creating widget');
+        return;
+      }
+      
+      // Create the widget HTML
+      createWidget();
+      
+      // Add debugging to console to verify settings are applied
+      console.log('AI Widget: Widget created with settings:', {
+        position: widgetSettings.position,
+        primaryColor: widgetSettings.primaryColor,
+        buttonText: widgetSettings.buttonText,
+        chatTitle: widgetSettings.chatTitle
+      });
+      
+    } catch (error) {
+      console.error('Failed to load AI Sales Assistant settings:', error);
+      // Use block settings as fallback
+      widgetSettings = blockSettings;
+      if (widgetSettings.enabled) {
+        createWidget();
+      }
+    }
+  }
+  
+  // Create the widget HTML
+  function createWidget() {
+    const container = document.getElementById('ai-sales-assistant-container');
+    if (!container || !widgetSettings) return;
+    
+    console.log('AI Widget: Creating widget with position:', widgetSettings.position);
+    
+    // Clear any existing widget
+    container.innerHTML = '';
+    
+    container.innerHTML = `
+      <div class="ai-sales-assistant-widget position-${widgetSettings.position}" data-widget-id="ai-sales-assistant">
+        <!-- Chat Toggle Button -->
+        <button 
+          class="ai-chat-toggle" 
+          id="ai-chat-toggle-btn"
+          style="background-color: ${widgetSettings.primaryColor};"
+        >
+          <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAABJlBMVEVHcEwb49o9s+I0v+BIoOUuyN9Ui+hZg+pdfOsc49tMl+ZViuke4NtOk+ce39sc4ts3t+Ej19xbf+pTi+gl1N1GoOVCp+RWh+kxwuAa5tpFo+Ue39s0vuAsyt4i2NxIneYpzd5Ml+Yry946suJUiuldfOs6suIc49oZ59oa5do/q+Neeusxwt8Y6dka5touxt88sOJcfupZgupcfuo0veBefOpcfuoZ5toiIiI8sOI2ueFCp+RFouVInuU5tOE/q+MzveAxwt8uxt9LmedQkOdWh+kry98o0N0hHx9Ui+gl1Nwi2dwf3dtOlOZZgulcfuomTFYsRFcrhZc+ZpxUjes4cJsyepkjP0Ei2t0lxs1ImOBPluomy9ZEcbFBo95KgMsmmaIkZ2ysswjsAAAAOHRSTlMA/gUPAic0C7FTd1yYJhPx7WN0zOqTseDK3t/QnT6GGbzjS7idmjlKO63ujvUwzvf08Ty8eiXh80ZVzqoAAAFYSURBVDjLvZPXVsJAEIYpgST0DlIEFAQLFiw0KUGECKJIVECxvf9LaHZmMBG88/hdzX/mO7t7dnYNhv/FVciJYt5iWt015R37bqPRWFrb9rpW9AsOtQuUYuLSKrnYtRb3ulnfFwMDxnQ6hWLg0BmJQJ/Rm81mcyj765zm9Kke8D6ZTD7mUAc2vgVvF+iNZVketTGlFpuYI22gOy6X5ZGE6WCxRGJPAtpMaGGS4iSctBCJCVWKEdyDi1cJJjQoeSx4x5sNpPqoChWKni0SKgQTmpQOUeBCTYQJdzWKO7iFIVgjHlThlVI0iYL9nGBCnVKIRuqM1hEmPFGy0T1wwQsEBAxp52IW1vSQ8ayoQgfC0KYZt60DvCmK8oK1P6kR+MwVcP8FVGGr7kWZM5d6/MUfb5L3hW80CM7lZ23Nnt0CR8d2ftXH4E7tu4IgZH1F/ve/xZlMf/5fPwFR8XwfQCSWdQAAAABJRU5ErkJggg==" alt="iHeard.ai" width="24" height="24" style="object-fit: contain;" />
+          <span class="button-text">${widgetSettings.buttonText}</span>
+        </button>
+        
+        <!-- Chat Window -->
+        <div id="ai-chat-window" class="ai-chat-window" style="display: none;">
+          <!-- Chat Header -->
+          <div class="ai-chat-header" style="background-color: ${widgetSettings.primaryColor};">
+            <h3>${widgetSettings.chatTitle}</h3>
+            <button class="ai-chat-close" id="ai-chat-close-btn">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13.5 4.5L4.5 13.5M4.5 4.5L13.5 13.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+          
+          <!-- Chat Messages Container -->
+          <div class="ai-chat-messages-container">
+            <!-- Chat Messages -->
+            <div id="ai-chat-messages" class="ai-chat-messages">
+              <div class="ai-message assistant-message ai-welcome-message" style="margin-bottom: 16px !important; margin-top: 0px !important; display: block !important; max-width: 100% !important; width: 100% !important;">
+                <div class="ai-welcome-container" style="background: transparent; padding: 0;">
+                  <div class="ai-welcome-header" style="margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; background: var(--ai-primary-color, #ee5cee); border-radius: 12px; margin: 0 auto 12px auto;">
+                      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAABJlBMVEVHcEwb49o9s+I0v+BIoOUuyN9Ui+hZg+pdfOsc49tMl+ZViuke4NtOk+ce39sc4ts3t+Ej19xbf+pTi+gl1N1GoOVCp+RWh+kxwuAa5tpFo+Ue39s0vuAsyt4i2NxIneYpzd5Ml+Yry946suJUiuldfOs6suIc49oZ59oa5do/q+Neeusxwt8Y6dka5touxt88sOJcfupZgupcfuo0veBefOpcfuoZ5toiIiI8sOI2ueFCp+RFouVInuU5tOE/q+MzveAxwt8uxt9LmedQkOdWh+kry98o0N0hHx9Ui+gl1Nwi2dwf3dtOlOZZgulcfuomTFYsRFcrhZc+ZpxUjes4cJsyepkjP0Ei2t0lxs1ImOBPluomy9ZEcbFBo95KgMsmmaIkZ2ysswjsAAAAOHRSTlMA/gUPAic0C7FTd1yYJhPx7WN0zOqTseDK3t/QnT6GGbzjS7idmjlKO63ujvUwzvf08Ty8eiXh80ZVzqoAAAFYSURBVDjLvZPXVsJAEIYpgST0DlIEFAQLFiw0KUGECKJIVECxvf9LaHZmMBG88/hdzX/mO7t7dnYNhv/FVciJYt5iWt015R37bqPRWFrb9rpW9AsOtQuUYuLSKrnYtRb3ulnfFwMDxnQ6hWLg0BmJQJ/Rm81mcyj765zm9Kke8D6ZTD7mUAc2vgVvF+iNZVketTGlFpuYI22gOy6X5ZGE6WCxRGJPAtpMaGGS4iSctBCJCVWKEdyDi1cJJjQoeSx4x5sNpPqoChWKni0SKgQTmpQOUeBCTYQJdzWKO7iFIVgjHlThlVI0iYL9nGBCnVKIRuqM1hEmPFGy0T1wwQsEBAxp52IW1vSQ8ayoQgfC0KYZt60DvCmK8oK1P6kR+MwVcP8FVGGr7kWZM5d6/MUfb5L3hW80CM7lZ23Nnt0CR8d2ftXH4E7tu4IgZH1F/ve/xZlMf/5fPwFR8XwfQCSWdQAAAABJRU5ErkJggg==" alt="iHeard.ai" width="28" height="28" style="object-fit: contain;" />
+                    </div>
+                    <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #333;">${widgetSettings.welcomeMessage}</h3>
+                  </div>
+                  
+                  <div class="ai-suggestions-container">
+                    <div class="suggestion-section" style="margin-bottom: 24px;">
+                      <h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600; color: #555;">Get product recommendations</h4>
+                      <div class="suggestion-buttons">
+                        <button class="suggestion-btn" data-prompt="What are your best-selling products?">Best-selling products</button>
+                        <button class="suggestion-btn" data-prompt="Show me new arrivals">New arrivals</button>
+                        <button class="suggestion-btn" data-prompt="What products are on sale?">Sale items</button>
+                      </div>
+                    </div>
+                    
+                    <div class="suggestion-section" style="margin-bottom: 24px;">
+                      <h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600; color: #555;">Product information</h4>
+                      <div class="suggestion-buttons">
+                        <button class="suggestion-btn" data-prompt="Tell me about shipping and delivery">Shipping info</button>
+                        <button class="suggestion-btn" data-prompt="What is your return policy?">Return policy</button>
+                        <button class="suggestion-btn" data-prompt="Do you offer customer support?">Customer support</button>
+                      </div>
+                    </div>
+                    
+                    <div class="suggestion-section">
+                      <h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600; color: #555;">Help me choose</h4>
+                      <div class="suggestion-buttons">
+                        <button class="suggestion-btn" data-prompt="Help me find the perfect product for my needs">Find the right product</button>
+                        <button class="suggestion-btn" data-prompt="Compare similar products">Compare products</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+
+            </div>
+          </div>
+          
+          <!-- Chat Input -->
+          <div class="ai-chat-input">
+            <input 
+              type="text" 
+              id="ai-chat-input-field"
+              placeholder="${widgetSettings.inputPlaceholder}"
+            />
+            <button id="ai-chat-send-btn" style="background-color: ${widgetSettings.primaryColor};">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 2L9 11M18 2L12 18L9 11M18 2L2 8L9 11" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Add CSS styles
+    addWidgetStyles();
+    
+    // Add event listeners after DOM is ready
+    setTimeout(() => {
+      setupEventListeners();
+    }, 50);
+  }
+  
+  // Add CSS styles for the widget
+  function addWidgetStyles() {
+    if (document.getElementById('ai-widget-styles')) return;
+    
+    // Set CSS variables for dynamic theming
+    document.documentElement.style.setProperty('--ai-primary-color', widgetSettings.primaryColor);
+    document.documentElement.style.setProperty('--ai-primary-color-hover', widgetSettings.primaryColor + 'dd');
+    
+    const style = document.createElement('style');
+    style.id = 'ai-widget-styles';
+    style.textContent = `
+/* AI Sales Assistant Widget Styles */
+.ai-sales-assistant-widget {
+  position: fixed;
+  z-index: 1000;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Position variants */
+.ai-sales-assistant-widget.position-bottom-right {
+  bottom: 20px;
+  right: 20px;
+}
+
+.ai-sales-assistant-widget.position-bottom-left {
+  bottom: 20px;
+  left: 20px;
+}
+
+.ai-sales-assistant-widget.position-top-right {
+  top: 20px;
+  right: 20px;
+}
+
+.ai-sales-assistant-widget.position-top-left {
+  top: 20px;
+  left: 20px;
+}
+
+.ai-sales-assistant-widget.position-center-right {
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+}
+
+.ai-sales-assistant-widget.position-center-left {
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
+}
+
+.ai-chat-toggle {
+  background: var(--ai-primary-color, #ee5cee);
+  border: none;
+  border-radius: 50px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.ai-chat-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.ai-chat-toggle .button-text {
+  white-space: nowrap;
+}
+
+.ai-chat-window {
+  position: absolute;
+  bottom: 70px;
+  right: 0;
+  width: 350px;
+  height: 500px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  display: none;
+  grid-template-rows: 60px 1fr 70px;
+  grid-template-areas: 
+    "header"
+    "messages"
+    "input";
+  overflow: hidden;
+  max-height: 500px;
+  min-height: 500px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.ai-chat-window.ai-chat-open {
+  display: grid !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+.ai-sales-assistant-widget.position-bottom-left .ai-chat-window,
+.ai-sales-assistant-widget.position-top-left .ai-chat-window,
+.ai-sales-assistant-widget.position-center-left .ai-chat-window {
+  right: auto;
+  left: 0;
+}
+
+.ai-sales-assistant-widget.position-top-right .ai-chat-window,
+.ai-sales-assistant-widget.position-top-left .ai-chat-window {
+  bottom: auto;
+  top: 70px;
+}
+
+.ai-sales-assistant-widget.position-center-right .ai-chat-window,
+.ai-sales-assistant-widget.position-center-left .ai-chat-window {
+  bottom: auto;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.ai-chat-header {
+  background: var(--ai-primary-color, #ee5cee);
+  color: white;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+  height: 60px; /* Fixed header height */
+  box-sizing: border-box;
+  grid-area: header !important;
+}
+
+.ai-chat-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.ai-chat-close {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ai-chat-close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.ai-chat-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.ai-chat-messages-container {
+  grid-area: messages !important;
+  overflow: hidden;
+  background: #fafafa;
+  box-sizing: border-box;
+  height: 100%;
+  width: 100%;
+}
+
+.ai-chat-messages {
+  padding: 15px;
+  padding-bottom: 15px; /* Consistent padding */
+  overflow-y: auto !important; /* Show scrollbar when content overflows */
+  overflow-x: hidden !important;
+  display: flex;
+  flex-direction: column;
+  gap: 0 !important; /* Remove gap to use margin instead for better control */
+  scroll-behavior: smooth;
+  height: 100% !important; /* Take full available height */
+  box-sizing: border-box !important;
+  background: #fafafa; /* Light background to distinguish from header/footer */
+}
+
+/* Custom scrollbar styling for webkit browsers */
+.ai-chat-messages::-webkit-scrollbar {
+  width: 8px; /* Made wider for better visibility */
+}
+
+.ai-chat-messages::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.ai-chat-messages::-webkit-scrollbar-thumb {
+  background: #bbb;
+  border-radius: 4px;
+}
+
+.ai-chat-messages::-webkit-scrollbar-thumb:hover {
+  background: #888;
+}
+
+/* Firefox scrollbar */
+.ai-chat-messages {
+  scrollbar-width: thin;
+  scrollbar-color: #bbb #f1f1f1;
+}
+
+#ai-chat-messages .ai-message,
+.ai-chat-messages .ai-message,
+.ai-chat-messages-container .ai-message {
+  max-width: 85% !important;
+  width: fit-content;
+  overflow: visible !important; /* Allow content to show fully */
+  display: block !important;
+  box-sizing: border-box !important;
+  margin-bottom: 16px !important; /* Increased spacing for better visibility */
+  margin-top: 0 !important; /* Reset any top margins */
+}
+
+/* Welcome screen should take full width */
+.ai-welcome-message {
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+#ai-chat-messages .ai-message:last-child,
+.ai-chat-messages .ai-message:last-child,
+.ai-chat-messages-container .ai-message:last-child {
+  margin-bottom: 8px !important; /* Small bottom margin for last message */
+}
+
+/* Force spacing with even higher specificity */
+.ai-sales-assistant-widget .ai-chat-messages .ai-message {
+  margin-bottom: 16px !important;
+  margin-top: 0 !important;
+}
+
+.ai-message.user-message {
+  align-self: flex-end;
+}
+
+.ai-message.assistant-message {
+  align-self: flex-start;
+}
+
+.ai-message.product-recommendation {
+  margin-top: 0 !important; /* Use consistent margin pattern */
+  margin-bottom: 12px !important; /* Consistent with other messages */
+}
+
+.product-content {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.clickable-product {
+  user-select: none;
+}
+
+.clickable-product:active {
+  transform: scale(0.98) !important;
+}
+
+.message-content {
+  padding: 10px 14px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.4;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  hyphens: auto;
+  max-width: 100% !important;
+  white-space: normal !important; /* Normal whitespace handling - trim extra spaces */
+  box-sizing: border-box !important;
+  overflow: visible !important; /* Allow content to show fully */
+}
+
+.ai-loading {
+  padding: 10px 14px;
+  border-radius: 18px;
+  background: #f1f1f1;
+  color: #333;
+  margin-bottom: 16px !important; /* Match message spacing */
+  margin-top: 0 !important;
+  max-width: 85% !important;
+  width: fit-content;
+  align-self: flex-start; /* Left-align like assistant messages */
+  display: block !important;
+  box-sizing: border-box !important;
+}
+
+.loading-dots {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.loading-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ai-primary-color, #ee5cee);
+  animation: loading-bounce 1.4s ease-in-out infinite both;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+.loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes loading-bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+
+.ai-chat-input {
+  padding: 15px;
+  border-top: 1px solid #e5e5e5;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: white !important; /* Ensure solid background */
+  z-index: 10; /* Keep above other content */
+  height: 70px !important; /* Fixed height to prevent shifting */
+  box-sizing: border-box !important;
+  border-radius: 0 0 12px 12px; /* Match window border radius */
+  grid-area: input !important;
+}
+
+.ai-chat-input input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  font-size: 14px;
+  outline: none;
+}
+
+.ai-chat-input input:focus {
+  border-color: var(--ai-primary-color, #ee5cee);
+}
+
+.ai-chat-input button {
+  background: var(--ai-primary-color, #ee5cee);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.ai-chat-input button:hover {
+  background: var(--ai-primary-color-hover, #dd44dd);
+}
+
+/* Mobile responsiveness */
+/* Product Grid Styles */
+.products-grid-container {
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+.products-grid {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+}
+
+.product-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.product-image {
+  width: 100%;
+  height: 160px;
+  background-size: cover;
+  background-position: center;
+  background-color: #f8f9fa;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.product-details {
+  padding: 16px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.product-title {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.product-price-category {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.product-price {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ai-primary-color, #ee5cee);
+}
+
+.product-category {
+  background: #f3f4f6;
+  color: #6b7280;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.product-description {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex-grow: 1;
+}
+
+.product-tags {
+  margin-bottom: 12px;
+}
+
+.product-tag {
+  display: inline-block;
+  background: #e5e7eb;
+  color: #374151;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 10px;
+  margin-right: 4px;
+  margin-bottom: 4px;
+}
+
+.product-action-button {
+  background: var(--ai-primary-color, #ee5cee);
+  color: white;
+  text-align: center;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: auto;
+  transition: background-color 0.2s ease;
+}
+
+.product-action-button:hover {
+  background: var(--ai-primary-color-hover, #dd44dd);
+}
+
+.relevance-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--ai-primary-color, #ee5cee);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* AI Welcome Interface Styles */
+.ai-welcome-container {
+  width: 100%;
+  max-width: none !important;
+}
+
+.ai-welcome-header {
+  text-align: center;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 16px;
+}
+
+.suggestion-section {
+  margin-bottom: 20px;
+}
+
+.suggestion-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.suggestion-btn {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.suggestion-btn:hover {
+  background: #e5e7eb;
+  border-color: var(--ai-primary-color, #ee5cee);
+  color: #111827;
+  transform: translateY(-1px);
+}
+
+.suggestion-btn:active {
+  transform: translateY(0);
+  background: #d1d5db;
+}
+
+@media (max-width: 480px) {
+  .ai-chat-window {
+    width: calc(100vw - 40px);
+    height: calc(100vh - 140px);
+    position: fixed;
+    bottom: 70px;
+    left: 20px;
+    right: 20px;
+  }
+  
+  .ai-sales-assistant-widget.position-bottom-left .ai-chat-window,
+  .ai-sales-assistant-widget.position-top-left .ai-chat-window,
+  .ai-sales-assistant-widget.position-center-left .ai-chat-window,
+  .ai-sales-assistant-widget.position-bottom-right .ai-chat-window,
+  .ai-sales-assistant-widget.position-top-right .ai-chat-window,
+  .ai-sales-assistant-widget.position-center-right .ai-chat-window {
+    left: 20px;
+    right: 20px;
+    transform: none;
+  }
+  
+  .ai-chat-toggle .button-text {
+    display: none;
+  }
+  
+  .ai-message {
+    max-width: 90%; /* Allow more width on mobile */
+  }
+  
+  .message-content {
+    font-size: 13px; /* Slightly smaller font on mobile */
+  }
+  
+  .ai-chat-input {
+    padding: 12px; /* Reduce padding on mobile */
+  }
+  
+  .suggestion-btn {
+    font-size: 13px;
+    padding: 10px 14px;
+  }
+  
+  /* Mobile Product Grid Styles */
+  .products-grid {
+    grid-template-columns: 1fr !important; /* Single column on mobile */
+    gap: 10px;
+  }
+  
+  .product-card {
+    flex-direction: row; /* Horizontal layout on mobile */
+    height: auto;
+    min-height: 120px;
+  }
+  
+  .product-image {
+    width: 100px;
+    height: 120px;
+    flex-shrink: 0;
+  }
+  
+  .product-details {
+    padding: 12px;
+    flex-grow: 1;
+  }
+  
+  .product-title {
+    font-size: 14px;
+    -webkit-line-clamp: 1;
+    margin-bottom: 6px;
+  }
+  
+  .product-price {
+    font-size: 16px;
+  }
+  
+  .product-description {
+    font-size: 12px;
+    -webkit-line-clamp: 2;
+    margin-bottom: 8px;
+  }
+  
+  .product-action-button {
+    padding: 8px;
+    font-size: 12px;
+  }
+  
+  .relevance-badge {
+    top: 4px;
+    right: 4px;
+    padding: 2px 6px;
+    font-size: 10px;
+  }
+  
+  .product-category {
+    font-size: 10px;
+    padding: 1px 6px;
+  }
+  
+  .product-tag {
+    font-size: 9px;
+    padding: 1px 4px;
+  }
+}
+
+/* Tablet responsiveness */
+@media (max-width: 768px) and (min-width: 481px) {
+  .products-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
+    gap: 10px;
+  }
+  
+  .product-image {
+    height: 140px;
+  }
+  
+  .product-title {
+    font-size: 15px;
+  }
+  
+  .product-price {
+    font-size: 18px;
+  }
+}
+    `;
+    document.head.appendChild(style);
+  }
+  
+  // Setup event listeners for widget buttons
+  function setupEventListeners() {
+    console.log('🔧 AI Widget: Setting up event listeners');
+    
+    // Store references to event handlers so we can remove them if needed
+    window.aiWidgetHandlers = window.aiWidgetHandlers || {};
+    
+    // Toggle button event listener
+    const toggleBtn = document.getElementById('ai-chat-toggle-btn');
+    if (toggleBtn) {
+      // Remove existing listener if any
+      if (window.aiWidgetHandlers.toggleHandler) {
+        toggleBtn.removeEventListener('click', window.aiWidgetHandlers.toggleHandler);
+      }
+      
+      window.aiWidgetHandlers.toggleHandler = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('🖱️ AI Widget: Toggle button clicked');
+        toggleAIChat();
+      };
+      
+      toggleBtn.addEventListener('click', window.aiWidgetHandlers.toggleHandler);
+      console.log('✅ AI Widget: Toggle button event listener added');
+    } else {
+      console.warn('⚠️ AI Widget: Toggle button not found');
+    }
+    
+    // Close button event listener
+    const closeBtn = document.getElementById('ai-chat-close-btn');
+    if (closeBtn) {
+      // Remove existing listener if any
+      if (window.aiWidgetHandlers.closeHandler) {
+        closeBtn.removeEventListener('click', window.aiWidgetHandlers.closeHandler);
+      }
+      
+      window.aiWidgetHandlers.closeHandler = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('🖱️ AI Widget: Close button clicked');
+        toggleAIChat();
+      };
+      
+      closeBtn.addEventListener('click', window.aiWidgetHandlers.closeHandler);
+      console.log('✅ AI Widget: Close button event listener added');
+    } else {
+      console.warn('⚠️ AI Widget: Close button not found');
+    }
+    
+    // Send button event listener
+    const sendBtn = document.getElementById('ai-chat-send-btn');
+    if (sendBtn) {
+      // Remove existing listener if any
+      if (window.aiWidgetHandlers.sendHandler) {
+        sendBtn.removeEventListener('click', window.aiWidgetHandlers.sendHandler);
+      }
+      
+      window.aiWidgetHandlers.sendHandler = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        sendAIMessage();
+      };
+      
+      sendBtn.addEventListener('click', window.aiWidgetHandlers.sendHandler);
+      console.log('✅ AI Widget: Send button event listener added');
+    } else {
+      console.warn('⚠️ AI Widget: Send button not found');
+    }
+    
+    // Input field event listener for Enter key
+    const inputField = document.getElementById('ai-chat-input-field');
+    if (inputField) {
+      // Remove existing listener if any
+      if (window.aiWidgetHandlers.keyHandler) {
+        inputField.removeEventListener('keypress', window.aiWidgetHandlers.keyHandler);
+      }
+      
+      window.aiWidgetHandlers.keyHandler = function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          sendAIMessage();
+        }
+      };
+      
+      inputField.addEventListener('keypress', window.aiWidgetHandlers.keyHandler);
+      console.log('✅ AI Widget: Input field event listener added');
+    } else {
+      console.warn('⚠️ AI Widget: Input field not found');
+    }
+    
+    // Add suggestion button event listeners
+    const suggestionBtns = document.querySelectorAll('.suggestion-btn');
+    suggestionBtns.forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const prompt = this.getAttribute('data-prompt');
+        if (prompt) {
+          console.log('🖱️ AI Widget: Suggestion clicked:', prompt);
+          // Auto-fill input and send message
+          const inputField = document.getElementById('ai-chat-input-field');
+          if (inputField) {
+            inputField.value = prompt;
+            sendAIMessage();
+          }
+        }
+      });
+    });
+    console.log('✅ AI Widget: Suggestion button listeners added:', suggestionBtns.length);
+    
+    // Add click outside to close functionality (only add once)
+    if (!window.aiWidgetHandlers.outsideClickHandler) {
+      window.aiWidgetHandlers.outsideClickHandler = function(e) {
+        const chatWindow = document.getElementById('ai-chat-window');
+        const widget = document.querySelector('.ai-sales-assistant-widget');
+        
+        if (chatOpen && chatWindow && widget && !widget.contains(e.target)) {
+          console.log('🖱️ AI Widget: Clicked outside, closing chat');
+          toggleAIChat();
+        }
+      };
+      
+      document.addEventListener('click', window.aiWidgetHandlers.outsideClickHandler);
+      console.log('✅ AI Widget: Outside click listener added');
+    }
+  }
+  
+  // Add manual refresh function for debugging
+  window.refreshAIWidget = async function() {
+    console.log('🔄 AI Widget: Manual refresh triggered');
+    await initializeWidget();
+  };
+  
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeWidget);
+  } else {
+    initializeWidget();
+  }
+  
+  // Check for setting updates every 5 minutes (reduced from 2 seconds to prevent excessive database queries)
+  let workingApiUrl = null; // Cache the working URL to avoid testing all URLs every time
+  
+  setInterval(async () => {
+    try {
+      const shopDomain = window.Shopify?.shop || '{{ shop.permanent_domain }}';
+      const urlsToTry = workingApiUrl ? [workingApiUrl] : [
+        // Use app proxy URL - properly forwarded to your app server
+        '{{ shop.url }}' + '/apps/widget-settings',
+        // Fallback to current host
+        window.location.protocol + '//' + window.location.host + '/apps/widget-settings'
+      ];
+      
+      for (const url of urlsToTry) {
+        try {
+          const response = await fetch(`${url}?shop=${shopDomain}&t=${Date.now()}`);
+          if (response.ok) {
+            const data = await response.json();
+            const currentUpdate = data.settings.updatedAt;
+            
+            // Cache the working URL
+            if (!workingApiUrl) workingApiUrl = url;
+            
+            if (window.lastSettingsUpdate && currentUpdate !== window.lastSettingsUpdate) {
+              console.log('🔄 AI Widget: Settings updated, refreshing widget...', {
+                old: window.lastSettingsUpdate,
+                new: currentUpdate,
+                newSettings: data.settings
+              });
+              widgetSettings = { ...blockSettings, ...data.settings };
+              createWidget();
+              console.log('✅ AI Widget: Widget refreshed with new settings');
+            }
+            window.lastSettingsUpdate = currentUpdate;
+            break; // Success, stop trying other URLs
+          }
+        } catch (e) {
+          // If the cached URL fails, reset it to try all URLs next time
+          if (url === workingApiUrl) workingApiUrl = null;
+          continue;
+        }
+      }
+    } catch (e) {
+      // Silently fail
+    }
+  }, 300000); // 5 minutes (300,000ms) - much more reasonable for production
+})();
+</script> 
