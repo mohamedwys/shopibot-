@@ -45,3 +45,91 @@ model WidgetSettings {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+// Store product embeddings for semantic search
+model ProductEmbedding {
+  id              String   @id @default(cuid())
+  shop            String
+  productId       String   // Shopify product ID
+  productHandle   String
+  title           String
+  description     String?
+  embedding       String   // JSON stringified array of floats
+  embeddingModel  String   @default("text-embedding-3-small")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([shop, productId])
+  @@index([shop, productHandle])
+}
+
+// Track user profiles and preferences
+model UserProfile {
+  id              String   @id @default(cuid())
+  shop            String
+  customerId      String?  // Shopify customer ID (optional for guests)
+  sessionId       String   // Browser session ID
+  preferences     String   @default("{}") // JSON: colors, price range, categories
+  browsingHistory String   @default("[]") // JSON: recently viewed products
+  purchaseHistory String   @default("[]") // JSON: purchased products
+  interactions    String   @default("[]") // JSON: chat interactions
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  chatSessions    ChatSession[]
+
+  @@unique([shop, sessionId])
+  @@index([shop, customerId])
+}
+
+// Store chat sessions with context
+model ChatSession {
+  id              String      @id @default(cuid())
+  shop            String
+  userProfileId   String
+  userProfile     UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+  context         String      @default("{}") // JSON: current context, intent, sentiment
+  lastMessageAt   DateTime    @default(now())
+  createdAt       DateTime    @default(now())
+  messages        ChatMessage[]
+
+  @@index([shop, userProfileId])
+  @@index([shop, lastMessageAt])
+}
+
+// Store individual chat messages
+model ChatMessage {
+  id              String      @id @default(cuid())
+  sessionId       String
+  session         ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role            String      // 'user' | 'assistant'
+  content         String
+  intent          String?     // Classified intent
+  sentiment       String?     // positive, neutral, negative
+  confidence      Float?      // AI confidence score
+  productsShown   String      @default("[]") // JSON: product IDs shown
+  productClicked  String?     // Product ID if clicked
+  metadata        String      @default("{}") // JSON: additional data
+  timestamp       DateTime    @default(now())
+
+  @@index([sessionId, timestamp])
+}
+
+// Analytics for tracking performance
+model ChatAnalytics {
+  id                  String   @id @default(cuid())
+  shop                String
+  date                DateTime @db.Date
+  totalSessions       Int      @default(0)
+  totalMessages       Int      @default(0)
+  avgResponseTime     Float    @default(0)
+  avgConfidence       Float    @default(0)
+  topIntents          String   @default("{}") // JSON: intent -> count
+  topProducts         String   @default("{}") // JSON: productId -> clicks
+  sentimentBreakdown  String   @default("{}") // JSON: sentiment -> count
+  conversionsTracked  Int      @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([shop, date])
+  @@index([shop, date])
+}

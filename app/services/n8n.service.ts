@@ -1,4 +1,7 @@
 import axios from 'axios';
+import { getEmbeddingService, isEmbeddingServiceAvailable } from './embedding.service';
+import { personalizationService, type UserPreferences } from './personalization.service';
+import db from '../db.server';
 
 export interface N8NWebhookResponse {
   message: string;
@@ -21,7 +24,12 @@ export interface N8NRequest {
   products: any[];
   context?: {
     previousMessages?: string[];
-    userPreferences?: any;
+    userPreferences?: UserPreferences;
+    sessionId?: string;
+    customerId?: string;
+    shopDomain?: string;
+    sentiment?: string;
+    intent?: string;
   };
 }
 
@@ -48,7 +56,7 @@ export class N8NService {
     try {
       console.log('🚀 N8N Service: Attempting to call webhook:', this.webhookUrl);
       console.log('📤 N8N Service: Request payload:', JSON.stringify(request, null, 2));
-      
+
       const headers: any = {
         'Content-Type': 'application/json',
       };
@@ -74,17 +82,281 @@ export class N8NService {
         method: error?.config?.method,
         headers: error?.config?.headers
       });
-      
-      console.log('🔄 N8N Service: Falling back to local processing');
-      // Fallback to local processing if N8N is unavailable
+
+      console.log('🔄 N8N Service: Falling back to AI-enhanced local processing');
+      // Fallback to AI-enhanced local processing if N8N is unavailable
       return this.fallbackProcessing(request);
     }
   }
 
-  private fallbackProcessing(request: N8NRequest): N8NWebhookResponse {
+  /**
+   * Enhanced fallback processing with semantic search and personalization
+   */
+  private async enhancedFallbackProcessing(request: N8NRequest): Promise<N8NWebhookResponse> {
+    const { userMessage, products, context } = request;
+    const shop = context?.shopDomain || '';
+
+    try {
+      // Classify intent and sentiment
+      const intent = await personalizationService.classifyIntent(userMessage);
+      const sentiment = await personalizationService.analyzeSentiment(userMessage);
+
+      console.log(`🎯 Intent: ${intent}, Sentiment: ${sentiment}`);
+
+      let recommendations: ProductRecommendation[] = [];
+      let message = '';
+      let confidence = 0.7;
+
+      // Use semantic search if available and it's a product search
+      if (
+        isEmbeddingServiceAvailable() &&
+        ['PRODUCT_SEARCH', 'COMPARISON', 'OTHER'].includes(intent)
+      ) {
+        try {
+          console.log('🔍 Using semantic search with embeddings...');
+          const embeddingService = getEmbeddingService();
+
+          // Perform semantic search
+          const results = await embeddingService.semanticSearch(
+            shop,
+            userMessage,
+            products,
+            5
+          );
+
+          // Convert to recommendations
+          recommendations = results.map(result => ({
+            id: result.product.id,
+            title: result.product.title,
+            handle: result.product.handle,
+            price: result.product.price || '0.00',
+            image: result.product.image,
+            description: result.product.description,
+            relevanceScore: Math.round(result.similarity * 100),
+          }));
+
+          confidence = results[0]?.similarity || 0.7;
+
+          // Apply personalization boost if we have user context
+          if (context?.sessionId) {
+            recommendations = await this.applyPersonalizationBoost(
+              context.sessionId,
+              shop,
+              recommendations,
+              context.userPreferences
+            );
+          }
+
+          message = this.generateSemanticSearchMessage(userMessage, recommendations, intent);
+
+          console.log(`✅ Found ${recommendations.length} semantic matches`);
+        } catch (error: any) {
+          console.error('❌ Semantic search failed, falling back to keyword search:', error.message);
+          // Fall through to keyword-based search
+        }
+      }
+
+      // If no recommendations yet, use keyword-based search
+      if (recommendations.length === 0) {
+        const result = await this.keywordBasedSearch(userMessage, products, intent, context?.userPreferences);
+        recommendations = result.recommendations;
+        message = result.message;
+        confidence = result.confidence;
+      }
+
+      return {
+        message,
+        recommendations,
+        confidence,
+      };
+    } catch (error: any) {
+      console.error('❌ Enhanced fallback processing error:', error.message);
+      // Ultimate fallback to simple processing
+      return this.simpleFallbackProcessing(request);
+    }
+  }
+
+  /**
+   * Apply personalization scoring boost to recommendations
+   */
+  private async applyPersonalizationBoost(
+    sessionId: string,
+    shop: string,
+    recommendations: ProductRecommendation[],
+    preferences?: UserPreferences
+  ): Promise<ProductRecommendation[]> {
+    try {
+      const context = await personalizationService.getPersonalizationContext(
+        shop,
+        sessionId
+      );
+
+      const boostedRecs = recommendations.map(rec => {
+        let boost = 0;
+
+        // Boost if user viewed this product before
+        if (context.recentProducts.includes(rec.id)) {
+          boost += 10;
+        }
+
+        // Boost if matches price preferences
+        if (context.preferences.priceRange && rec.price) {
+          const price = parseFloat(rec.price);
+          if (
+            price >= context.preferences.priceRange.min &&
+            price <= context.preferences.priceRange.max
+          ) {
+            boost += 5;
+          }
+        }
+
+        // Boost if matches favorite colors
+        if (context.preferences.favoriteColors && rec.description) {
+          const descLower = rec.description.toLowerCase();
+          context.preferences.favoriteColors.forEach(color => {
+            if (descLower.includes(color.toLowerCase())) {
+              boost += 3;
+            }
+          });
+        }
+
+        return {
+          ...rec,
+          relevanceScore: Math.min(100, (rec.relevanceScore || 0) + boost),
+        };
+      });
+
+      // Re-sort by boosted scores
+      return boostedRecs.sort((a, b) =>
+        (b.relevanceScore || 0) - (a.relevanceScore || 0)
+      );
+    } catch (error: any) {
+      console.error('❌ Personalization boost error:', error.message);
+      return recommendations;
+    }
+  }
+
+  /**
+   * Generate message based on semantic search results
+   */
+  private generateSemanticSearchMessage(
+    query: string,
+    recommendations: ProductRecommendation[],
+    intent: string
+  ): string {
+    if (recommendations.length === 0) {
+      return "I couldn't find exact matches, but let me help you in another way. Could you provide more details about what you're looking for?";
+    }
+
+    const topScore = recommendations[0]?.relevanceScore || 0;
+
+    if (topScore > 85) {
+      return `I found some excellent matches for "${query}"! These products closely match what you're looking for:`;
+    } else if (topScore > 70) {
+      return `Here are some good options that match your search for "${query}":`;
+    } else {
+      return `Based on your search for "${query}", here are some products you might be interested in:`;
+    }
+  }
+
+  /**
+   * Keyword-based search (fallback when embeddings not available)
+   */
+  private async keywordBasedSearch(
+    userMessage: string,
+    products: any[],
+    intent: string,
+    preferences?: UserPreferences
+  ): Promise<{ message: string; recommendations: ProductRecommendation[]; confidence: number }> {
+    const lowerMessage = userMessage.toLowerCase();
+    const keywords = lowerMessage.split(/\s+/).filter(word => word.length > 3);
+
+    // Score products based on keyword matches
+    const scoredProducts = products.map(product => {
+      let score = 0;
+      const title = (product.title || '').toLowerCase();
+      const description = (product.description || '').toLowerCase();
+
+      keywords.forEach(keyword => {
+        if (title.includes(keyword)) score += 3;
+        if (description.includes(keyword)) score += 1;
+      });
+
+      // Apply price preferences if available
+      if (preferences?.priceRange && product.price) {
+        const price = parseFloat(product.price);
+        if (price >= preferences.priceRange.min && price <= preferences.priceRange.max) {
+          score += 2;
+        }
+      }
+
+      return {
+        ...product,
+        score,
+      };
+    });
+
+    const topProducts = scoredProducts
+      .filter(p => p.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5);
+
+    const recommendations = topProducts.map(p => ({
+      id: p.id,
+      title: p.title,
+      handle: p.handle,
+      price: p.price || '0.00',
+      image: p.image,
+      description: p.description,
+      relevanceScore: Math.min(100, Math.round((p.score / 10) * 100)),
+    }));
+
+    let message = '';
+
+    if (recommendations.length > 0) {
+      message = `Here are some products that match your search:`;
+    } else {
+      message = this.getIntentBasedMessage(intent, lowerMessage);
+    }
+
+    return {
+      message,
+      recommendations,
+      confidence: recommendations.length > 0 ? 0.6 : 0.5,
+    };
+  }
+
+  /**
+   * Get intent-based response message
+   */
+  private getIntentBasedMessage(intent: string, message: string): string {
+    const responses: Record<string, string> = {
+      PRICE_INQUIRY: "I can help you find products within your budget. What price range are you looking for?",
+      SHIPPING: "Let me check the shipping options for you. Most of our products offer free shipping on orders over $50.",
+      RETURNS: "Our return policy allows returns within 30 days of purchase. Would you like me to help you with a specific product return?",
+      SIZE_FIT: "I can help you find the right size. What type of product are you looking for, and what are your measurements?",
+      SUPPORT: "I'm here to help with any issues you're experiencing. Can you tell me more about what you need assistance with?",
+      GREETING: "Hello! I'm your AI shopping assistant. I can help you find products, answer questions about pricing and shipping, and provide personalized recommendations. What are you looking for today?",
+      THANKS: "You're welcome! Is there anything else I can help you with?",
+      COMPARISON: "I'd be happy to help you compare products. Which products would you like to compare?",
+      AVAILABILITY: "I can check product availability for you. Which product are you interested in?",
+    };
+
+    return responses[intent] || "I'm here to help you find the perfect products! You can ask me about:\n• Product recommendations\n• Pricing and budget options\n• Shipping and delivery\n• Returns and exchanges\n• Product details like size, color, and materials\n\nWhat would you like to know?";
+  }
+
+  private fallbackProcessing(request: N8NRequest): Promise<N8NWebhookResponse> {
+    // Use enhanced fallback with AI features if available
+    return this.enhancedFallbackProcessing(request);
+  }
+
+  /**
+   * Simple fallback processing without AI enhancements (ultimate fallback)
+   */
+  private simpleFallbackProcessing(request: N8NRequest): N8NWebhookResponse {
     const { userMessage, products } = request;
     const lowerMessage = userMessage.toLowerCase();
-    
+
     let message = "";
     let recommendations: ProductRecommendation[] = [];
 
@@ -97,7 +369,7 @@ export class N8NService {
         price: product.price,
         image: product.image,
         description: product.description,
-        relevanceScore: Math.random() * 100
+        relevanceScore: Math.round(Math.random() * 100)
       }));
       message = "Here are some products I'd recommend based on your request:";
     } else if (lowerMessage.includes("price") || lowerMessage.includes("cost") || lowerMessage.includes("budget")) {
@@ -119,7 +391,7 @@ export class N8NService {
     return {
       message,
       recommendations,
-      confidence: 0.7
+      confidence: 0.5
     };
   }
 
