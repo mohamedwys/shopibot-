@@ -105,15 +105,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       );
     }
 
-    // Try to get admin access for shop data
-    let admin;
-    try {
-      // Skip session lookup on Vercel (MemorySessionStorage doesn't support findSessionsByShop)
-      if (process.env.VERCEL === '1') {
-        console.log('🔧 Running on Vercel - using unauthenticated admin');
-        const { admin: unauthenticatedAdmin } = await unauthenticated.admin(shopDomain);
-        admin = unauthenticatedAdmin;
-      } else {
+    // Try to get admin access for shop data (only on local development)
+    let admin = null;
+
+    if (process.env.VERCEL !== '1') {
+      try {
         // Local development with Prisma storage
         const session = await sessionStorage.findSessionsByShop(shopDomain);
         if (session.length > 0) {
@@ -125,11 +121,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
           const { admin: unauthenticatedAdmin } = await unauthenticated.admin(shopDomain);
           admin = unauthenticatedAdmin;
         }
+      } catch (error) {
+        console.log('⚠️ Authentication failed:', error);
+        admin = null;
       }
-    } catch (error) {
-      console.log('⚠️ Authentication failed, trying unauthenticated admin:', error);
-      const { admin: unauthenticatedAdmin } = await unauthenticated.admin(shopDomain);
-      admin = unauthenticatedAdmin;
+    } else {
+      console.log('🔧 Running on Vercel - skipping admin authentication');
     }
     
     // Parse the request body
@@ -146,44 +143,57 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     
     console.log('💬 Processing message:', finalMessage);
 
-    // Get products for context
-    const response = await admin.graphql(`
-      #graphql
-      query getProducts($first: Int!) {
-        products(first: $first) {
-          edges {
-            node {
-              id
-              title
-              handle
-              description
-              featuredImage {
-                url
-              }
-              variants(first: 1) {
-                edges {
-                  node {
-                    price
+    // Get products for context (skip on Vercel due to MemorySessionStorage limitations)
+    let products = [];
+
+    if (process.env.VERCEL !== '1' && admin) {
+      try {
+        const response = await admin.graphql(`
+          #graphql
+          query getProducts($first: Int!) {
+            products(first: $first) {
+              edges {
+                node {
+                  id
+                  title
+                  handle
+                  description
+                  featuredImage {
+                    url
+                  }
+                  variants(first: 1) {
+                    edges {
+                      node {
+                        price
+                      }
+                    }
                   }
                 }
               }
             }
           }
-        }
-      }
-    `, {
-      variables: { first: 50 }
-    });
+        `, {
+          variables: { first: 50 }
+        });
 
-    const responseData = (response as any).data;
-    const products = responseData?.products?.edges?.map((edge: any) => ({
-      id: edge.node.id,
-      title: edge.node.title,
-      handle: edge.node.handle,
-      description: edge.node.description,
-      image: edge.node.featuredImage?.url,
-      price: edge.node.variants.edges[0]?.node.price || "0.00"
-    })) || [];
+        const responseData = (response as any).data;
+        products = responseData?.products?.edges?.map((edge: any) => ({
+          id: edge.node.id,
+          title: edge.node.title,
+          handle: edge.node.handle,
+          description: edge.node.description,
+          image: edge.node.featuredImage?.url,
+          price: edge.node.variants.edges[0]?.node.price || "0.00"
+        })) || [];
+
+        console.log(`✅ Fetched ${products.length} products from Shopify`);
+      } catch (error) {
+        console.log('⚠️ Could not fetch products from Shopify:', error);
+        products = [];
+      }
+    } else {
+      console.log('🔧 Running on Vercel - skipping Shopify product fetch');
+    }
 
     // Enhanced context for better AI responses
     const enhancedContext = {
@@ -194,10 +204,18 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       referer: request.headers.get('referer'),
     };
 
-    // Get webhook URL from widget settings
-    const settings = await db.widgetSettings.findUnique({
-      where: { shop: shopDomain },
-    });
+    // Get webhook URL from widget settings (skip on Vercel)
+    let settings = null;
+    if (process.env.VERCEL !== '1') {
+      try {
+        settings = await db.widgetSettings.findUnique({
+          where: { shop: shopDomain },
+        });
+      } catch (error) {
+        console.log('⚠️ Could not fetch settings from database:', error);
+        settings = null;
+      }
+    }
     
 
     
