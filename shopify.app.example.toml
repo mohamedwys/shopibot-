@@ -1,0 +1,36 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+# Get this from your Shopify Partner Dashboard > Apps > [Your App] > App setup
+# This is the same as your "Client ID"
+client_id = "your_shopify_app_client_id_here"
+
+name = "ihear.ai"
+handle = "ihear-ai"
+application_url = "https://your-tunnel-url.trycloudflare.com"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = "your-dev-store.myshopify.com"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "write_products,read_product_listings,read_customers,write_themes"
+
+[auth]
+redirect_urls = [
+  "https://your-tunnel-url.trycloudflare.com/auth/callback",
+  "https://your-tunnel-url.trycloudflare.com/auth/shopify/callback",
+  "https://your-tunnel-url.trycloudflare.com/api/auth/callback"
+]
+
+[webhooks]
+api_version = "2024-10"
+
+[pos]
+embedded = false
+
+[app_proxy]
+url = "https://your-tunnel-url.trycloudflare.com"
+subpath = "/api"
+prefix = "apps"

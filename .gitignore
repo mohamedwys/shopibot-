@@ -26,6 +26,7 @@ database.sqlite
 
 # Shopify app configuration (SENSITIVE - contains API keys)
 shopify.app.toml
+!shopify.app.example.toml
 
 # Shopify development files
 .shopify/*
