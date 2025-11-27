@@ -1,6 +1,6 @@
 {
-  "buildCommand": "prisma generate && npm run build",
-  "installCommand": "npm install",
+  "buildCommand": "prisma generate && pnpm run build",
+  "installCommand": "pnpm install",
   "framework": "remix",
   "env": {
     "NODE_ENV": "production"
