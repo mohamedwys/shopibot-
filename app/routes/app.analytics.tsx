@@ -19,8 +19,8 @@ import {
   Icon,
 } from "@shopify/polaris";
 import {
-  TrendingUpIcon,
-  TrendingDownIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
   CalendarIcon,
   AnalyticsIcon,
   CustomersIcon,
@@ -159,7 +159,7 @@ export default function AnalyticsPage() {
 
     const isPositive = change > 0;
     const tone = isPositive ? "success" : "critical";
-    const icon = isPositive ? TrendingUpIcon : TrendingDownIcon;
+    const icon = isPositive ? ArrowUpIcon : ArrowDownIcon;
 
     return (
       <Badge tone={tone} icon={icon}>
