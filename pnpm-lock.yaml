@@ -79,15 +79,6 @@ importers:
       '@shopify/api-codegen-preset':
         specifier: ^1.1.1
         version: 1.1.8(@types/node@22.16.4)(typescript@5.8.3)
-      '@stagewise-plugins/react':
-        specifier: ^0.6.0
-        version: 0.6.0(@stagewise/toolbar@0.6.0)
-      '@stagewise/toolbar':
-        specifier: ^0.6.0
-        version: 0.6.0
-      '@stagewise/toolbar-react':
-        specifier: ^0.6.0
-        version: 0.6.0(@types/react@18.3.23)(react@18.3.1)
       '@types/eslint':
         specifier: ^9.6.1
         version: 9.6.1
@@ -1392,20 +1383,6 @@ packages:
 
   '@shopify/storefront-api-client@1.0.8':
     resolution: {integrity: sha512-F8llAG9ANQl9HEgsjwhjOik9FcLarPFBe5DrqwbDx+qildHc1jBgWzDlIPvZAeI/fOztcXJrpGopE11S8nkAAA==}
-
-  '@stagewise-plugins/react@0.6.0':
-    resolution: {integrity: sha512-tklOIju0GNvLF+3ArL/4GE7vFXQ+JSFVrcZh0vEW4CNihv5Z9XVnKp8AnWsoCcIEG7/oV6DDWCodFq7bIwzSNw==}
-    peerDependencies:
-      '@stagewise/toolbar': 0.6.0
-
-  '@stagewise/toolbar-react@0.6.0':
-    resolution: {integrity: sha512-PKn28bfPP4h7hjveFPed2H9ukSiP/DQu/qFEzlFc87MGrEUkWxw25b5wdn7yQb/ljNq1GMyCb7LVYF1YACdUJQ==}
-    peerDependencies:
-      '@types/react': '>=18.0.0'
-      react: '>=18.0.0'
-
-  '@stagewise/toolbar@0.6.0':
-    resolution: {integrity: sha512-JZfAruOFZXu8aWY8jyuD01XJ55zhEnEEiNMSi9+fN9gR5SBx6+jX25CfI+ezTtfoo2/4eYXKtQFt1upJ2Jyg2Q==}
 
   '@testing-library/dom@8.20.1':
     resolution: {integrity: sha512-/DiOQ5xBxgdYRC8LNk7U+RWat0S3qRLeIw3ZIkMQ9kkVlRmwD/Eg8k8CqIpD6GW7u20JIUOfMKbxtiLutpjQ4g==}
@@ -6493,18 +6470,6 @@ snapshots:
   '@shopify/storefront-api-client@1.0.8':
     dependencies:
       '@shopify/graphql-client': 1.4.0
-
-  '@stagewise-plugins/react@0.6.0(@stagewise/toolbar@0.6.0)':
-    dependencies:
-      '@stagewise/toolbar': 0.6.0
-
-  '@stagewise/toolbar-react@0.6.0(@types/react@18.3.23)(react@18.3.1)':
-    dependencies:
-      '@stagewise/toolbar': 0.6.0
-      '@types/react': 18.3.23
-      react: 18.3.1
-
-  '@stagewise/toolbar@0.6.0': {}
 
   '@testing-library/dom@8.20.1':
     dependencies:
