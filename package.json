@@ -18,7 +18,8 @@
     "shopify": "shopify",
     "prisma": "prisma",
     "graphql-codegen": "graphql-codegen",
-    "vite": "vite"
+    "vite": "vite",
+    "vercel-build": "prisma generate && prisma migrate deploy && remix vite:build"
   },
   "type": "module",
   "engines": {
