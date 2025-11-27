@@ -19,11 +19,11 @@ import {
   Icon,
 } from "@shopify/polaris";
 import {
-  TrendingUpIcon,
-  TrendingDownIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
   CalendarIcon,
-  AnalyticsIcon,
-  CustomersIcon,
+  ChartVerticalIcon,
+  PersonIcon,
 } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
 import { analyticsService, AnalyticsService } from "../services/analytics.service";
@@ -159,7 +159,7 @@ export default function AnalyticsPage() {
 
     const isPositive = change > 0;
     const tone = isPositive ? "success" : "critical";
-    const icon = isPositive ? TrendingUpIcon : TrendingDownIcon;
+    const icon = isPositive ? ArrowUpIcon : ArrowDownIcon;
 
     return (
       <Badge tone={tone} icon={icon}>
@@ -236,7 +236,7 @@ export default function AnalyticsPage() {
                   <Text variant="bodyMd" as="p" tone="subdued">
                     Total Messages
                   </Text>
-                  <Icon source={AnalyticsIcon} tone="base" />
+                  <Icon source={ChartVerticalIcon} tone="base" />
                 </InlineStack>
                 <Text variant="heading2xl" as="h3">
                   {formatNumber(data.overview.totalMessages)}
@@ -256,7 +256,7 @@ export default function AnalyticsPage() {
                   <Text variant="bodyMd" as="p" tone="subdued">
                     Active Users
                   </Text>
-                  <Icon source={CustomersIcon} tone="base" />
+                  <Icon source={PersonIcon} tone="base" />
                 </InlineStack>
                 <Text variant="heading2xl" as="h3">
                   {formatNumber(data.activeUsers)}
@@ -275,7 +275,7 @@ export default function AnalyticsPage() {
                   <Text variant="bodyMd" as="p" tone="subdued">
                     AI Confidence
                   </Text>
-                  <Icon source={AnalyticsIcon} tone="base" />
+                  <Icon source={ChartVerticalIcon} tone="base" />
                 </InlineStack>
                 <Text variant="heading2xl" as="h3">
                   {data.overview.avgConfidence.toFixed(1)}%

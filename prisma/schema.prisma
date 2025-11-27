@@ -118,7 +118,7 @@ model ChatMessage {
 model ChatAnalytics {
   id                  String   @id @default(cuid())
   shop                String
-  date                DateTime @db.Date
+  date                DateTime
   totalSessions       Int      @default(0)
   totalMessages       Int      @default(0)
   avgResponseTime     Float    @default(0)
