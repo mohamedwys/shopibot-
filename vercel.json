@@ -2,13 +2,6 @@
   "buildCommand": "prisma generate && npm run build",
   "installCommand": "npm install",
   "framework": "remix",
-  "functions": {
-    "build/server/index.js": {
-      "maxDuration": 30,
-      "memory": 1024,
-      "runtime": "nodejs20.x"
-    }
-  },
   "env": {
     "NODE_ENV": "production"
   },
