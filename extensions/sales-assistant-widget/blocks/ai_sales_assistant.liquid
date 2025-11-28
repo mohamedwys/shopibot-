@@ -625,9 +625,11 @@ This creates a floating chat widget that can be added to any page
           if (response.ok) {
             const data = await response.json();
             console.log(`✅ AI Widget: Successfully fetched settings from ${appUrl}`, data.settings);
-            
-            // Prioritize API settings over block settings
-            widgetSettings = { ...blockSettings, ...data.settings };
+
+            // In theme editor, prioritize block settings; on storefront, prioritize API settings
+            widgetSettings = window.Shopify && window.Shopify.designMode
+              ? { ...data.settings, ...blockSettings }  // Theme editor: block settings override
+              : { ...blockSettings, ...data.settings }; // Storefront: API settings override
             apiSuccess = true;
             
             // Initialize lastSettingsUpdate with current timestamp for auto-refresh
