@@ -626,10 +626,27 @@ This creates a floating chat widget that can be added to any page
             const data = await response.json();
             console.log(`✅ AI Widget: Successfully fetched settings from ${appUrl}`, data.settings);
 
+            // Detect if we're in theme editor (multiple ways to check)
+            const isThemeEditor = !!(
+              window.Shopify?.designMode ||
+              window.location.search.includes('oseid=') ||
+              window.location.pathname.includes('/editor')
+            );
+
+            console.log('🎨 Theme Editor Detection:', {
+              'Shopify.designMode': window.Shopify?.designMode,
+              'URL has oseid': window.location.search.includes('oseid='),
+              'Is theme editor': isThemeEditor
+            });
+
             // In theme editor, prioritize block settings; on storefront, prioritize API settings
-            widgetSettings = window.Shopify && window.Shopify.designMode
-              ? { ...data.settings, ...blockSettings }  // Theme editor: block settings override
-              : { ...blockSettings, ...data.settings }; // Storefront: API settings override
+            if (isThemeEditor) {
+              widgetSettings = { ...data.settings, ...blockSettings };  // Theme editor: block settings override
+              console.log('🎨 Theme Editor Mode: Using block settings to override API settings');
+            } else {
+              widgetSettings = { ...blockSettings, ...data.settings }; // Storefront: API settings override
+              console.log('🌐 Storefront Mode: Using API settings to override block settings');
+            }
             apiSuccess = true;
             
             // Initialize lastSettingsUpdate with current timestamp for auto-refresh
