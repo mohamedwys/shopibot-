@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getEmbeddingService, isEmbeddingServiceAvailable } from './embedding.service';
 import { personalizationService, type UserPreferences } from './personalization.service';
-import db from '../db.server';
+// import db from '../db.server';
 
 export interface N8NWebhookResponse {
   message: string;
