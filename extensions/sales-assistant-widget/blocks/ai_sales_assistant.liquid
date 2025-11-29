@@ -309,218 +309,182 @@ This creates a floating chat widget that can be added to any page
     }
   }
   
-  // Display enhanced product recommendations
+  // Display enhanced product recommendations with modern design
   function displayProductRecommendations(recommendations) {
     const messagesContainer = document.getElementById('ai-chat-messages');
-    
+
     // Add a container for all product cards
     const productsContainer = document.createElement('div');
     productsContainer.className = 'ai-message assistant-message products-grid-container';
-    productsContainer.style.marginBottom = '16px';
+    productsContainer.style.marginBottom = '20px';
     productsContainer.style.maxWidth = '100%';
     productsContainer.style.width = '100%';
-    
+
     const gridContent = document.createElement('div');
     gridContent.className = 'products-grid';
     gridContent.style.display = 'grid';
     gridContent.style.gridTemplateColumns = recommendations.length === 1 ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))';
-    gridContent.style.gap = '12px';
+    gridContent.style.gap = '16px';
     gridContent.style.padding = '0';
     gridContent.style.width = '100%';
-    
+
     recommendations.forEach((product, index) => {
-      // Create individual product card
+      // Create individual product card with modern design
       const productCard = document.createElement('div');
-      productCard.className = 'product-card clickable-product';
+      productCard.className = 'product-card clickable-product modern-card';
       productCard.style.backgroundColor = '#fff';
       productCard.style.border = '1px solid #e5e7eb';
-      productCard.style.borderRadius = '12px';
+      productCard.style.borderRadius = '16px';
       productCard.style.overflow = 'hidden';
       productCard.style.cursor = 'pointer';
-      productCard.style.transition = 'all 0.3s ease';
-      productCard.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+      productCard.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+      productCard.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.08)';
       productCard.style.position = 'relative';
-      
-      // Product image (if available)
+
+      // Product image with modern overlay
       let imageSection = '';
       if (product.image) {
         imageSection = `
-          <div class="product-image" style="
-            width: 100%; 
-            height: 160px; 
-            background-image: url('${product.image}'); 
-            background-size: cover; 
+          <div class="product-image modern-product-image" style="
+            width: 100%;
+            height: 200px;
+            background-image: linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(0,0,0,0.1) 100%), url('${product.image}');
+            background-size: cover;
             background-position: center;
             background-color: #f8f9fa;
             position: relative;
           ">
-            <div style="
+            <div class="relevance-badge" style="
               position: absolute;
-              top: 8px;
-              right: 8px;
-              background: ${widgetSettings.primaryColor};
-              color: white;
-              padding: 4px 8px;
-              border-radius: 12px;
+              top: 12px;
+              right: 12px;
+              background: rgba(255, 255, 255, 0.95);
+              backdrop-filter: blur(10px);
+              color: ${widgetSettings.primaryColor};
+              padding: 6px 12px;
+              border-radius: 20px;
               font-size: 11px;
-              font-weight: 600;
-            ">${product.relevanceScore || 85}% match</div>
+              font-weight: 700;
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+              display: flex;
+              align-items: center;
+              gap: 4px;
+            ">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M6 1L7.545 4.13L11 4.635L8.5 7.07L9.09 10.5L6 8.885L2.91 10.5L3.5 7.07L1 4.635L4.455 4.13L6 1Z" fill="${widgetSettings.primaryColor}"/>
+              </svg>
+              ${product.relevanceScore || 85}%
+            </div>
           </div>
         `;
       }
-      
-      // Product details
+
+      // Product details with modern styling
       const productDetails = `
-        <div style="padding: 16px;">
-          <!-- Product Title -->
+        <div style="padding: 20px;">
           <h4 style="
-            margin: 0 0 8px 0; 
-            font-size: 16px; 
-            font-weight: 600; 
-            color: #1f2937;
+            margin: 0 0 12px 0;
+            font-size: 17px;
+            font-weight: 700;
+            color: #1a1a1a;
             line-height: 1.3;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
+            letter-spacing: -0.02em;
           ">${product.title}</h4>
-          
-          <!-- Price and Category -->
+
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <div style="font-size: 20px; font-weight: 700; color: ${widgetSettings.primaryColor};">
+            <div style="
+              font-size: 24px;
+              font-weight: 800;
+              background: linear-gradient(135deg, ${widgetSettings.primaryColor} 0%, ${adjustColor(widgetSettings.primaryColor, -20)} 100%);
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+              background-clip: text;
+            ">
               $${parseFloat(product.price || '0').toFixed(2)}
             </div>
             ${product.category ? `<div style="
-              background: #f3f4f6; 
-              color: #6b7280; 
-              padding: 2px 8px; 
-              border-radius: 8px; 
-              font-size: 11px; 
-              font-weight: 500;
+              background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+              color: #4b5563;
+              padding: 4px 12px;
+              border-radius: 12px;
+              font-size: 11px;
+              font-weight: 600;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
             ">${product.category}</div>` : ''}
           </div>
-          
-          <!-- Description -->
+
           <p style="
-            margin: 0 0 12px 0; 
-            font-size: 13px; 
-            color: #6b7280; 
-            line-height: 1.4;
+            margin: 0 0 16px 0;
+            font-size: 13px;
+            color: #6b7280;
+            line-height: 1.6;
             display: -webkit-box;
-            -webkit-line-clamp: 3;
+            -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
-          ">${product.description || 'No description available'}</p>
-          
-          <!-- Tags (if available) -->
-          ${product.tags && product.tags.length > 0 ? `
-            <div style="margin-bottom: 12px;">
-              ${product.tags.slice(0, 3).map(tag => `
-                <span style="
-                  display: inline-block;
-                  background: #e5e7eb;
-                  color: #374151;
-                  padding: 2px 6px;
-                  border-radius: 6px;
-                  font-size: 10px;
-                  margin-right: 4px;
-                  margin-bottom: 4px;
-                ">${tag}</span>
-              `).join('')}
-            </div>
-          ` : ''}
-          
-          <!-- Action Button -->
+          ">${product.description || 'Discover this amazing product'}</p>
+
           <div style="
-            background: ${widgetSettings.primaryColor};
+            background: linear-gradient(135deg, ${widgetSettings.primaryColor} 0%, ${adjustColor(widgetSettings.primaryColor, -20)} 100%);
             color: white;
             text-align: center;
-            padding: 10px;
-            border-radius: 8px;
+            padding: 12px;
+            border-radius: 12px;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             margin-top: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-shadow: 0 4px 12px ${widgetSettings.primaryColor}33;
           ">
-            View Product →
+            <span>View Product</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M6 12L10 8L6 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </div>
         </div>
       `;
-      
+
       productCard.innerHTML = imageSection + productDetails;
-      
-      // Add click handler to open product page
+
+      // Add click handler
       productCard.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
-        
-        // Use full URL if available, otherwise construct relative URL
         const productUrl = product.fullUrl || `/products/${product.handle}`;
         window.open(productUrl, '_blank');
-        
-        // Add visual feedback
-        this.style.transform = 'scale(0.98)';
+        this.style.transform = 'scale(0.97)';
         setTimeout(() => {
           this.style.transform = 'scale(1)';
         }, 150);
       });
-      
-      // Add hover effects
+
+      // Modern hover effects
       productCard.addEventListener('mouseenter', function() {
-        this.style.borderColor = widgetSettings.primaryColor;
-        this.style.transform = 'translateY(-4px)';
-        this.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
+        this.style.borderColor = widgetSettings.primaryColor + '40';
+        this.style.transform = 'translateY(-6px)';
+        this.style.boxShadow = `0 12px 24px ${widgetSettings.primaryColor}20`;
       });
-      
+
       productCard.addEventListener('mouseleave', function() {
         this.style.borderColor = '#e5e7eb';
         this.style.transform = 'translateY(0)';
-        this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+        this.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.08)';
       });
-      
+
       gridContent.appendChild(productCard);
     });
-    
+
     productsContainer.appendChild(gridContent);
     messagesContainer.appendChild(productsContainer);
-    
-    // Add a "Browse More Products" button if there are multiple recommendations
-    if (recommendations.length > 2) {
-      const browseMoreDiv = document.createElement('div');
-      browseMoreDiv.className = 'ai-message assistant-message';
-      browseMoreDiv.style.marginTop = '8px';
-      browseMoreDiv.style.textAlign = 'center';
-      
-      const browseButton = document.createElement('button');
-      browseButton.style.background = 'transparent';
-      browseButton.style.border = `2px solid ${widgetSettings.primaryColor}`;
-      browseButton.style.color = widgetSettings.primaryColor;
-      browseButton.style.padding = '10px 20px';
-      browseButton.style.borderRadius = '25px';
-      browseButton.style.fontSize = '14px';
-      browseButton.style.fontWeight = '600';
-      browseButton.style.cursor = 'pointer';
-      browseButton.style.transition = 'all 0.2s ease';
-      browseButton.textContent = 'Browse All Products';
-      
-      browseButton.addEventListener('click', function() {
-        window.open('/collections/all', '_blank');
-      });
-      
-      browseButton.addEventListener('mouseenter', function() {
-        this.style.backgroundColor = widgetSettings.primaryColor;
-        this.style.color = 'white';
-      });
-      
-      browseButton.addEventListener('mouseleave', function() {
-        this.style.backgroundColor = 'transparent';
-        this.style.color = widgetSettings.primaryColor;
-      });
-      
-      browseMoreDiv.appendChild(browseButton);
-      messagesContainer.appendChild(browseMoreDiv);
-    }
-    
-    // Scroll to bottom after adding recommendations
+
     scrollToBottom();
   }
   
@@ -592,6 +556,21 @@ This creates a floating chat widget that can be added to any page
       return productMatch[1];
     }
     return null;
+  }
+
+  // Helper function to adjust color brightness
+  function adjustColor(color, amount) {
+    // Convert hex to RGB
+    const hex = color.replace('#', '');
+    const r = Math.max(0, Math.min(255, parseInt(hex.substring(0, 2), 16) + amount));
+    const g = Math.max(0, Math.min(255, parseInt(hex.substring(2, 4), 16) + amount));
+    const b = Math.max(0, Math.min(255, parseInt(hex.substring(4, 6), 16) + amount));
+
+    // Convert back to hex
+    return '#' + [r, g, b].map(x => {
+      const hex = x.toString(16);
+      return hex.length === 1 ? '0' + hex : hex;
+    }).join('');
   }
   
   // Load widget settings and initialize
@@ -690,87 +669,121 @@ This creates a floating chat widget that can be added to any page
     
     container.innerHTML = `
       <div class="ai-sales-assistant-widget position-${widgetSettings.position}" data-widget-id="ai-sales-assistant">
-        <!-- Chat Toggle Button -->
-        <button 
-          class="ai-chat-toggle" 
+        <!-- Modern Chat Toggle Button -->
+        <button
+          class="ai-chat-toggle"
           id="ai-chat-toggle-btn"
-          style="background-color: ${widgetSettings.primaryColor};"
+          style="background: linear-gradient(135deg, ${widgetSettings.primaryColor} 0%, ${adjustColor(widgetSettings.primaryColor, -20)} 100%);"
         >
-          <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAABJlBMVEVHcEwb49o9s+I0v+BIoOUuyN9Ui+hZg+pdfOsc49tMl+ZViuke4NtOk+ce39sc4ts3t+Ej19xbf+pTi+gl1N1GoOVCp+RWh+kxwuAa5tpFo+Ue39s0vuAsyt4i2NxIneYpzd5Ml+Yry946suJUiuldfOs6suIc49oZ59oa5do/q+Neeusxwt8Y6dka5touxt88sOJcfupZgupcfuo0veBefOpcfuoZ5toiIiI8sOI2ueFCp+RFouVInuU5tOE/q+MzveAxwt8uxt9LmedQkOdWh+kry98o0N0hHx9Ui+gl1Nwi2dwf3dtOlOZZgulcfuomTFYsRFcrhZc+ZpxUjes4cJsyepkjP0Ei2t0lxs1ImOBPluomy9ZEcbFBo95KgMsmmaIkZ2ysswjsAAAAOHRSTlMA/gUPAic0C7FTd1yYJhPx7WN0zOqTseDK3t/QnT6GGbzjS7idmjlKO63ujvUwzvf08Ty8eiXh80ZVzqoAAAFYSURBVDjLvZPXVsJAEIYpgST0DlIEFAQLFiw0KUGECKJIVECxvf9LaHZmMBG88/hdzX/mO7t7dnYNhv/FVciJYt5iWt015R37bqPRWFrb9rpW9AsOtQuUYuLSKrnYtRb3ulnfFwMDxnQ6hWLg0BmJQJ/Rm81mcyj765zm9Kke8D6ZTD7mUAc2vgVvF+iNZVketTGlFpuYI22gOy6X5ZGE6WCxRGJPAtpMaGGS4iSctBCJCVWKEdyDi1cJJjQoeSx4x5sNpPqoChWKni0SKgQTmpQOUeBCTYQJdzWKO7iFIVgjHlThlVI0iYL9nGBCnVKIRuqM1hEmPFGy0T1wwQsEBAxp52IW1vSQ8ayoQgfC0KYZt60DvCmK8oK1P6kR+MwVcP8FVGGr7kWZM5d6/MUfb5L3hW80CM7lZ23Nnt0CR8d2ftXH4E7tu4IgZH1F/ve/xZlMf/5fPwFR8XwfQCSWdQAAAABJRU5ErkJggg==" alt="iHeard.ai" width="24" height="24" style="object-fit: contain;" />
+          <div class="toggle-icon-wrapper">
+            <svg class="chat-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="notification-badge"></span>
+          </div>
           <span class="button-text">${widgetSettings.buttonText}</span>
         </button>
-        
-        <!-- Chat Window -->
+
+        <!-- Modern Chat Window -->
         <div id="ai-chat-window" class="ai-chat-window" style="display: none;">
-          <!-- Chat Header -->
-          <div class="ai-chat-header" style="background-color: ${widgetSettings.primaryColor};">
-            <h3>${widgetSettings.chatTitle}</h3>
+          <!-- Modern Chat Header with Gradient -->
+          <div class="ai-chat-header" style="background: linear-gradient(135deg, ${widgetSettings.primaryColor} 0%, ${adjustColor(widgetSettings.primaryColor, -20)} 100%);">
+            <div class="header-content">
+              <div class="header-avatar">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M2 17L12 22L22 17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M2 12L12 17L22 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="header-info">
+                <h3>${widgetSettings.chatTitle}</h3>
+                <span class="status-indicator">
+                  <span class="status-dot"></span>
+                  <span class="status-text">Online</span>
+                </span>
+              </div>
+            </div>
             <button class="ai-chat-close" id="ai-chat-close-btn">
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M13.5 4.5L4.5 13.5M4.5 4.5L13.5 13.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 5L5 15M5 5L15 15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </button>
           </div>
-          
+
           <!-- Chat Messages Container -->
           <div class="ai-chat-messages-container">
             <!-- Chat Messages -->
             <div id="ai-chat-messages" class="ai-chat-messages">
-              <div class="ai-message assistant-message ai-welcome-message" style="margin-bottom: 16px !important; margin-top: 0px !important; display: block !important; max-width: 100% !important; width: 100% !important;">
-                <div class="ai-welcome-container" style="background: transparent; padding: 0;">
-                  <div class="ai-welcome-header" style="margin-bottom: 20px;">
-                    <div style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; background: var(--ai-primary-color, #ee5cee); border-radius: 12px; margin: 0 auto 12px auto;">
-                      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAABJlBMVEVHcEwb49o9s+I0v+BIoOUuyN9Ui+hZg+pdfOsc49tMl+ZViuke4NtOk+ce39sc4ts3t+Ej19xbf+pTi+gl1N1GoOVCp+RWh+kxwuAa5tpFo+Ue39s0vuAsyt4i2NxIneYpzd5Ml+Yry946suJUiuldfOs6suIc49oZ59oa5do/q+Neeusxwt8Y6dka5touxt88sOJcfupZgupcfuo0veBefOpcfuoZ5toiIiI8sOI2ueFCp+RFouVInuU5tOE/q+MzveAxwt8uxt9LmedQkOdWh+kry98o0N0hHx9Ui+gl1Nwi2dwf3dtOlOZZgulcfuomTFYsRFcrhZc+ZpxUjes4cJsyepkjP0Ei2t0lxs1ImOBPluomy9ZEcbFBo95KgMsmmaIkZ2ysswjsAAAAOHRSTlMA/gUPAic0C7FTd1yYJhPx7WN0zOqTseDK3t/QnT6GGbzjS7idmjlKO63ujvUwzvf08Ty8eiXh80ZVzqoAAAFYSURBVDjLvZPXVsJAEIYpgST0DlIEFAQLFiw0KUGECKJIVECxvf9LaHZmMBG88/hdzX/mO7t7dnYNhv/FVciJYt5iWt015R37bqPRWFrb9rpW9AsOtQuUYuLSKrnYtRb3ulnfFwMDxnQ6hWLg0BmJQJ/Rm81mcyj765zm9Kke8D6ZTD7mUAc2vgVvF+iNZVketTGlFpuYI22gOy6X5ZGE6WCxRGJPAtpMaGGS4iSctBCJCVWKEdyDi1cJJjQoeSx4x5sNpPqoChWKni0SKgQTmpQOUeBCTYQJdzWKO7iFIVgjHlThlVI0iYL9nGBCnVKIRuqM1hEmPFGy0T1wwQsEBAxp52IW1vSQ8ayoQgfC0KYZt60DvCmK8oK1P6kR+MwVcP8FVGGr7kWZM5d6/MUfb5L3hW80CM7lZ23Nnt0CR8d2ftXH4E7tu4IgZH1F/ve/xZlMf/5fPwFR8XwfQCSWdQAAAABJRU5ErkJggg==" alt="iHeard.ai" width="28" height="28" style="object-fit: contain;" />
+              <div class="ai-message assistant-message ai-welcome-message" style="margin-bottom: 20px !important; margin-top: 0px !important; display: block !important; max-width: 100% !important; width: 100% !important;">
+                <div class="ai-welcome-container">
+                  <div class="ai-welcome-header">
+                    <div class="welcome-avatar-wrapper" style="background: linear-gradient(135deg, ${widgetSettings.primaryColor} 0%, ${adjustColor(widgetSettings.primaryColor, -20)} 100%);">
+                      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 4L4 9.33333L16 14.6667L28 9.33333L16 4Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M4 22.6667L16 28L28 22.6667" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M4 16L16 21.3333L28 16" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
                     </div>
-                    <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #333;">${widgetSettings.welcomeMessage}</h3>
+                    <h3 class="welcome-title">Welcome! 👋</h3>
+                    <p class="welcome-subtitle">${widgetSettings.welcomeMessage}</p>
                   </div>
-                  
+
                   <div class="ai-suggestions-container">
-                    <div class="suggestion-section" style="margin-bottom: 24px;">
-                      <h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600; color: #555;">Get product recommendations</h4>
-                      <div class="suggestion-buttons">
-                        <button class="suggestion-btn" data-prompt="What are your best-selling products?">Best-selling products</button>
-                        <button class="suggestion-btn" data-prompt="Show me new arrivals">New arrivals</button>
-                        <button class="suggestion-btn" data-prompt="What products are on sale?">Sale items</button>
-                      </div>
-                    </div>
-                    
-                    <div class="suggestion-section" style="margin-bottom: 24px;">
-                      <h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600; color: #555;">Product information</h4>
-                      <div class="suggestion-buttons">
-                        <button class="suggestion-btn" data-prompt="Tell me about shipping and delivery">Shipping info</button>
-                        <button class="suggestion-btn" data-prompt="What is your return policy?">Return policy</button>
-                        <button class="suggestion-btn" data-prompt="Do you offer customer support?">Customer support</button>
-                      </div>
-                    </div>
-                    
                     <div class="suggestion-section">
-                      <h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600; color: #555;">Help me choose</h4>
+                      <h4 class="suggestion-title">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                          <path d="M8 5.33334V8.00001L10 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Quick actions
+                      </h4>
                       <div class="suggestion-buttons">
-                        <button class="suggestion-btn" data-prompt="Help me find the perfect product for my needs">Find the right product</button>
-                        <button class="suggestion-btn" data-prompt="Compare similar products">Compare products</button>
+                        <button class="suggestion-btn" data-prompt="What are your best-selling products?">
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M14 10L8 14L2 10M14 6L8 10L2 6L8 2L14 6Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                          <span>Best sellers</span>
+                        </button>
+                        <button class="suggestion-btn" data-prompt="Show me new arrivals">
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M8 2V8L11.3333 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2.66667 5.33334C3.56812 3.49188 5.60579 2.23334 7.99999 2.23334C11.0376 2.23334 13.5 4.69573 13.5 7.73334C13.5 10.7709 11.0376 13.2333 7.99999 13.2333C5.60579 13.2333 3.56812 11.9748 2.66667 10.1333" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                          </svg>
+                          <span>New arrivals</span>
+                        </button>
+                        <button class="suggestion-btn" data-prompt="What products are on sale?">
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M13.3333 5.33334L10.6667 2.66667L2.66666 10.6667L2 14L5.33333 13.3333L13.3333 5.33334Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="10" cy="6" r="1.5" fill="currentColor"/>
+                          </svg>
+                          <span>Sale items</span>
+                        </button>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-              
-
             </div>
           </div>
-          
-          <!-- Chat Input -->
+
+          <!-- Modern Chat Input with Better Design -->
           <div class="ai-chat-input">
-            <input 
-              type="text" 
-              id="ai-chat-input-field"
-              placeholder="${widgetSettings.inputPlaceholder}"
-            />
-            <button id="ai-chat-send-btn" style="background-color: ${widgetSettings.primaryColor};">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M18 2L9 11M18 2L12 18L9 11M18 2L2 8L9 11" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
+            <div class="input-wrapper">
+              <input
+                type="text"
+                id="ai-chat-input-field"
+                placeholder="${widgetSettings.inputPlaceholder}"
+              />
+              <button id="ai-chat-send-btn" style="background: linear-gradient(135deg, ${widgetSettings.primaryColor} 0%, ${adjustColor(widgetSettings.primaryColor, -20)} 100%);">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M18 2L9 11M18 2L12 18L9 11M18 2L2 8L9 11" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+            <div class="powered-by">
+              <span>Powered by AI</span>
+            </div>
           </div>
         </div>
       </div>
@@ -785,104 +798,175 @@ This creates a floating chat widget that can be added to any page
     }, 50);
   }
   
-  // Add CSS styles for the widget
+  // Add modern CSS styles for the widget
   function addWidgetStyles() {
     if (document.getElementById('ai-widget-styles')) return;
-    
+
     // Set CSS variables for dynamic theming
     document.documentElement.style.setProperty('--ai-primary-color', widgetSettings.primaryColor);
+    const darkerColor = adjustColor(widgetSettings.primaryColor, -20);
+    document.documentElement.style.setProperty('--ai-primary-color-dark', darkerColor);
     document.documentElement.style.setProperty('--ai-primary-color-hover', widgetSettings.primaryColor + 'dd');
-    
+
     const style = document.createElement('style');
     style.id = 'ai-widget-styles';
     style.textContent = `
-/* AI Sales Assistant Widget Styles */
+/* ============================================
+   MODERN AI SALES ASSISTANT WIDGET STYLES
+   ============================================ */
+
+/* Base Widget Container */
 .ai-sales-assistant-widget {
   position: fixed;
-  z-index: 1000;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  z-index: 9999;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
 }
 
-/* Position variants */
+/* Position Variants */
 .ai-sales-assistant-widget.position-bottom-right {
-  bottom: 20px;
-  right: 20px;
+  bottom: 24px;
+  right: 24px;
 }
 
 .ai-sales-assistant-widget.position-bottom-left {
-  bottom: 20px;
-  left: 20px;
+  bottom: 24px;
+  left: 24px;
 }
 
 .ai-sales-assistant-widget.position-top-right {
-  top: 20px;
-  right: 20px;
+  top: 24px;
+  right: 24px;
 }
 
 .ai-sales-assistant-widget.position-top-left {
-  top: 20px;
-  left: 20px;
+  top: 24px;
+  left: 24px;
 }
 
 .ai-sales-assistant-widget.position-center-right {
   top: 50%;
-  right: 20px;
+  right: 24px;
   transform: translateY(-50%);
 }
 
 .ai-sales-assistant-widget.position-center-left {
   top: 50%;
-  left: 20px;
+  left: 24px;
   transform: translateY(-50%);
 }
 
+/* Modern Chat Toggle Button */
 .ai-chat-toggle {
-  background: var(--ai-primary-color, #ee5cee);
+  background: linear-gradient(135deg, var(--ai-primary-color, #ee5cee) 0%, var(--ai-primary-color-dark, #dd44dd) 100%);
   border: none;
-  border-radius: 50px;
+  border-radius: 60px;
   color: white;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: all 0.3s ease;
+  gap: 10px;
+  padding: 14px 22px;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-chat-toggle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .ai-chat-toggle:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2), 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.ai-chat-toggle:hover::before {
+  opacity: 1;
+}
+
+.ai-chat-toggle:active {
+  transform: translateY(-1px) scale(0.98);
 }
 
 .ai-chat-toggle .button-text {
   white-space: nowrap;
+  letter-spacing: 0.3px;
 }
 
+.toggle-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-icon {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-3px); }
+}
+
+.notification-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 10px;
+  height: 10px;
+  background: #ff4444;
+  border-radius: 50%;
+  border: 2px solid white;
+  display: none;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.notification-badge.active {
+  display: block;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+/* Modern Chat Window */
 .ai-chat-window {
   position: absolute;
-  bottom: 70px;
+  bottom: 80px;
   right: 0;
-  width: 350px;
-  height: 500px;
+  width: 400px;
+  height: 600px;
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border-radius: 20px;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.15),
+    0 8px 24px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
   display: none;
-  grid-template-rows: 60px 1fr 70px;
-  grid-template-areas: 
+  grid-template-rows: 80px 1fr 100px;
+  grid-template-areas:
     "header"
     "messages"
     "input";
   overflow: hidden;
-  max-height: 500px;
-  min-height: 500px;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
+  transform: translateY(20px) scale(0.95);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .ai-chat-window.ai-chat-open {
@@ -890,8 +974,10 @@ This creates a floating chat widget that can be added to any page
   opacity: 1 !important;
   visibility: visible !important;
   pointer-events: auto !important;
+  transform: translateY(0) scale(1);
 }
 
+/* Position Adjustments for Chat Window */
 .ai-sales-assistant-widget.position-bottom-left .ai-chat-window,
 .ai-sales-assistant-widget.position-top-left .ai-chat-window,
 .ai-sales-assistant-widget.position-center-left .ai-chat-window {
@@ -902,7 +988,7 @@ This creates a floating chat widget that can be added to any page
 .ai-sales-assistant-widget.position-top-right .ai-chat-window,
 .ai-sales-assistant-widget.position-top-left .ai-chat-window {
   bottom: auto;
-  top: 70px;
+  top: 80px;
 }
 
 .ai-sales-assistant-widget.position-center-right .ai-chat-window,
@@ -912,107 +998,184 @@ This creates a floating chat widget that can be added to any page
   transform: translateY(-50%);
 }
 
+/* Modern Chat Header with Gradient */
 .ai-chat-header {
-  background: var(--ai-primary-color, #ee5cee);
+  background: linear-gradient(135deg, var(--ai-primary-color, #ee5cee) 0%, var(--ai-primary-color-dark, #dd44dd) 100%);
   color: white;
-  padding: 16px;
+  padding: 20px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   z-index: 10;
-  height: 60px; /* Fixed header height */
+  height: 80px;
   box-sizing: border-box;
   grid-area: header !important;
+  position: relative;
+  overflow: hidden;
 }
 
-.ai-chat-header h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
+.ai-chat-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+  pointer-events: none;
 }
 
-.ai-chat-close {
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.header-avatar {
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.ai-chat-close svg {
-  width: 18px;
-  height: 18px;
+.header-info h3 {
+  margin: 0 0 4px 0;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  opacity: 0.95;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background: #4ade80;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.3);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.status-text {
+  font-weight: 500;
+}
+
+.ai-chat-close {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 1;
 }
 
 .ai-chat-close:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.25);
+  transform: rotate(90deg);
 }
 
+.ai-chat-close:active {
+  transform: rotate(90deg) scale(0.9);
+}
+
+/* Messages Container */
 .ai-chat-messages-container {
   grid-area: messages !important;
   overflow: hidden;
-  background: #fafafa;
+  background: linear-gradient(180deg, #fafbfc 0%, #f5f6f8 100%);
   box-sizing: border-box;
   height: 100%;
   width: 100%;
+  position: relative;
 }
 
 .ai-chat-messages {
-  padding: 15px;
-  padding-bottom: 15px; /* Consistent padding */
-  overflow-y: auto !important; /* Show scrollbar when content overflows */
+  padding: 20px;
+  padding-bottom: 20px;
+  overflow-y: auto !important;
   overflow-x: hidden !important;
   display: flex;
   flex-direction: column;
-  gap: 0 !important; /* Remove gap to use margin instead for better control */
+  gap: 0 !important;
   scroll-behavior: smooth;
-  height: 100% !important; /* Take full available height */
+  height: 100% !important;
   box-sizing: border-box !important;
-  background: #fafafa; /* Light background to distinguish from header/footer */
 }
 
-/* Custom scrollbar styling for webkit browsers */
+/* Modern Custom Scrollbar */
 .ai-chat-messages::-webkit-scrollbar {
-  width: 8px; /* Made wider for better visibility */
+  width: 6px;
 }
 
 .ai-chat-messages::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
+  background: transparent;
 }
 
 .ai-chat-messages::-webkit-scrollbar-thumb {
-  background: #bbb;
-  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  transition: background 0.3s ease;
 }
 
 .ai-chat-messages::-webkit-scrollbar-thumb:hover {
-  background: #888;
+  background: rgba(0, 0, 0, 0.25);
 }
 
-/* Firefox scrollbar */
 .ai-chat-messages {
   scrollbar-width: thin;
-  scrollbar-color: #bbb #f1f1f1;
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
 }
 
+/* Message Bubbles */
 #ai-chat-messages .ai-message,
 .ai-chat-messages .ai-message,
 .ai-chat-messages-container .ai-message {
-  max-width: 85% !important;
+  max-width: 80% !important;
   width: fit-content;
-  overflow: visible !important; /* Allow content to show fully */
+  overflow: visible !important;
   display: block !important;
   box-sizing: border-box !important;
-  margin-bottom: 16px !important; /* Increased spacing for better visibility */
-  margin-top: 0 !important; /* Reset any top margins */
+  margin-bottom: 16px !important;
+  margin-top: 0 !important;
+  animation: messageSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Welcome screen should take full width */
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .ai-welcome-message {
   max-width: 100% !important;
   width: 100% !important;
@@ -1021,10 +1184,9 @@ This creates a floating chat widget that can be added to any page
 #ai-chat-messages .ai-message:last-child,
 .ai-chat-messages .ai-message:last-child,
 .ai-chat-messages-container .ai-message:last-child {
-  margin-bottom: 8px !important; /* Small bottom margin for last message */
+  margin-bottom: 8px !important;
 }
 
-/* Force spacing with even higher specificity */
 .ai-sales-assistant-widget .ai-chat-messages .ai-message {
   margin-bottom: 16px !important;
   margin-top: 0 !important;
@@ -1038,61 +1200,61 @@ This creates a floating chat widget that can be added to any page
   align-self: flex-start;
 }
 
-.ai-message.product-recommendation {
-  margin-top: 0 !important; /* Use consistent margin pattern */
-  margin-bottom: 12px !important; /* Consistent with other messages */
-}
-
-.product-content {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease;
-}
-
-.clickable-product {
-  user-select: none;
-}
-
-.clickable-product:active {
-  transform: scale(0.98) !important;
-}
-
 .message-content {
-  padding: 10px 14px;
-  border-radius: 18px;
-  font-size: 14px;
-  line-height: 1.4;
+  padding: 14px 18px;
+  border-radius: 20px;
+  font-size: 14.5px;
+  line-height: 1.5;
   word-wrap: break-word !important;
   word-break: break-word !important;
   overflow-wrap: break-word !important;
-  hyphens: auto;
   max-width: 100% !important;
-  white-space: normal !important; /* Normal whitespace handling - trim extra spaces */
+  white-space: normal !important;
   box-sizing: border-box !important;
-  overflow: visible !important; /* Allow content to show fully */
+  overflow: visible !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
 }
 
+.user-message .message-content {
+  background: linear-gradient(135deg, var(--ai-primary-color, #ee5cee) 0%, var(--ai-primary-color-dark, #dd44dd) 100%);
+  color: white;
+  border-bottom-right-radius: 6px;
+}
+
+.assistant-message .message-content {
+  background: white;
+  color: #1a1a1a;
+  border-bottom-left-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Modern Loading Indicator */
 .ai-loading {
-  padding: 10px 14px;
-  border-radius: 18px;
-  background: #f1f1f1;
-  color: #333;
-  margin-bottom: 16px !important; /* Match message spacing */
+  padding: 14px 18px;
+  border-radius: 20px;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  margin-bottom: 16px !important;
   margin-top: 0 !important;
-  max-width: 85% !important;
+  max-width: 80% !important;
   width: fit-content;
-  align-self: flex-start; /* Left-align like assistant messages */
+  align-self: flex-start;
   display: block !important;
   box-sizing: border-box !important;
+  border-bottom-left-radius: 6px;
 }
 
 .loading-dots {
   display: inline-flex;
-  gap: 4px;
+  gap: 5px;
+  align-items: center;
 }
 
 .loading-dots span {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--ai-primary-color, #ee5cee);
   animation: loading-bounce 1.4s ease-in-out infinite both;
@@ -1100,57 +1262,212 @@ This creates a floating chat widget that can be added to any page
 
 .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
 .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+.loading-dots span:nth-child(3) { animation-delay: 0s; }
 
 @keyframes loading-bounce {
-  0%, 80%, 100% { transform: scale(0); }
-  40% { transform: scale(1); }
+  0%, 60%, 100% {
+    transform: scale(0.7);
+    opacity: 0.5;
+  }
+  30% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
 }
 
+/* Modern Chat Input Area */
 .ai-chat-input {
-  padding: 15px;
-  border-top: 1px solid #e5e5e5;
+  padding: 20px 24px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: white !important;
+  z-index: 10;
+  height: 100px !important;
+  box-sizing: border-box !important;
+  border-radius: 0 0 20px 20px;
+  grid-area: input !important;
+}
+
+.input-wrapper {
   display: flex;
   gap: 10px;
   align-items: center;
-  background: white !important; /* Ensure solid background */
-  z-index: 10; /* Keep above other content */
-  height: 70px !important; /* Fixed height to prevent shifting */
-  box-sizing: border-box !important;
-  border-radius: 0 0 12px 12px; /* Match window border radius */
-  grid-area: input !important;
 }
 
 .ai-chat-input input {
   flex: 1;
-  padding: 10px 12px;
-  border: 1px solid #ddd;
-  border-radius: 20px;
-  font-size: 14px;
+  padding: 14px 18px;
+  border: 2px solid rgba(0, 0, 0, 0.08);
+  border-radius: 24px;
+  font-size: 14.5px;
   outline: none;
+  background: #f8f9fa;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+}
+
+.ai-chat-input input::placeholder {
+  color: #9ca3af;
 }
 
 .ai-chat-input input:focus {
   border-color: var(--ai-primary-color, #ee5cee);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(238, 92, 238, 0.1);
 }
 
 .ai-chat-input button {
-  background: var(--ai-primary-color, #ee5cee);
+  background: linear-gradient(135deg, var(--ai-primary-color, #ee5cee) 0%, var(--ai-primary-color-dark, #dd44dd) 100%);
   border: none;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(238, 92, 238, 0.3);
+  flex-shrink: 0;
 }
 
 .ai-chat-input button:hover {
-  background: var(--ai-primary-color-hover, #dd44dd);
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(238, 92, 238, 0.4);
 }
 
-/* Mobile responsiveness */
+.ai-chat-input button:active {
+  transform: scale(0.95);
+}
+
+.powered-by {
+  text-align: center;
+  font-size: 11px;
+  color: #9ca3af;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* Modern Welcome Screen */
+.ai-welcome-container {
+  width: 100%;
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.ai-welcome-header {
+  text-align: center;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #f3f4f6;
+}
+
+.welcome-avatar-wrapper {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(238, 92, 238, 0.2);
+  animation: welcome-float 3s ease-in-out infinite;
+}
+
+@keyframes welcome-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+.welcome-title {
+  margin: 0 0 8px 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #1a1a1a;
+  letter-spacing: -0.5px;
+}
+
+.welcome-subtitle {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+/* Suggestion Sections */
+.ai-suggestions-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.suggestion-section {
+  margin-bottom: 0;
+}
+
+.suggestion-title {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.suggestion-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.suggestion-btn {
+  background: linear-gradient(135deg, #f8f9fa 0%, #f3f4f6 100%);
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px 16px;
+  text-align: left;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+  font-weight: 500;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.suggestion-btn svg {
+  flex-shrink: 0;
+  color: var(--ai-primary-color, #ee5cee);
+}
+
+.suggestion-btn:hover {
+  background: linear-gradient(135deg, var(--ai-primary-color, #ee5cee) 0%, var(--ai-primary-color-dark, #dd44dd) 100%);
+  border-color: transparent;
+  color: white;
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(238, 92, 238, 0.3);
+}
+
+.suggestion-btn:hover svg {
+  color: white;
+}
+
+.suggestion-btn:active {
+  transform: translateX(2px) scale(0.98);
+}
+
 /* Product Grid Styles */
 .products-grid-container {
   max-width: 100% !important;
@@ -1335,127 +1652,179 @@ This creates a floating chat widget that can be added to any page
   background: #d1d5db;
 }
 
-@media (max-width: 480px) {
+/* =============================================
+   RESPONSIVE DESIGN - MOBILE FIRST
+   ============================================= */
+
+/* Tablet (max-width: 1024px) */
+@media (max-width: 1024px) {
   .ai-chat-window {
-    width: calc(100vw - 40px);
-    height: calc(100vh - 140px);
-    position: fixed;
-    bottom: 70px;
-    left: 20px;
-    right: 20px;
+    width: 380px;
+    height: 580px;
   }
-  
+}
+
+/* Mobile (max-width: 768px) */
+@media (max-width: 768px) {
+  .ai-chat-window {
+    width: calc(100vw - 32px);
+    height: calc(100vh - 120px);
+    max-height: 700px;
+    position: fixed;
+    bottom: 90px;
+    left: 16px;
+    right: 16px;
+    border-radius: 24px;
+  }
+
   .ai-sales-assistant-widget.position-bottom-left .ai-chat-window,
   .ai-sales-assistant-widget.position-top-left .ai-chat-window,
   .ai-sales-assistant-widget.position-center-left .ai-chat-window,
   .ai-sales-assistant-widget.position-bottom-right .ai-chat-window,
   .ai-sales-assistant-widget.position-top-right .ai-chat-window,
   .ai-sales-assistant-widget.position-center-right .ai-chat-window {
-    left: 20px;
-    right: 20px;
+    left: 16px;
+    right: 16px;
     transform: none;
   }
-  
-  .ai-chat-toggle .button-text {
-    display: none;
+
+  .ai-chat-header {
+    padding: 16px 20px;
+    height: 72px;
   }
-  
-  .ai-message {
-    max-width: 90%; /* Allow more width on mobile */
+
+  .header-avatar {
+    width: 40px;
+    height: 40px;
   }
-  
-  .message-content {
-    font-size: 13px; /* Slightly smaller font on mobile */
-  }
-  
-  .ai-chat-input {
-    padding: 12px; /* Reduce padding on mobile */
-  }
-  
-  .suggestion-btn {
-    font-size: 13px;
-    padding: 10px 14px;
-  }
-  
-  /* Mobile Product Grid Styles */
-  .products-grid {
-    grid-template-columns: 1fr !important; /* Single column on mobile */
-    gap: 10px;
-  }
-  
-  .product-card {
-    flex-direction: row; /* Horizontal layout on mobile */
-    height: auto;
-    min-height: 120px;
-  }
-  
-  .product-image {
-    width: 100px;
-    height: 120px;
-    flex-shrink: 0;
-  }
-  
-  .product-details {
-    padding: 12px;
-    flex-grow: 1;
-  }
-  
-  .product-title {
-    font-size: 14px;
-    -webkit-line-clamp: 1;
-    margin-bottom: 6px;
-  }
-  
-  .product-price {
+
+  .header-info h3 {
     font-size: 16px;
   }
-  
-  .product-description {
-    font-size: 12px;
-    -webkit-line-clamp: 2;
-    margin-bottom: 8px;
+
+  .products-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
   }
-  
-  .product-action-button {
-    padding: 8px;
-    font-size: 12px;
+
+  .welcome-title {
+    font-size: 20px;
   }
-  
-  .relevance-badge {
-    top: 4px;
-    right: 4px;
-    padding: 2px 6px;
-    font-size: 10px;
-  }
-  
-  .product-category {
-    font-size: 10px;
-    padding: 1px 6px;
-  }
-  
-  .product-tag {
-    font-size: 9px;
-    padding: 1px 4px;
+
+  .welcome-subtitle {
+    font-size: 13px;
   }
 }
 
-/* Tablet responsiveness */
-@media (max-width: 768px) and (min-width: 481px) {
-  .products-grid {
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
-    gap: 10px;
+/* Small Mobile (max-width: 480px) */
+@media (max-width: 480px) {
+  .ai-chat-window {
+    width: calc(100vw - 24px);
+    height: calc(100vh - 100px);
+    bottom: 80px;
+    left: 12px;
+    right: 12px;
+    grid-template-rows: 68px 1fr 90px;
   }
-  
-  .product-image {
-    height: 140px;
+
+  .ai-chat-toggle .button-text {
+    display: none;
   }
-  
-  .product-title {
+
+  .ai-chat-toggle {
+    padding: 12px;
+    width: 52px;
+    height: 52px;
+    justify-content: center;
+  }
+
+  .ai-chat-header {
+    padding: 14px 16px;
+    height: 68px;
+  }
+
+  .header-avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .header-info h3 {
     font-size: 15px;
   }
-  
-  .product-price {
+
+  .status-text {
+    font-size: 11px;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+  }
+
+  .ai-chat-messages {
+    padding: 16px;
+  }
+
+  .ai-message {
+    max-width: 88% !important;
+  }
+
+  .message-content {
+    font-size: 14px;
+    padding: 12px 16px;
+  }
+
+  .ai-chat-input {
+    padding: 16px;
+    height: 90px !important;
+  }
+
+  .ai-chat-input input {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  .ai-chat-input button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .welcome-avatar-wrapper {
+    width: 56px;
+    height: 56px;
+  }
+
+  .welcome-title {
     font-size: 18px;
+  }
+
+  .welcome-subtitle {
+    font-size: 13px;
+  }
+
+  .suggestion-btn {
+    font-size: 13px;
+    padding: 12px 14px;
+  }
+
+  .suggestion-title {
+    font-size: 12px;
+  }
+
+  .ai-welcome-container {
+    padding: 20px;
+  }
+
+  .products-grid {
+    gap: 10px;
+  }
+
+  .modern-product-image {
+    height: 140px !important;
+  }
+
+  .powered-by {
+    font-size: 10px;
   }
 }
     `;
