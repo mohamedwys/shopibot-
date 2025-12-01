@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs } from "@remix-run/node";
+import type { LoaderFunctionArgs, LinksFunction } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 
@@ -13,6 +13,12 @@ import { TrustSection } from "../../components/TrustSection";
 import { AIAssistants } from "../../components/AIAssistants";
 import { Footer } from "../../components/Footer";
 import { FloatingCTA } from "../../components/FloatingCTA";
+
+import landingStyles from "../../styles/landing.css?url";
+
+export const links: LinksFunction = () => [
+  { rel: "stylesheet", href: landingStyles },
+];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
@@ -79,7 +85,7 @@ export default function App() {
   const { showForm } = useLoaderData<typeof loader>();
 
   return (
-    <div className="landing-page">
+    <>
       <Hero />
       <Features />
       <AIAssistants />
@@ -98,30 +104,6 @@ export default function App() {
         copyrightText="© 2025 ShopiBot by Welcome Middle East FZ-LLC. All rights reserved."
       />
       <FloatingCTA />
-
-      <style jsx>{`
-        .landing-page {
-          min-height: 100vh;
-          background: white;
-        }
-
-        /* Global styles */
-        :global(body) {
-          margin: 0;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-            'Helvetica Neue', Arial, sans-serif;
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-        }
-
-        :global(*) {
-          box-sizing: border-box;
-        }
-
-        :global(html) {
-          scroll-behavior: smooth;
-        }
-      `}</style>
-    </div>
+    </>
   );
 }
