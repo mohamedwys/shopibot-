@@ -4,15 +4,15 @@ import { useLoaderData } from "@remix-run/react";
 
 import { login } from "../../shopify.server";
 
-import { Hero } from "~/components/Hero";
-import { Features } from "~/components/Features";
-import { Stats } from "~/components/Stats";
-import { Pricing } from "~/components/Pricing";
-import { Testimonials } from "~/components/Testimonials";
-import { TrustSection } from "~/components/TrustSection";
-import { AIAssistants } from "~/components/AIAssistants";
-import { Footer } from "~/components/Footer";
-import { FloatingCTA } from "~/components/FloatingCTA";
+import { Hero } from "../../components/Hero";
+import { Features } from "../../components/Features";
+import { Stats } from "../../components/Stats";
+import { Pricing } from "../../components/Pricing";
+import { Testimonials } from "../../components/Testimonials";
+import { TrustSection } from "../../components/TrustSection";
+import { AIAssistants } from "../../components/AIAssistants";
+import { Footer } from "../../components/Footer";
+import { FloatingCTA } from "../../components/FloatingCTA";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
