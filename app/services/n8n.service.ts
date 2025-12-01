@@ -39,7 +39,7 @@ export class N8NService {
 
   constructor(webhookUrl?: string, apiKey?: string) {
     // Prioritize: 1) passed parameter, 2) environment variable, 3) fallback placeholder
-    this.webhookUrl = webhookUrl || process.env.N8N_WEBHOOK_URL || 'https://your-n8n-instance.com/webhook/sales-assistant';
+    this.webhookUrl = webhookUrl || process.env.N8N_WEBHOOK_URL || 'https://dermadia.app.n8n.cloud/webhook/e4186076-dc56-4d25-afaf-28167ac396d2/chat';
     this.apiKey = apiKey || process.env.N8N_API_KEY;
     
     // Log the webhook URL being used for debugging
