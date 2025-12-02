@@ -60,8 +60,11 @@
     "@remix-run/route-config": "^2.16.1",
     "@shopify/api-codegen-preset": "^1.1.1",
     "@tailwindcss/postcss": "^4.1.17",
+<<<<<<< HEAD
     "@tailwindcss/postcss7-compat": "^2.2.17",
     "@tailwindcss/vite": "^4.1.17",
+=======
+>>>>>>> f928700 (Set up Tailwind CSS for Hero section and landing page)
     "@types/eslint": "^9.6.1",
     "@types/node": "^22.16.3",
     "@types/react": "^18.2.31",
