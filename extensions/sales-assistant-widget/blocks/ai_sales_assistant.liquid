@@ -91,7 +91,26 @@ This creates a floating chat widget that can be added to any page
   let chatOpen = false;
   let conversationHistory = [];
   let widgetSettings = null;
-  
+
+  // ✅ XSS PROTECTION: Helper function to escape HTML entities
+  // This provides defense-in-depth protection even for admin-controlled settings
+  function escapeHTML(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // Sanitize color values to prevent CSS injection
+  function sanitizeColor(color) {
+    if (!color) return '#ee5cee'; // default color
+    // Only allow hex colors (#RGB or #RRGGBB)
+    if (/^#([0-9A-Fa-f]{3}){1,2}$/.test(color)) {
+      return color;
+    }
+    return '#ee5cee'; // fallback to default if invalid
+  }
+
   // Get settings from block settings or fetch from API
   const blockSettings = {
     enabled: {{ block.settings.enabled | json }},
@@ -249,9 +268,21 @@ This creates a floating chat widget that can be added to any page
     const messageContent = document.createElement('div');
     messageContent.className = 'message-content';
 
-    // Trim whitespace and handle line breaks properly
-    const cleanMessage = message.trim().replace(/\n/g, '<br>');
-    messageContent.innerHTML = cleanMessage;
+    // ✅ XSS FIX: Use textContent and createElement instead of innerHTML
+    // Split message by newlines and create text nodes with <br> elements
+    const cleanMessage = message.trim();
+    const lines = cleanMessage.split('\n');
+
+    lines.forEach((line, index) => {
+      // Create text node for each line (safe from XSS)
+      const textNode = document.createTextNode(line);
+      messageContent.appendChild(textNode);
+
+      // Add line break if not the last line
+      if (index < lines.length - 1) {
+        messageContent.appendChild(document.createElement('br'));
+      }
+    });
 
     messageDiv.appendChild(messageContent);
     messagesContainer.appendChild(messageDiv);
@@ -319,113 +350,134 @@ This creates a floating chat widget that can be added to any page
       productCard.style.transition = 'all 0.3s ease';
       productCard.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
       productCard.style.position = 'relative';
-      
+
+      // ✅ XSS FIX: Build product card using DOM methods instead of innerHTML
+
       // Product image (if available)
-      let imageSection = '';
       if (product.image) {
-        imageSection = `
-          <div class="product-image" style="
-            width: 100%; 
-            height: 160px; 
-            background-image: url('${product.image}'); 
-            background-size: cover; 
-            background-position: center;
-            background-color: #f8f9fa;
-            position: relative;
-          ">
-            <div style="
-              position: absolute;
-              top: 8px;
-              right: 8px;
-              background: ${widgetSettings.primaryColor};
-              color: white;
-              padding: 4px 8px;
-              border-radius: 12px;
-              font-size: 11px;
-              font-weight: 600;
-            ">${product.relevanceScore || 85}% match</div>
-          </div>
-        `;
+        const imageDiv = document.createElement('div');
+        imageDiv.className = 'product-image';
+        imageDiv.style.width = '100%';
+        imageDiv.style.height = '160px';
+        // Sanitize URL to prevent javascript: protocol
+        const sanitizedImageUrl = String(product.image).replace(/^javascript:/i, '');
+        imageDiv.style.backgroundImage = `url('${sanitizedImageUrl}')`;
+        imageDiv.style.backgroundSize = 'cover';
+        imageDiv.style.backgroundPosition = 'center';
+        imageDiv.style.backgroundColor = '#f8f9fa';
+        imageDiv.style.position = 'relative';
+
+        // Match badge
+        const matchBadge = document.createElement('div');
+        matchBadge.style.position = 'absolute';
+        matchBadge.style.top = '8px';
+        matchBadge.style.right = '8px';
+        matchBadge.style.background = widgetSettings.primaryColor;
+        matchBadge.style.color = 'white';
+        matchBadge.style.padding = '4px 8px';
+        matchBadge.style.borderRadius = '12px';
+        matchBadge.style.fontSize = '11px';
+        matchBadge.style.fontWeight = '600';
+        matchBadge.textContent = `${product.relevanceScore || 85}% match`;
+
+        imageDiv.appendChild(matchBadge);
+        productCard.appendChild(imageDiv);
       }
-      
-      // Product details
-      const productDetails = `
-        <div style="padding: 16px;">
-          <!-- Product Title -->
-          <h4 style="
-            margin: 0 0 8px 0; 
-            font-size: 16px; 
-            font-weight: 600; 
-            color: #1f2937;
-            line-height: 1.3;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-          ">${product.title}</h4>
-          
-          <!-- Price and Category -->
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <div style="font-size: 20px; font-weight: 700; color: ${widgetSettings.primaryColor};">
-              $${parseFloat(product.price || '0').toFixed(2)}
-            </div>
-            ${product.category ? `<div style="
-              background: #f3f4f6; 
-              color: #6b7280; 
-              padding: 2px 8px; 
-              border-radius: 8px; 
-              font-size: 11px; 
-              font-weight: 500;
-            ">${product.category}</div>` : ''}
-          </div>
-          
-          <!-- Description -->
-          <p style="
-            margin: 0 0 12px 0; 
-            font-size: 13px; 
-            color: #6b7280; 
-            line-height: 1.4;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-          ">${product.description || 'No description available'}</p>
-          
-          <!-- Tags (if available) -->
-          ${product.tags && product.tags.length > 0 ? `
-            <div style="margin-bottom: 12px;">
-              ${product.tags.slice(0, 3).map(tag => `
-                <span style="
-                  display: inline-block;
-                  background: #e5e7eb;
-                  color: #374151;
-                  padding: 2px 6px;
-                  border-radius: 6px;
-                  font-size: 10px;
-                  margin-right: 4px;
-                  margin-bottom: 4px;
-                ">${tag}</span>
-              `).join('')}
-            </div>
-          ` : ''}
-          
-          <!-- Action Button -->
-          <div style="
-            background: ${widgetSettings.primaryColor};
-            color: white;
-            text-align: center;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            margin-top: auto;
-          ">
-            View Product →
-          </div>
-        </div>
-      `;
-      
-      productCard.innerHTML = imageSection + productDetails;
+
+      // Product details container
+      const detailsDiv = document.createElement('div');
+      detailsDiv.style.padding = '16px';
+
+      // Product title
+      const titleH4 = document.createElement('h4');
+      titleH4.style.margin = '0 0 8px 0';
+      titleH4.style.fontSize = '16px';
+      titleH4.style.fontWeight = '600';
+      titleH4.style.color = '#1f2937';
+      titleH4.style.lineHeight = '1.3';
+      titleH4.style.display = '-webkit-box';
+      titleH4.style.webkitLineClamp = '2';
+      titleH4.style.webkitBoxOrient = 'vertical';
+      titleH4.style.overflow = 'hidden';
+      titleH4.textContent = product.title || 'Untitled Product'; // Safe textContent
+      detailsDiv.appendChild(titleH4);
+
+      // Price and category row
+      const priceRow = document.createElement('div');
+      priceRow.style.display = 'flex';
+      priceRow.style.justifyContent = 'space-between';
+      priceRow.style.alignItems = 'center';
+      priceRow.style.marginBottom = '12px';
+
+      const priceDiv = document.createElement('div');
+      priceDiv.style.fontSize = '20px';
+      priceDiv.style.fontWeight = '700';
+      priceDiv.style.color = widgetSettings.primaryColor;
+      priceDiv.textContent = `$${parseFloat(product.price || '0').toFixed(2)}`; // Safe textContent
+      priceRow.appendChild(priceDiv);
+
+      if (product.category) {
+        const categoryDiv = document.createElement('div');
+        categoryDiv.style.background = '#f3f4f6';
+        categoryDiv.style.color = '#6b7280';
+        categoryDiv.style.padding = '2px 8px';
+        categoryDiv.style.borderRadius = '8px';
+        categoryDiv.style.fontSize = '11px';
+        categoryDiv.style.fontWeight = '500';
+        categoryDiv.textContent = product.category; // Safe textContent
+        priceRow.appendChild(categoryDiv);
+      }
+      detailsDiv.appendChild(priceRow);
+
+      // Description
+      const descP = document.createElement('p');
+      descP.style.margin = '0 0 12px 0';
+      descP.style.fontSize = '13px';
+      descP.style.color = '#6b7280';
+      descP.style.lineHeight = '1.4';
+      descP.style.display = '-webkit-box';
+      descP.style.webkitLineClamp = '3';
+      descP.style.webkitBoxOrient = 'vertical';
+      descP.style.overflow = 'hidden';
+      descP.textContent = product.description || 'No description available'; // Safe textContent
+      detailsDiv.appendChild(descP);
+
+      // Tags (if available)
+      if (product.tags && product.tags.length > 0) {
+        const tagsDiv = document.createElement('div');
+        tagsDiv.style.marginBottom = '12px';
+
+        product.tags.slice(0, 3).forEach(tag => {
+          const tagSpan = document.createElement('span');
+          tagSpan.style.display = 'inline-block';
+          tagSpan.style.background = '#e5e7eb';
+          tagSpan.style.color = '#374151';
+          tagSpan.style.padding = '2px 6px';
+          tagSpan.style.borderRadius = '6px';
+          tagSpan.style.fontSize = '10px';
+          tagSpan.style.marginRight = '4px';
+          tagSpan.style.marginBottom = '4px';
+          tagSpan.textContent = tag; // Safe textContent
+          tagsDiv.appendChild(tagSpan);
+        });
+
+        detailsDiv.appendChild(tagsDiv);
+      }
+
+      // Action button
+      const actionButton = document.createElement('div');
+      actionButton.style.background = widgetSettings.primaryColor;
+      actionButton.style.color = 'white';
+      actionButton.style.textAlign = 'center';
+      actionButton.style.padding = '10px';
+      actionButton.style.borderRadius = '8px';
+      actionButton.style.fontSize = '14px';
+      actionButton.style.fontWeight = '600';
+      actionButton.style.marginTop = 'auto';
+      actionButton.textContent = 'View Product →';
+      detailsDiv.appendChild(actionButton);
+
+      productCard.appendChild(detailsDiv);
       
       // Add click handler to open product page
       productCard.addEventListener('click', function(e) {
@@ -686,23 +738,31 @@ This creates a floating chat widget that can be added to any page
     // Clear any existing widget
     container.innerHTML = '';
     
+    // ✅ XSS FIX: Escape all widget settings before injecting into HTML
+    const safePosition = String(widgetSettings.position).replace(/[^a-z-]/gi, ''); // Only allow letters and hyphens
+    const safeButtonText = escapeHTML(widgetSettings.buttonText);
+    const safeChatTitle = escapeHTML(widgetSettings.chatTitle);
+    const safeWelcomeMessage = escapeHTML(widgetSettings.welcomeMessage);
+    const safeInputPlaceholder = escapeHTML(widgetSettings.inputPlaceholder);
+    const safePrimaryColor = sanitizeColor(widgetSettings.primaryColor);
+
     container.innerHTML = `
-      <div class="ai-sales-assistant-widget position-${widgetSettings.position}" data-widget-id="ai-sales-assistant">
+      <div class="ai-sales-assistant-widget position-${safePosition}" data-widget-id="ai-sales-assistant">
         <!-- Chat Toggle Button -->
-        <button 
-          class="ai-chat-toggle" 
+        <button
+          class="ai-chat-toggle"
           id="ai-chat-toggle-btn"
-          style="background-color: ${widgetSettings.primaryColor};"
+          style="background-color: ${safePrimaryColor};"
         >
           <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAABJlBMVEVHcEwb49o9s+I0v+BIoOUuyN9Ui+hZg+pdfOsc49tMl+ZViuke4NtOk+ce39sc4ts3t+Ej19xbf+pTi+gl1N1GoOVCp+RWh+kxwuAa5tpFo+Ue39s0vuAsyt4i2NxIneYpzd5Ml+Yry946suJUiuldfOs6suIc49oZ59oa5do/q+Neeusxwt8Y6dka5touxt88sOJcfupZgupcfuo0veBefOpcfuoZ5toiIiI8sOI2ueFCp+RFouVInuU5tOE/q+MzveAxwt8uxt9LmedQkOdWh+kry98o0N0hHx9Ui+gl1Nwi2dwf3dtOlOZZgulcfuomTFYsRFcrhZc+ZpxUjes4cJsyepkjP0Ei2t0lxs1ImOBPluomy9ZEcbFBo95KgMsmmaIkZ2ysswjsAAAAOHRSTlMA/gUPAic0C7FTd1yYJhPx7WN0zOqTseDK3t/QnT6GGbzjS7idmjlKO63ujvUwzvf08Ty8eiXh80ZVzqoAAAFYSURBVDjLvZPXVsJAEIYpgST0DlIEFAQLFiw0KUGECKJIVECxvf9LaHZmMBG88/hdzX/mO7t7dnYNhv/FVciJYt5iWt015R37bqPRWFrb9rpW9AsOtQuUYuLSKrnYtRb3ulnfFwMDxnQ6hWLg0BmJQJ/Rm81mcyj765zm9Kke8D6ZTD7mUAc2vgVvF+iNZVketTGlFpuYI22gOy6X5ZGE6WCxRGJPAtpMaGGS4iSctBCJCVWKEdyDi1cJJjQoeSx4x5sNpPqoChWKni0SKgQTmpQOUeBCTYQJdzWKO7iFIVgjHlThlVI0iYL9nGBCnVKIRuqM1hEmPFGy0T1wwQsEBAxp52IW1vSQ8ayoQgfC0KYZt60DvCmK8oK1P6kR+MwVcP8FVGGr7kWZM5d6/MUfb5L3hW80CM7lZ23Nnt0CR8d2ftXH4E7tu4IgZH1F/ve/xZlMf/5fPwFR8XwfQCSWdQAAAABJRU5ErkJggg==" alt="iHeard.ai" width="24" height="24" style="object-fit: contain;" />
-          <span class="button-text">${widgetSettings.buttonText}</span>
+          <span class="button-text">${safeButtonText}</span>
         </button>
-        
+
         <!-- Chat Window -->
         <div id="ai-chat-window" class="ai-chat-window" style="display: none;">
           <!-- Chat Header -->
-          <div class="ai-chat-header" style="background-color: ${widgetSettings.primaryColor};">
-            <h3>${widgetSettings.chatTitle}</h3>
+          <div class="ai-chat-header" style="background-color: ${safePrimaryColor};">
+            <h3>${safeChatTitle}</h3>
             <button class="ai-chat-close" id="ai-chat-close-btn">
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M13.5 4.5L4.5 13.5M4.5 4.5L13.5 13.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -720,7 +780,7 @@ This creates a floating chat widget that can be added to any page
                     <div class="ai-avatar-container" style="display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; background: linear-gradient(135deg, var(--ai-primary-color, #ee5cee) 0%, var(--ai-primary-color-dark, #cc00cc) 100%); border-radius: 16px; margin: 0 auto 16px auto; box-shadow: 0 4px 20px rgba(var(--ai-primary-color-rgb, 238, 92, 238), 0.4); animation: floatAvatar 3s ease-in-out infinite;">
                       <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAABJlBMVEVHcEwb49o9s+I0v+BIoOUuyN9Ui+hZg+pdfOsc49tMl+ZViuke4NtOk+ce39sc4ts3t+Ej19xbf+pTi+gl1N1GoOVCp+RWh+kxwuAa5tpFo+Ue39s0vuAsyt4i2NxIneYpzd5Ml+Yry946suJUiuldfOs6suIc49oZ59oa5do/q+Neeusxwt8Y6dka5touxt88sOJcfupZgupcfuo0veBefOpcfuoZ5toiIiI8sOI2ueFCp+RFouVInuU5tOE/q+MzveAxwt8uxt9LmedQkOdWh+kry98o0N0hHx9Ui+gl1Nwi2dwf3dtOlOZZgulcfuomTFYsRFcrhZc+ZpxUjes4cJsyepkjP0Ei2t0lxs1ImOBPluomy9ZEcbFBo95KgMsmmaIkZ2ysswjsAAAAOHRSTlMA/gUPAic0C7FTd1yYJhPx7WN0zOqTseDK3t/QnT6GGbzjS7idmjlKO63ujvUwzvf08Ty8eiXh80ZVzqoAAAFYSURBVDjLvZPXVsJAEIYpgST0DlIEFAQLFiw0KUGECKJIVECxvf9LaHZmMBG88/hdzX/mO7t7dnYNhv/FVciJYt5iWt015R37bqPRWFrb9rpW9AsOtQuUYuLSKrnYtRb3ulnfFwMDxnQ6hWLg0BmJQJ/Rm81mcyj765zm9Kke8D6ZTD7mUAc2vgVvF+iNZVketTGlFpuYI22gOy6X5ZGE6WCxRGJPAtpMaGGS4iSctBCJCVWKEdyDi1cJJjQoeSx4x5sNpPqoChWKni0SKgQTmpQOUeBCTYQJdzWKO7iFIVgjHlThlVI0iYL9nGBCnVKIRuqM1hEmPFGy0T1wwQsEBAxp52IW1vSQ8ayoQgfC0KYZt60DvCmK8oK1P6kR+MwVcP8FVGGr7kWZM5d6/MUfb5L3hW80CM7lZ23Nnt0CR8d2ftXH4E7tu4IgZH1F/ve/xZlMf/5fPwFR8XwfQCSWdQAAAABJRU5ErkJggg==" alt="AI Assistant" width="36" height="36" style="object-fit: contain; filter: brightness(0) invert(1);" />
                     </div>
-                    <h3 style="margin: 0; font-size: 19px; font-weight: 700; color: #111827; line-height: 1.4; text-align: center;">${widgetSettings.welcomeMessage}</h3>
+                    <h3 style="margin: 0; font-size: 19px; font-weight: 700; color: #111827; line-height: 1.4; text-align: center;">${safeWelcomeMessage}</h3>
                   </div>
                   
                   <div class="ai-suggestions-container">
@@ -763,7 +823,7 @@ This creates a floating chat widget that can be added to any page
               <input
                 type="text"
                 id="ai-chat-input-field"
-                placeholder="${widgetSettings.inputPlaceholder}"
+                placeholder="${safeInputPlaceholder}"
               />
               <button id="ai-chat-send-btn">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
