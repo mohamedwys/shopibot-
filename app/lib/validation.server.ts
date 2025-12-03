@@ -24,10 +24,12 @@ export const shopDomainSchema = z.string()
   );
 
 /**
- * Session ID validation (UUID format)
+ * Session ID validation
+ * Accepts any string format (UUID, custom format like session_timestamp_random)
  */
 export const sessionIdSchema = z.string()
-  .uuid('Invalid session ID format')
+  .min(1, 'Session ID cannot be empty')
+  .max(200, 'Session ID too long')
   .optional();
 
 /**
