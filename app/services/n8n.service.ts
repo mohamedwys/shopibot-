@@ -120,15 +120,26 @@ export class N8NService {
       console.log('✅ N8N Service: Success! Response:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('❌ N8N Service Error - Full details:');
-      console.error('Error message:', error?.message);
-      console.error('Error response:', error?.response?.data);
-      console.error('Error status:', error?.response?.status);
-      console.error('Error config:', {
-        url: error?.config?.url,
-        method: error?.config?.method,
-        headers: error?.config?.headers
-      });
+      console.error('❌❌❌ N8N SERVICE WEBHOOK CALL FAILED ❌❌❌');
+      console.error('🔗 Webhook URL that failed:', this.webhookUrl);
+      console.error('📋 Error message:', error?.message);
+      console.error('📋 Error code:', error?.code);
+      console.error('📋 HTTP status:', error?.response?.status);
+      console.error('📋 Response data:', error?.response?.data);
+      console.error('📋 Request headers used:', error?.config?.headers);
+
+      // Check for common issues
+      if (error?.code === 'ECONNREFUSED') {
+        console.error('💥 CONNECTION REFUSED - N8N server is not reachable');
+      } else if (error?.code === 'ETIMEDOUT') {
+        console.error('⏱️ TIMEOUT - N8N server did not respond within 30 seconds');
+      } else if (error?.response?.status === 404) {
+        console.error('🔍 404 NOT FOUND - Check your webhook URL path');
+      } else if (error?.response?.status === 401 || error?.response?.status === 403) {
+        console.error('🔒 AUTHENTICATION FAILED - Check your N8N API key');
+      } else if (error?.response?.status === 500) {
+        console.error('💔 N8N INTERNAL ERROR - Check your N8N workflow');
+      }
 
       console.log('🔄 N8N Service: Falling back to AI-enhanced local processing');
       // Fallback to AI-enhanced local processing if N8N is unavailable
