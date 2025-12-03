@@ -1,6 +1,7 @@
 import type { ActionFunctionArgs } from "@remix-run/node";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
+import { getWebhookSecurityHeaders } from "../lib/security-headers.server";
 
 /**
  * GDPR Webhook: Customer Data Request
@@ -29,7 +30,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         error: "No customer identifier provided"
       }), {
         status: 400,
-        headers: { "Content-Type": "application/json" }
+        headers: {
+          "Content-Type": "application/json",
+          ...getWebhookSecurityHeaders()
+        }
       });
     }
 
@@ -130,7 +134,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     // Note: Shopify will store this and provide it to the customer
     return new Response(JSON.stringify(customerData, null, 2), {
       status: 200,
-      headers: { "Content-Type": "application/json" }
+      headers: {
+        "Content-Type": "application/json",
+        ...getWebhookSecurityHeaders()
+      }
     });
 
   } catch (error) {
@@ -142,7 +149,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       message: error instanceof Error ? error.message : 'Unknown error',
     }), {
       status: 500,
-      headers: { "Content-Type": "application/json" }
+      headers: {
+        "Content-Type": "application/json",
+        ...getWebhookSecurityHeaders()
+      }
     });
   }
 };

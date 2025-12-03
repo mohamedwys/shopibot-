@@ -6,6 +6,7 @@ import db from "../db.server";
 import { getSecureCorsHeaders, createCorsPreflightResponse, isOriginAllowed, logCorsViolation } from "../lib/cors.server";
 import { rateLimit, RateLimitPresets } from "../lib/rate-limit.server";
 import { chatRequestSchema, validateData, validationErrorResponse } from "../lib/validation.server";
+import { getAPISecurityHeaders, mergeSecurityHeaders } from "../lib/security-headers.server";
 
 // Default settings (same as in settings page)
 const DEFAULT_SETTINGS = {
@@ -39,7 +40,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       // Return default settings if no shop specified
       return json(
         { settings: DEFAULT_SETTINGS },
-        { headers: getSecureCorsHeaders(request) }
+        {
+          headers: mergeSecurityHeaders(
+            getSecureCorsHeaders(request),
+            getAPISecurityHeaders()
+          )
+        }
       );
     }
     
@@ -60,7 +66,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
     return json(
       { settings },
-      { headers: getSecureCorsHeaders(request) }
+      {
+        headers: mergeSecurityHeaders(
+          getSecureCorsHeaders(request),
+          getAPISecurityHeaders()
+        )
+      }
     );
   } catch (error) {
     console.error("Error fetching widget settings:", error);
@@ -68,7 +79,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     // Return default settings on error
     return json(
       { settings: DEFAULT_SETTINGS },
-      { headers: getSecureCorsHeaders(request) }
+      {
+        headers: mergeSecurityHeaders(
+          getSecureCorsHeaders(request),
+          getAPISecurityHeaders()
+        )
+      }
     );
   }
 };
@@ -121,7 +137,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         { error: "Shop domain required" },
         {
           status: 400,
-          headers: getSecureCorsHeaders(request)
+          headers: mergeSecurityHeaders(
+            getSecureCorsHeaders(request),
+            getAPISecurityHeaders()
+          )
         }
       );
     }
@@ -162,7 +181,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       const errorResponse = validationErrorResponse(validation.errors);
       return json(errorResponse, {
         status: errorResponse.status,
-        headers: getSecureCorsHeaders(request),
+        headers: mergeSecurityHeaders(
+          getSecureCorsHeaders(request),
+          getAPISecurityHeaders()
+        ),
       });
     }
 
@@ -176,7 +198,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         { error: "Message is required" },
         {
           status: 400,
-          headers: getSecureCorsHeaders(request),
+          headers: mergeSecurityHeaders(
+            getSecureCorsHeaders(request),
+            getAPISecurityHeaders()
+          ),
         }
       );
     }
@@ -291,7 +316,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       confidence: n8nResponse.confidence || 0.7,
       timestamp: new Date().toISOString()
     }, {
-      headers: getSecureCorsHeaders(request)
+      headers: mergeSecurityHeaders(
+        getSecureCorsHeaders(request),
+        getAPISecurityHeaders()
+      )
     });
 
   } catch (error) {
@@ -301,7 +329,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       message: "Sorry, I'm having trouble processing your request right now. Please try again later."
     }, {
       status: 500,
-      headers: getSecureCorsHeaders(request)
+      headers: mergeSecurityHeaders(
+        getSecureCorsHeaders(request),
+        getAPISecurityHeaders()
+      )
     });
   }
 }; 

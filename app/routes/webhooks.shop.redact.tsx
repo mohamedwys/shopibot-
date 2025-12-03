@@ -1,6 +1,7 @@
 import type { ActionFunctionArgs } from "@remix-run/node";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
+import { getWebhookSecurityHeaders } from "../lib/security-headers.server";
 
 /**
  * GDPR Webhook: Shop Data Redaction
@@ -107,7 +108,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       deleted_at: new Date().toISOString(),
     }), {
       status: 200,
-      headers: { "Content-Type": "application/json" }
+      headers: { "Content-Type": "application/json", ...getWebhookSecurityHeaders() }
     });
 
   } catch (error) {
@@ -129,7 +130,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       // Return 200 to prevent retries - manual cleanup may be needed
     }), {
       status: 200,
-      headers: { "Content-Type": "application/json" }
+      headers: { "Content-Type": "application/json", ...getWebhookSecurityHeaders() }
     });
   }
 };

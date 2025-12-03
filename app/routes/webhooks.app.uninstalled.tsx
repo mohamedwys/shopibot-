@@ -1,6 +1,7 @@
 import type { ActionFunctionArgs } from "@remix-run/node";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
+import { getWebhookSecurityHeaders } from "../lib/security-headers.server";
 
 /**
  * App Uninstalled Webhook
@@ -94,7 +95,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       deletion_summary: result,
     }), {
       status: 200,
-      headers: { "Content-Type": "application/json" }
+      headers: { "Content-Type": "application/json", ...getWebhookSecurityHeaders() }
     });
 
   } catch (error) {
@@ -107,7 +108,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       message: error instanceof Error ? error.message : 'Unknown error',
     }), {
       status: 200,
-      headers: { "Content-Type": "application/json" }
+      headers: { "Content-Type": "application/json", ...getWebhookSecurityHeaders() }
     });
   }
 };

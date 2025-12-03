@@ -1,6 +1,7 @@
 import type { ActionFunctionArgs } from "@remix-run/node";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
+import { getWebhookSecurityHeaders } from "../lib/security-headers.server";
 
 /**
  * GDPR Webhook: Customer Data Redaction
@@ -31,7 +32,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         error: "No customer identifier provided"
       }), {
         status: 400,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json", ...getWebhookSecurityHeaders() }
       });
     }
 
@@ -109,7 +110,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         deleted_at: new Date().toISOString(),
       }), {
         status: 200,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json", ...getWebhookSecurityHeaders() }
       });
     } else {
       console.log(`ℹ️ No data found for customer ${customerId || customerEmail}`);
@@ -120,7 +121,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         customer_id: customerId,
       }), {
         status: 200,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json", ...getWebhookSecurityHeaders() }
       });
     }
 
@@ -136,7 +137,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       // Still return 200 to prevent retries - manual intervention needed
     }), {
       status: 200,
-      headers: { "Content-Type": "application/json" }
+      headers: { "Content-Type": "application/json", ...getWebhookSecurityHeaders() }
     });
   }
 };

@@ -7,6 +7,7 @@ import db from "../db.server";
 import { getSecureCorsHeaders, createCorsPreflightResponse, isOriginAllowed, logCorsViolation } from "../lib/cors.server";
 import { rateLimit, RateLimitPresets } from "../lib/rate-limit.server";
 import { chatRequestSchema, validateData, validationErrorResponse } from "../lib/validation.server";
+import { getAPISecurityHeaders, mergeSecurityHeaders } from "../lib/security-headers.server";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   console.log('🎯 API Route Called: /apps/sales-assistant-api');
@@ -295,7 +296,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         },
       },
       {
-        headers: getSecureCorsHeaders(request)
+        headers: mergeSecurityHeaders(
+          getSecureCorsHeaders(request),
+          getAPISecurityHeaders()
+        )
       }
     );
 
@@ -306,7 +310,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       message: "Sorry, I'm having trouble processing your request right now. Please try again later."
     }, {
       status: 500,
-      headers: getSecureCorsHeaders(request)
+      headers: mergeSecurityHeaders(
+        getSecureCorsHeaders(request),
+        getAPISecurityHeaders()
+      )
     });
   }
 };
@@ -318,6 +325,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     service: "AI Sales Assistant API",
     timestamp: new Date().toISOString()
   }, {
-    headers: getSecureCorsHeaders(request)
+    headers: mergeSecurityHeaders(
+      getSecureCorsHeaders(request),
+      getAPISecurityHeaders()
+    )
   });
 }; 
