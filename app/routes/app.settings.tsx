@@ -372,7 +372,8 @@ export default function SettingsPage() {
                     if (value === "default") {
                       setSettings((prev: any) => ({ ...prev, webhookUrl: "" }));
                     } else {
-                      setSettings((prev: any) => ({ ...prev, webhookUrl: "https://" }));
+                      // Set to empty string so user can type immediately
+                      setSettings((prev: any) => ({ ...prev, webhookUrl: "" }));
                     }
                   }}
                   helpText="Select whether to use the built-in AI workflow or your own custom setup"
@@ -395,24 +396,16 @@ export default function SettingsPage() {
                                            url !== 'undefined' &&
                                            url.startsWith('https://') &&
                                            url.length > 8;
-                    return isValidCustomUrl
-                      ? "✅ Valid webhook URL configured. Messages will be sent to your N8N workflow."
-                      : "Select 'Use My Custom N8N Workflow' above to enable this field.";
+                    if (isValidCustomUrl) {
+                      return "✅ Valid webhook URL configured. Messages will be sent to your N8N workflow.";
+                    } else if (url && url.length > 0) {
+                      return "Enter your complete N8N webhook URL (must start with https://)";
+                    } else {
+                      return "Enter your N8N webhook URL to use custom workflow. Leave empty for default workflow.";
+                    }
                   })()}
                   autoComplete="off"
                   type="url"
-                  disabled={(() => {
-                    const url = (settings as any).webhookUrl;
-                    const isValidCustomUrl = url &&
-                                           typeof url === 'string' &&
-                                           url.trim() !== '' &&
-                                           url !== 'https://' &&
-                                           url !== 'null' &&
-                                           url !== 'undefined' &&
-                                           url.startsWith('https://') &&
-                                           url.length > 8;
-                    return !isValidCustomUrl && (!url || url === 'https://');
-                  })()}
                 />
                 
                 <Banner tone="info">
