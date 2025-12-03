@@ -275,17 +275,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       referer: request.headers.get('referer'),
     };
 
-    // Get webhook URL from widget settings (skip on Vercel)
+    // Get webhook URL from widget settings
     let settings = null;
-    if (process.env.VERCEL !== '1') {
-      try {
-        settings = await db.widgetSettings.findUnique({
-          where: { shop: shopDomain },
-        });
-      } catch (error) {
-        console.log('⚠️ Could not fetch settings from database:', error);
-        settings = null;
-      }
+    try {
+      settings = await db.widgetSettings.findUnique({
+        where: { shop: shopDomain },
+      });
+      console.log('✅ Retrieved settings from database for shop:', shopDomain);
+      console.log('🔧 Custom webhook URL from settings:', (settings as any)?.webhookUrl);
+    } catch (error) {
+      console.log('⚠️ Could not fetch settings from database:', error);
+      settings = null;
     }
     
 
