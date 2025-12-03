@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData, Link } from "@remix-run/react";
 import {
   Page,
   Layout,
@@ -13,11 +13,16 @@ import {
   ProgressBar,
   Box,
   Divider,
+  Banner,
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
+import { checkBillingStatus } from "../lib/billing.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
+  const { billing } = await authenticate.admin(request);
+
+  // Check billing status
+  const billingStatus = await checkBillingStatus(billing);
 
   // In a real app, you'd fetch analytics data from your database
   const stats = {
@@ -34,14 +39,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     ]
   };
 
-  return json({ stats });
+  return json({ stats, billingStatus });
 };
 
 export default function Index() {
-  const { stats } = useLoaderData<typeof loader>();
+  const { stats, billingStatus } = useLoaderData<typeof loader>();
 
   return (
-    <Page 
+    <Page
       title="AI Sales Assistant Dashboard"
       subtitle="Monitor your AI assistant's performance and customer interactions"
       primaryAction={{
@@ -50,6 +55,45 @@ export default function Index() {
       }}
     >
       <Layout>
+        {/* Billing Status Banner */}
+        {!billingStatus.hasActivePayment && (
+          <Layout.Section>
+            <Banner
+              title="Choose a plan to unlock all features"
+              tone="warning"
+              action={{
+                content: "View Plans",
+                url: "/app/billing",
+              }}
+            >
+              <p>
+                You're currently using the app without a subscription. Subscribe to a plan to unlock
+                full functionality including unlimited conversations, advanced analytics, and priority support.
+              </p>
+            </Banner>
+          </Layout.Section>
+        )}
+
+        {billingStatus.hasActivePayment && billingStatus.activePlan && (
+          <Layout.Section>
+            <Banner
+              title={`${billingStatus.activePlan} Active`}
+              tone="success"
+              action={{
+                content: "Manage Billing",
+                url: "/app/billing",
+              }}
+            >
+              <p>
+                Your subscription is active and all features are unlocked.
+                {billingStatus.appSubscriptions[0]?.test && (
+                  <> (Test mode - you won't be charged)</>
+                )}
+              </p>
+            </Banner>
+          </Layout.Section>
+        )}
+
         <Layout.Section>
           <InlineStack gap="400">
             <Card>
