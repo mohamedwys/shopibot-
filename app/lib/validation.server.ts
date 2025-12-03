@@ -83,22 +83,23 @@ export const userMessageSchema = z.string()
 
 /**
  * Chat context validation
- * All fields are optional to support various widget implementations
+ * All fields are optional/nullable to support various widget implementations
  * Uses passthrough() to allow additional fields
+ * Note: .nullish() allows both null and undefined values
  */
 export const chatContextSchema = z.object({
-  previousMessages: z.array(z.string()).optional(),
-  sessionId: z.string().min(1).max(200).optional(),
-  customerId: z.string().min(1).max(100).optional(),
-  shopDomain: z.string().max(255).optional(), // Relaxed validation for widget compatibility
-  sentiment: z.enum(['POSITIVE', 'NEGATIVE', 'NEUTRAL']).optional(),
-  intent: z.string().max(50).optional(),
-  timestamp: z.string().datetime().optional(),
-  userAgent: z.string().max(500).optional(),
-  referer: z.string().max(2048).optional(),
-  page: z.string().max(2048).optional(),
-  productId: z.string().max(100).optional(),
-  conversationHistory: z.array(z.any()).optional(),
+  previousMessages: z.array(z.string()).nullish(),
+  sessionId: z.string().min(1).max(200).nullish(),
+  customerId: z.string().min(1).max(100).nullish(),
+  shopDomain: z.string().max(255).nullish(), // Relaxed validation for widget compatibility
+  sentiment: z.enum(['POSITIVE', 'NEGATIVE', 'NEUTRAL']).nullish(),
+  intent: z.string().max(50).nullish(),
+  timestamp: z.string().datetime().nullish(),
+  userAgent: z.string().max(500).nullish(),
+  referer: z.string().max(2048).nullish(),
+  page: z.string().max(2048).nullish(),
+  productId: z.string().max(100).nullish(), // Widget sends null when no product
+  conversationHistory: z.array(z.any()).nullish(),
 }).passthrough().optional();
 
 /**
