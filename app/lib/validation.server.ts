@@ -84,12 +84,13 @@ export const userMessageSchema = z.string()
 /**
  * Chat context validation
  * All fields are optional to support various widget implementations
+ * Uses passthrough() to allow additional fields
  */
 export const chatContextSchema = z.object({
   previousMessages: z.array(z.string()).optional(),
   sessionId: z.string().min(1).max(200).optional(),
   customerId: z.string().min(1).max(100).optional(),
-  shopDomain: shopDomainSchema.optional(),
+  shopDomain: z.string().max(255).optional(), // Relaxed validation for widget compatibility
   sentiment: z.enum(['POSITIVE', 'NEGATIVE', 'NEUTRAL']).optional(),
   intent: z.string().max(50).optional(),
   timestamp: z.string().datetime().optional(),
@@ -98,7 +99,7 @@ export const chatContextSchema = z.object({
   page: z.string().max(2048).optional(),
   productId: z.string().max(100).optional(),
   conversationHistory: z.array(z.any()).optional(),
-}).optional();
+}).passthrough().optional();
 
 /**
  * Product recommendation validation
@@ -116,6 +117,7 @@ export const productRecommendationSchema = z.object({
 /**
  * Chat request validation (for sales assistant API)
  * Supports both direct API calls and widget requests
+ * Uses passthrough() to allow additional fields for flexibility
  */
 export const chatRequestSchema = z.object({
   userMessage: userMessageSchema.optional(),
@@ -130,8 +132,8 @@ export const chatRequestSchema = z.object({
     description: z.string().optional(),
     price: z.string(),
     image: z.string().optional(),
-  })).optional(),
-}).refine(
+  }).passthrough()).optional(),
+}).passthrough().refine(
   (data) => data.userMessage || data.message,
   'Either userMessage or message is required'
 );

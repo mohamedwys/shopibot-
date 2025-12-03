@@ -178,6 +178,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
     if (!validation.success) {
       console.error('❌ Validation failed:', validation.errors);
+      console.error('❌ Request body was:', JSON.stringify(body, null, 2));
+      console.error('❌ Detailed errors:', validation.errors.errors.map((e: any) => ({
+        path: e.path.join('.'),
+        message: e.message,
+        code: e.code
+      })));
       const errorResponse = validationErrorResponse(validation.errors);
       return json(errorResponse, {
         status: errorResponse.status,
