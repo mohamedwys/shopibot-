@@ -87,7 +87,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     variables: { first: 50 }
   });
 
-  const responseData = response.data as any;
+  const responseJson = await response.json();
+  const responseData = responseJson.data as any;
   const products = responseData?.products?.edges?.map((edge: any) => ({
     id: edge.node.id,
     title: edge.node.title,
@@ -138,7 +139,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       variables: { first: 50 }
     });
 
-    const responseData = response.data as any;
+    const responseJson = await response.json();
+    const responseData = responseJson.data as any;
     const products = responseData?.products?.edges?.map((edge: any) => ({
       id: edge.node.id,
       title: edge.node.title,

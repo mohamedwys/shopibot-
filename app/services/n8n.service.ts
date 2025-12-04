@@ -43,6 +43,9 @@ export interface EnhancedProductRecommendation {
   cta?: string; // Call to action text, e.g., "View Product", "Add to Cart"
 }
 
+// Type alias for backward compatibility
+export type ProductRecommendation = EnhancedProductRecommendation;
+
 // Suggested action buttons
 export interface SuggestedAction {
   label: string; // Button text
