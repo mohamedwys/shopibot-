@@ -1,11 +1,15 @@
 import { redirect } from "@remix-run/node";
-import type { AdminApiContext } from "@shopify/shopify-app-remix/server";
+import type { AdminContext } from "@shopify/shopify-app-remix/server";
 
 /**
  * Billing utility functions for Shopify App
  *
  * Provides helpers to check billing status and enforce subscriptions
  */
+
+// Type for the billing property from authenticate.admin()
+// Using 'any' for the config parameter to avoid strict plan name checking
+type BillingAPI = AdminContext<any>['billing'];
 
 export interface BillingCheckResult {
   hasActivePayment: boolean;
@@ -20,10 +24,10 @@ export interface BillingCheckResult {
  * @returns Billing status information
  */
 export async function checkBillingStatus(
-  billing: AdminApiContext["billing"]
+  billing: BillingAPI
 ): Promise<BillingCheckResult> {
   const { hasActivePayment, appSubscriptions } = await billing.check({
-    plans: ["Starter Plan", "Professional Plan"],
+    plans: ["Starter Plan", "Professional Plan"] as any,
     isTest: process.env.NODE_ENV !== "production",
   });
 
@@ -47,10 +51,10 @@ export async function checkBillingStatus(
  * @throws Redirect to /app/billing if no active subscription
  */
 export async function requireBilling(
-  billing: AdminApiContext["billing"]
+  billing: BillingAPI
 ): Promise<void> {
   const billingCheck = await billing.require({
-    plans: ["Starter Plan", "Professional Plan"],
+    plans: ["Starter Plan", "Professional Plan"] as any,
     isTest: process.env.NODE_ENV !== "production",
     onFailure: async () => {
       // No active subscription - redirect to billing page
@@ -68,10 +72,10 @@ export async function requireBilling(
  * @returns True if shop has Professional Plan
  */
 export async function hasProfessionalPlan(
-  billing: AdminApiContext["billing"]
+  billing: BillingAPI
 ): Promise<boolean> {
   const { hasActivePayment, appSubscriptions } = await billing.check({
-    plans: ["Professional Plan"],
+    plans: ["Professional Plan"] as any,
     isTest: process.env.NODE_ENV !== "production",
   });
 
@@ -85,10 +89,10 @@ export async function hasProfessionalPlan(
  * @returns True if shop has Starter Plan
  */
 export async function hasStarterPlan(
-  billing: AdminApiContext["billing"]
+  billing: BillingAPI
 ): Promise<boolean> {
   const { hasActivePayment, appSubscriptions } = await billing.check({
-    plans: ["Starter Plan"],
+    plans: ["Starter Plan"] as any,
     isTest: process.env.NODE_ENV !== "production",
   });
 
