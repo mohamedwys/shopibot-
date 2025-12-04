@@ -22,7 +22,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { billing, session } = await authenticate.admin(request);
 
   const { hasActivePayment, appSubscriptions } = await billing.check({
-    plans: ["Starter Plan", "Professional Plan"],
+    plans: ["Starter Plan", "Professional Plan"] as any,
     isTest: process.env.NODE_ENV !== "production",
   });
 
@@ -45,7 +45,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 
   const billingCheck = await billing.require({
-    plans: [plan],
+    plans: [plan] as any,
     isTest: process.env.NODE_ENV !== "production",
     onFailure: async () => {
       return redirect("/app/billing");
@@ -89,7 +89,7 @@ export default function BillingPage() {
         {isTestMode && (
           <Layout.Section>
             <Banner tone="info">
-              <BlockStack gap="200">
+              <BlockStack gap="400">
                 <Text as="p" variant="bodyMd" fontWeight="semibold">
                   Test Mode Active
                 </Text>
@@ -104,7 +104,7 @@ export default function BillingPage() {
         {hasActivePayment && activePlan && (
           <Layout.Section>
             <Banner tone="success">
-              <BlockStack gap="200">
+              <BlockStack gap="400">
                 <Text as="p" variant="bodyMd">
                   <strong>Active Subscription:</strong> {activePlan.name}
                 </Text>
@@ -134,7 +134,7 @@ export default function BillingPage() {
               <Card>
                 <BlockStack gap="500">
                   {/* Header */}
-                  <BlockStack gap="200">
+                  <BlockStack gap="400">
                     <InlineStack align="space-between" blockAlign="start">
                       <Text as="h2" variant="headingLg" fontWeight="bold">
                         Starter
@@ -166,7 +166,7 @@ export default function BillingPage() {
                     <Text as="p" variant="headingSm" fontWeight="semibold">
                       What's included:
                     </Text>
-                    <List type="bullet" gap="tight">
+                    <List type="bullet">
                       <List.Item>
                         <Text as="span" variant="bodyMd">
                           Up to 1,000 conversations/month
@@ -216,7 +216,7 @@ export default function BillingPage() {
               <Card background="bg-surface-selected">
                 <BlockStack gap="500">
                   {/* Header */}
-                  <BlockStack gap="200">
+                  <BlockStack gap="400">
                     <InlineStack align="space-between" blockAlign="start">
                       <Text as="h2" variant="headingLg" fontWeight="bold">
                         Professional
@@ -248,7 +248,7 @@ export default function BillingPage() {
                     <Text as="p" variant="headingSm" fontWeight="semibold">
                       Everything in Starter, plus:
                     </Text>
-                    <List type="bullet" gap="tight">
+                    <List type="bullet">
                       <List.Item>
                         <Text as="span" variant="bodyMd" fontWeight="semibold">
                           Unlimited conversations
@@ -378,7 +378,7 @@ export default function BillingPage() {
               </Text>
 
               <BlockStack gap="400">
-                <BlockStack gap="200">
+                <BlockStack gap="400">
                   <Text as="p" variant="bodyLg" fontWeight="semibold">
                     Can I change plans later?
                   </Text>
@@ -390,7 +390,7 @@ export default function BillingPage() {
 
                 <Divider />
 
-                <BlockStack gap="200">
+                <BlockStack gap="400">
                   <Text as="p" variant="bodyLg" fontWeight="semibold">
                     What happens after the 7-day trial?
                   </Text>
@@ -402,7 +402,7 @@ export default function BillingPage() {
 
                 <Divider />
 
-                <BlockStack gap="200">
+                <BlockStack gap="400">
                   <Text as="p" variant="bodyLg" fontWeight="semibold">
                     Do you offer refunds?
                   </Text>
@@ -414,7 +414,7 @@ export default function BillingPage() {
 
                 <Divider />
 
-                <BlockStack gap="200">
+                <BlockStack gap="400">
                   <Text as="p" variant="bodyLg" fontWeight="semibold">
                     What counts as a conversation?
                   </Text>
