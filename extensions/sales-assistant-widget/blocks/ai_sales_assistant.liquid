@@ -91,6 +91,9 @@ This creates a floating chat widget that can be added to any page
   let chatOpen = false;
   let conversationHistory = [];
   let widgetSettings = null;
+  let currentQuickReplies = []; // ✨ NEW: Track current quick replies
+  let currentSentiment = 'neutral'; // ✨ NEW: Track sentiment for styling
+  let currentSuggestedActions = []; // ✨ NEW: Track suggested actions
 
   // ✅ XSS PROTECTION: Helper function to escape HTML entities
   // This provides defense-in-depth protection even for admin-controlled settings
@@ -109,6 +112,72 @@ This creates a floating chat widget that can be added to any page
       return color;
     }
     return '#ee5cee'; // fallback to default if invalid
+  }
+
+  // ✨ NEW: Apply sentiment-based styling to chat widget
+  function applySentimentStyling(sentiment) {
+    const chatWidget = document.getElementById('ai-chat-widget');
+    const chatHeader = document.querySelector('.ai-chat-header');
+    const messagesContainer = document.getElementById('ai-chat-messages');
+
+    if (!chatWidget) return;
+
+    // Define sentiment color schemes (subtle variations)
+    const sentimentStyles = {
+      positive: {
+        headerGradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', // Bright green
+        headerShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+        messagesBg: '#f0fdf4', // Light green tint
+        accentColor: '#10b981'
+      },
+      negative: {
+        headerGradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', // Warm orange
+        headerShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+        messagesBg: '#fffbeb', // Light warm tint
+        accentColor: '#f59e0b'
+      },
+      neutral: {
+        headerGradient: `linear-gradient(135deg, ${widgetSettings?.primaryColor || '#ee5cee'} 0%, ${adjustColor(widgetSettings?.primaryColor || '#ee5cee', -20)} 100%)`,
+        headerShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+        messagesBg: '#ffffff',
+        accentColor: widgetSettings?.primaryColor || '#ee5cee'
+      }
+    };
+
+    const style = sentimentStyles[sentiment] || sentimentStyles.neutral;
+
+    // Apply styling with smooth transitions
+    if (chatHeader) {
+      chatHeader.style.transition = 'all 0.5s ease';
+      chatHeader.style.background = style.headerGradient;
+      chatHeader.style.boxShadow = style.headerShadow;
+    }
+
+    if (messagesContainer) {
+      messagesContainer.style.transition = 'background-color 0.5s ease';
+      messagesContainer.style.backgroundColor = style.messagesBg;
+    }
+
+    // Update quick reply buttons color
+    const quickReplyButtons = document.querySelectorAll('.quick-reply-btn');
+    quickReplyButtons.forEach(btn => {
+      btn.style.transition = 'all 0.3s ease';
+      btn.style.borderColor = style.accentColor;
+      btn.style.color = style.accentColor;
+    });
+  }
+
+  // Helper function to adjust color brightness
+  function adjustColor(color, percent) {
+    const num = parseInt(color.replace('#', ''), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = (num >> 16) + amt;
+    const G = (num >> 8 & 0x00FF) + amt;
+    const B = (num & 0x0000FF) + amt;
+    return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+      (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+      (B < 255 ? B < 1 ? 0 : B : 255))
+      .toString(16).slice(1);
   }
 
   // Get settings from block settings or fetch from API
@@ -225,25 +294,52 @@ This creates a floating chat widget that can be added to any page
      sendChatMessage()
       .then(data => {
       showLoading(false);
-      
+
       // Handle both old format (data.response) and new N8N format (data.message)
       let responseMessage = data.response || data.message;
-      
+
       if (responseMessage) {
         // Add the main AI response
         addMessageToChat('assistant', responseMessage);
-        
-        // If there are product recommendations, display them
+
+        // ✨ NEW: Display product recommendations with enhanced cards
         if (data.recommendations && data.recommendations.length > 0) {
           displayProductRecommendations(data.recommendations);
         }
-        
+
+        // ✨ NEW: Display quick replies if available
+        if (data.quickReplies && data.quickReplies.length > 0) {
+          displayQuickReplies(data.quickReplies);
+        } else {
+          // Clear quick replies if none provided
+          displayQuickReplies([]);
+        }
+
+        // ✨ NEW: Display suggested actions if available
+        if (data.suggestedActions && data.suggestedActions.length > 0) {
+          displaySuggestedActions(data.suggestedActions);
+        } else {
+          // Clear suggested actions if none provided
+          displaySuggestedActions([]);
+        }
+
+        // ✨ NEW: Track sentiment for styling
+        if (data.sentiment) {
+          currentSentiment = data.sentiment;
+          applySentimentStyling(data.sentiment);
+        }
+
+        // ✨ NEW: Human escalation prompt
+        if (data.requiresHumanEscalation) {
+          displayHumanEscalationPrompt();
+        }
+
         // Update conversation history
         conversationHistory.push(
           { role: 'user', content: message },
           { role: 'assistant', content: responseMessage }
         );
-        
+
         // Keep only last 10 messages
         if (conversationHistory.length > 10) {
           conversationHistory = conversationHistory.slice(-10);
@@ -318,7 +414,501 @@ This creates a floating chat widget that can be added to any page
       }, 10);
     }
   }
-  
+
+  // ✨ NEW: Display quick reply buttons
+  function displayQuickReplies(quickReplies) {
+    if (!quickReplies || quickReplies.length === 0) {
+      currentQuickReplies = [];
+      const container = document.getElementById('quick-replies-container');
+      if (container) container.remove();
+      return;
+    }
+
+    currentQuickReplies = quickReplies;
+
+    // Remove existing quick replies
+    const existingContainer = document.getElementById('quick-replies-container');
+    if (existingContainer) existingContainer.remove();
+
+    // Create quick replies container
+    const container = document.createElement('div');
+    container.id = 'quick-replies-container';
+    container.style.cssText = `
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 12px 16px;
+      background: linear-gradient(to bottom, #f9fafb, #ffffff);
+      border-top: 1px solid #e5e7eb;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    `;
+
+    // Create quick reply buttons
+    quickReplies.forEach(reply => {
+      const button = document.createElement('button');
+      button.textContent = reply;
+      button.className = 'quick-reply-btn';
+      button.style.cssText = `
+        background: white;
+        border: 1.5px solid ${widgetSettings.primaryColor || '#ee5cee'};
+        color: ${widgetSettings.primaryColor || '#ee5cee'};
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+      `;
+
+      // Hover effect
+      button.onmouseover = () => {
+        button.style.background = widgetSettings.primaryColor || '#ee5cee';
+        button.style.color = 'white';
+        button.style.transform = 'translateY(-1px)';
+        button.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+      };
+      button.onmouseout = () => {
+        button.style.background = 'white';
+        button.style.color = widgetSettings.primaryColor || '#ee5cee';
+        button.style.transform = 'translateY(0)';
+        button.style.boxShadow = 'none';
+      };
+
+      // Click handler
+      button.onclick = () => {
+        const inputField = document.getElementById('ai-chat-input-field');
+        if (inputField) {
+          inputField.value = reply;
+          sendAIMessage();
+        }
+      };
+
+      container.appendChild(button);
+    });
+
+    // Insert before the input field
+    const chatFooter = document.querySelector('.ai-chat-footer') ||
+                       document.getElementById('ai-chat-input-field')?.parentElement;
+    if (chatFooter) {
+      chatFooter.insertBefore(container, chatFooter.firstChild);
+    }
+  }
+
+  // ✨ NEW: Display Suggested Actions Bar
+  function displaySuggestedActions(suggestedActions) {
+    // Clear if no actions
+    if (!suggestedActions || suggestedActions.length === 0) {
+      currentSuggestedActions = [];
+      const existingBar = document.getElementById('suggested-actions-bar');
+      if (existingBar) existingBar.remove();
+      return;
+    }
+
+    currentSuggestedActions = suggestedActions;
+
+    // Remove existing actions bar
+    const existingBar = document.getElementById('suggested-actions-bar');
+    if (existingBar) existingBar.remove();
+
+    // Create actions bar container
+    const actionsBar = document.createElement('div');
+    actionsBar.id = 'suggested-actions-bar';
+    actionsBar.style.cssText = `
+      display: flex;
+      gap: 10px;
+      padding: 16px;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-radius: 12px;
+      margin: 12px 0;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    `;
+
+    // Create action buttons
+    suggestedActions.forEach(action => {
+      const button = document.createElement('button');
+      button.textContent = action.label;
+      button.className = 'suggested-action-btn';
+
+      // Icon based on action type
+      const icons = {
+        'view_product': '👁️',
+        'add_to_cart': '🛒',
+        'compare': '⚖️',
+        'custom': '✨'
+      };
+      const icon = icons[action.action] || '▶️';
+
+      button.style.cssText = `
+        background: ${widgetSettings.primaryColor || '#ee5cee'};
+        color: white;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        flex: 1;
+        min-width: 140px;
+        justify-content: center;
+      `;
+
+      // Add icon before text
+      button.innerHTML = `<span style="font-size: 16px;">${icon}</span> ${escapeHTML(action.label)}`;
+
+      // Hover effects
+      button.onmouseover = () => {
+        button.style.transform = 'translateY(-2px)';
+        button.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+        button.style.filter = 'brightness(1.1)';
+      };
+      button.onmouseout = () => {
+        button.style.transform = 'translateY(0)';
+        button.style.boxShadow = '0 2px 6px rgba(0,0,0,0.12)';
+        button.style.filter = 'brightness(1)';
+      };
+
+      // Click handler
+      button.onclick = () => {
+        handleSuggestedAction(action);
+      };
+
+      actionsBar.appendChild(button);
+    });
+
+    // Insert after the last message in chat
+    const messagesContainer = document.getElementById('ai-chat-messages');
+    if (messagesContainer) {
+      messagesContainer.appendChild(actionsBar);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+  }
+
+  // ✨ NEW: Show notification (for cart actions)
+  function showNotification(message, type = 'success') {
+    // Remove existing notification
+    const existingNotif = document.getElementById('cart-notification');
+    if (existingNotif) existingNotif.remove();
+
+    // Create notification
+    const notification = document.createElement('div');
+    notification.id = 'cart-notification';
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: ${type === 'success' ? '#10b981' : '#ef4444'};
+      color: white;
+      padding: 16px 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 999999;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      animation: slideInRight 0.3s ease;
+    `;
+
+    const icon = document.createElement('span');
+    icon.style.fontSize = '20px';
+    icon.textContent = type === 'success' ? '✅' : '❌';
+    notification.appendChild(icon);
+
+    const text = document.createElement('span');
+    text.textContent = message;
+    notification.appendChild(text);
+
+    document.body.appendChild(notification);
+
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+      notification.style.animation = 'slideOutRight 0.3s ease';
+      setTimeout(() => notification.remove(), 300);
+    }, 3000);
+  }
+
+  // ✨ NEW: Add product to Shopify cart
+  async function addToCart(productHandle, variantId, quantity = 1) {
+    try {
+      showNotification('Adding to cart...', 'info');
+
+      // If we have a variant ID, use it directly
+      if (variantId) {
+        const response = await fetch('/cart/add.js', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            items: [{
+              id: variantId,
+              quantity: quantity
+            }]
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to add to cart');
+        }
+
+        const data = await response.json();
+        showNotification('Added to cart! 🛒', 'success');
+
+        // Update cart count if there's a cart icon on the page
+        updateCartCount();
+        return true;
+      } else {
+        // If no variant ID, fetch product to get first available variant
+        const productResponse = await fetch(`/products/${productHandle}.js`);
+        if (!productResponse.ok) {
+          throw new Error('Product not found');
+        }
+
+        const product = await productResponse.json();
+        const firstAvailableVariant = product.variants.find(v => v.available);
+
+        if (!firstAvailableVariant) {
+          throw new Error('Product is out of stock');
+        }
+
+        // Add the first available variant
+        const addResponse = await fetch('/cart/add.js', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            items: [{
+              id: firstAvailableVariant.id,
+              quantity: quantity
+            }]
+          })
+        });
+
+        if (!addResponse.ok) {
+          throw new Error('Failed to add to cart');
+        }
+
+        showNotification('Added to cart! 🛒', 'success');
+        updateCartCount();
+        return true;
+      }
+    } catch (error) {
+      console.error('Cart error:', error);
+      showNotification('Failed to add to cart', 'error');
+      return false;
+    }
+  }
+
+  // ✨ NEW: Update cart count badge
+  function updateCartCount() {
+    fetch('/cart.js')
+      .then(res => res.json())
+      .then(cart => {
+        // Try to find and update cart count elements
+        const cartCountElements = document.querySelectorAll('[data-cart-count], .cart-count, #cart-count');
+        cartCountElements.forEach(el => {
+          el.textContent = cart.item_count;
+        });
+      })
+      .catch(err => console.error('Failed to update cart count:', err));
+  }
+
+  // ✨ NEW: Handle Suggested Action clicks
+  function handleSuggestedAction(action) {
+    switch(action.action) {
+      case 'view_product':
+        // Open product page
+        if (action.data) {
+          const productUrl = action.data.startsWith('http')
+            ? action.data
+            : `/products/${action.data}`;
+          window.open(productUrl, '_blank');
+        }
+        break;
+
+      case 'add_to_cart':
+        // ✨ ENHANCED: Full cart integration
+        if (action.data) {
+          // action.data can be product handle or variant ID
+          const isVariantId = /^\d+$/.test(action.data);
+          if (isVariantId) {
+            addToCart(null, action.data);
+          } else {
+            addToCart(action.data, null);
+          }
+        }
+        break;
+
+      case 'compare':
+        // Compare products (future feature)
+        console.log('Compare products:', action.data);
+        addMessageToChat('assistant', 'Product comparison feature coming soon! ⚖️');
+        break;
+
+      case 'custom':
+        // Custom action - can be extended
+        console.log('Custom action:', action.data);
+        break;
+
+      default:
+        console.log('Unknown action:', action.action);
+    }
+  }
+
+  // ✨ NEW: Display Human Escalation Prompt
+  function displayHumanEscalationPrompt() {
+    const messagesContainer = document.getElementById('ai-chat-messages');
+    if (!messagesContainer) return;
+
+    // Check if escalation prompt already exists
+    const existingPrompt = document.getElementById('escalation-prompt');
+    if (existingPrompt) return; // Don't show multiple times
+
+    // Create escalation prompt container
+    const escalationPrompt = document.createElement('div');
+    escalationPrompt.id = 'escalation-prompt';
+    escalationPrompt.className = 'ai-message assistant-message';
+    escalationPrompt.style.cssText = `
+      background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+      border: 2px solid #ef4444;
+      border-radius: 16px;
+      padding: 20px;
+      margin: 16px 0;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+    `;
+
+    // Header with icon
+    const header = document.createElement('div');
+    header.style.cssText = `
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    `;
+
+    const icon = document.createElement('span');
+    icon.style.fontSize = '28px';
+    icon.textContent = '👤';
+    header.appendChild(icon);
+
+    const title = document.createElement('h3');
+    title.style.cssText = `
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      color: #991b1b;
+    `;
+    title.textContent = 'Need to speak with a human?';
+    header.appendChild(title);
+
+    escalationPrompt.appendChild(header);
+
+    // Message
+    const message = document.createElement('p');
+    message.style.cssText = `
+      margin: 0 0 16px 0;
+      font-size: 14px;
+      color: #7f1d1d;
+      line-height: 1.5;
+    `;
+    message.textContent = 'It looks like you might need personalized assistance. Our support team is ready to help you!';
+    escalationPrompt.appendChild(message);
+
+    // Action buttons
+    const buttonsContainer = document.createElement('div');
+    buttonsContainer.style.cssText = `
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    `;
+
+    // Connect button
+    const connectBtn = document.createElement('button');
+    connectBtn.textContent = '💬 Talk to Support';
+    connectBtn.style.cssText = `
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex: 1;
+      min-width: 140px;
+    `;
+
+    connectBtn.onmouseover = () => {
+      connectBtn.style.background = '#dc2626';
+      connectBtn.style.transform = 'translateY(-1px)';
+      connectBtn.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+    };
+    connectBtn.onmouseout = () => {
+      connectBtn.style.background = '#ef4444';
+      connectBtn.style.transform = 'translateY(0)';
+      connectBtn.style.boxShadow = 'none';
+    };
+
+    connectBtn.onclick = () => {
+      // Open contact page or support email
+      // You can customize this URL to your shop's contact page
+      window.open('/pages/contact', '_blank');
+    };
+    buttonsContainer.appendChild(connectBtn);
+
+    // Continue with AI button
+    const continueBtn = document.createElement('button');
+    continueBtn.textContent = '🤖 Continue with AI';
+    continueBtn.style.cssText = `
+      background: white;
+      color: #ef4444;
+      border: 2px solid #ef4444;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex: 1;
+      min-width: 140px;
+    `;
+
+    continueBtn.onmouseover = () => {
+      continueBtn.style.background = '#fef2f2';
+      continueBtn.style.transform = 'translateY(-1px)';
+    };
+    continueBtn.onmouseout = () => {
+      continueBtn.style.background = 'white';
+      continueBtn.style.transform = 'translateY(0)';
+    };
+
+    continueBtn.onclick = () => {
+      // Just dismiss the prompt
+      escalationPrompt.style.animation = 'fadeOut 0.3s ease';
+      setTimeout(() => escalationPrompt.remove(), 300);
+      addMessageToChat('assistant', 'No problem! I\'m here to help. What else can I assist you with? 😊');
+    };
+    buttonsContainer.appendChild(continueBtn);
+
+    escalationPrompt.appendChild(buttonsContainer);
+
+    // Insert into messages
+    messagesContainer.appendChild(escalationPrompt);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+
   // Display enhanced product recommendations
   function displayProductRecommendations(recommendations) {
     const messagesContainer = document.getElementById('ai-chat-messages');
@@ -367,20 +957,64 @@ This creates a floating chat widget that can be added to any page
         imageDiv.style.backgroundColor = '#f8f9fa';
         imageDiv.style.position = 'relative';
 
-        // Match badge
-        const matchBadge = document.createElement('div');
-        matchBadge.style.position = 'absolute';
-        matchBadge.style.top = '8px';
-        matchBadge.style.right = '8px';
-        matchBadge.style.background = widgetSettings.primaryColor;
-        matchBadge.style.color = 'white';
-        matchBadge.style.padding = '4px 8px';
-        matchBadge.style.borderRadius = '12px';
-        matchBadge.style.fontSize = '11px';
-        matchBadge.style.fontWeight = '600';
-        matchBadge.textContent = `${product.relevanceScore || 85}% match`;
+        // ✨ ENHANCED: Top-left badges (discount, low stock)
+        const badgesContainer = document.createElement('div');
+        badgesContainer.style.position = 'absolute';
+        badgesContainer.style.top = '8px';
+        badgesContainer.style.left = '8px';
+        badgesContainer.style.display = 'flex';
+        badgesContainer.style.flexDirection = 'column';
+        badgesContainer.style.gap = '6px';
 
-        imageDiv.appendChild(matchBadge);
+        // Discount badge (if available)
+        if (product.badge || product.discountPercent) {
+          const discountBadge = document.createElement('div');
+          discountBadge.style.background = '#ef4444';
+          discountBadge.style.color = 'white';
+          discountBadge.style.padding = '4px 10px';
+          discountBadge.style.borderRadius = '6px';
+          discountBadge.style.fontSize = '12px';
+          discountBadge.style.fontWeight = '700';
+          discountBadge.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+          discountBadge.textContent = product.badge || `${product.discountPercent}% OFF`;
+          badgesContainer.appendChild(discountBadge);
+        }
+
+        // Low stock badge (if low stock)
+        if (product.isLowStock && product.inventory) {
+          const stockBadge = document.createElement('div');
+          stockBadge.style.background = '#f59e0b';
+          stockBadge.style.color = 'white';
+          stockBadge.style.padding = '4px 10px';
+          stockBadge.style.borderRadius = '6px';
+          stockBadge.style.fontSize = '11px';
+          stockBadge.style.fontWeight = '600';
+          stockBadge.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+          stockBadge.textContent = `Only ${product.inventory} left!`;
+          badgesContainer.appendChild(stockBadge);
+        }
+
+        if (badgesContainer.children.length > 0) {
+          imageDiv.appendChild(badgesContainer);
+        }
+
+        // ✨ ENHANCED: Match score badge (top-right)
+        if (product.relevanceScore) {
+          const matchBadge = document.createElement('div');
+          matchBadge.style.position = 'absolute';
+          matchBadge.style.top = '8px';
+          matchBadge.style.right = '8px';
+          matchBadge.style.background = 'rgba(0, 0, 0, 0.7)';
+          matchBadge.style.color = 'white';
+          matchBadge.style.padding = '4px 8px';
+          matchBadge.style.borderRadius = '12px';
+          matchBadge.style.fontSize = '11px';
+          matchBadge.style.fontWeight = '600';
+          matchBadge.style.backdropFilter = 'blur(4px)';
+          matchBadge.textContent = `${product.relevanceScore}% match`;
+          imageDiv.appendChild(matchBadge);
+        }
+
         productCard.appendChild(imageDiv);
       }
 
@@ -402,19 +1036,68 @@ This creates a floating chat widget that can be added to any page
       titleH4.textContent = product.title || 'Untitled Product'; // Safe textContent
       detailsDiv.appendChild(titleH4);
 
-      // Price and category row
+      // ✨ ENHANCED: Rating stars (if available)
+      if (product.rating || product.reviewCount) {
+        const ratingDiv = document.createElement('div');
+        ratingDiv.style.display = 'flex';
+        ratingDiv.style.alignItems = 'center';
+        ratingDiv.style.gap = '6px';
+        ratingDiv.style.marginBottom = '8px';
+
+        // Star rating
+        const rating = product.rating || 0;
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 >= 0.5;
+
+        const starsSpan = document.createElement('span');
+        starsSpan.style.color = '#fbbf24';
+        starsSpan.style.fontSize = '14px';
+        starsSpan.textContent = '★'.repeat(fullStars) + (hasHalfStar ? '½' : '') + '☆'.repeat(5 - fullStars - (hasHalfStar ? 1 : 0));
+        ratingDiv.appendChild(starsSpan);
+
+        // Review count
+        if (product.reviewCount) {
+          const reviewSpan = document.createElement('span');
+          reviewSpan.style.fontSize = '12px';
+          reviewSpan.style.color = '#6b7280';
+          reviewSpan.textContent = `(${product.reviewCount})`;
+          ratingDiv.appendChild(reviewSpan);
+        }
+
+        detailsDiv.appendChild(ratingDiv);
+      }
+
+      // ✨ ENHANCED: Price display with strikethrough for discounts
       const priceRow = document.createElement('div');
       priceRow.style.display = 'flex';
       priceRow.style.justifyContent = 'space-between';
       priceRow.style.alignItems = 'center';
       priceRow.style.marginBottom = '12px';
 
+      const priceContainer = document.createElement('div');
+      priceContainer.style.display = 'flex';
+      priceContainer.style.flexDirection = 'column';
+      priceContainer.style.gap = '2px';
+
+      // Show original price with strikethrough if discounted
+      if (product.compareAtPrice && parseFloat(product.compareAtPrice) > parseFloat(product.price)) {
+        const originalPriceSpan = document.createElement('span');
+        originalPriceSpan.style.fontSize = '13px';
+        originalPriceSpan.style.color = '#9ca3af';
+        originalPriceSpan.style.textDecoration = 'line-through';
+        originalPriceSpan.textContent = `$${parseFloat(product.compareAtPrice).toFixed(2)}`;
+        priceContainer.appendChild(originalPriceSpan);
+      }
+
+      // Current price
       const priceDiv = document.createElement('div');
       priceDiv.style.fontSize = '20px';
       priceDiv.style.fontWeight = '700';
-      priceDiv.style.color = widgetSettings.primaryColor;
-      priceDiv.textContent = `$${parseFloat(product.price || '0').toFixed(2)}`; // Safe textContent
-      priceRow.appendChild(priceDiv);
+      priceDiv.style.color = product.compareAtPrice ? '#ef4444' : widgetSettings.primaryColor;
+      priceDiv.textContent = product.priceFormatted || `$${parseFloat(product.price || '0').toFixed(2)}`;
+      priceContainer.appendChild(priceDiv);
+
+      priceRow.appendChild(priceContainer);
 
       if (product.category) {
         const categoryDiv = document.createElement('div');
@@ -441,6 +1124,33 @@ This creates a floating chat widget that can be added to any page
       descP.style.overflow = 'hidden';
       descP.textContent = product.description || 'No description available'; // Safe textContent
       detailsDiv.appendChild(descP);
+
+      // ✨ ENHANCED: Urgency message (if available)
+      if (product.urgencyMessage) {
+        const urgencyDiv = document.createElement('div');
+        urgencyDiv.style.display = 'flex';
+        urgencyDiv.style.alignItems = 'center';
+        urgencyDiv.style.gap = '6px';
+        urgencyDiv.style.background = '#fef3c7';
+        urgencyDiv.style.color = '#92400e';
+        urgencyDiv.style.padding = '8px 12px';
+        urgencyDiv.style.borderRadius = '8px';
+        urgencyDiv.style.fontSize = '12px';
+        urgencyDiv.style.fontWeight = '600';
+        urgencyDiv.style.marginBottom = '12px';
+        urgencyDiv.style.border = '1px solid #fcd34d';
+
+        const iconSpan = document.createElement('span');
+        iconSpan.textContent = '⚡';
+        iconSpan.style.fontSize = '14px';
+        urgencyDiv.appendChild(iconSpan);
+
+        const textSpan = document.createElement('span');
+        textSpan.textContent = product.urgencyMessage;
+        urgencyDiv.appendChild(textSpan);
+
+        detailsDiv.appendChild(urgencyDiv);
+      }
 
       // Tags (if available)
       if (product.tags && product.tags.length > 0) {
