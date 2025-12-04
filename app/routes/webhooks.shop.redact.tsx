@@ -22,7 +22,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   try {
     // Delete all shop data in a transaction to ensure data integrity
-    const result = await db.$transaction(async (tx) => {
+    const result = await db.$transaction(async (tx: any) => {
       const deletionStats = {
         sessions: 0,
         widgetSettings: 0,

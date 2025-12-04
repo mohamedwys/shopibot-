@@ -50,12 +50,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       },
     });
 
-    const profileIds = userProfiles.map(p => p.id);
+    const profileIds = userProfiles.map((p: any) => p.id);
     console.log(`Found ${profileIds.length} profiles to delete`);
 
     if (profileIds.length > 0) {
       // Delete all related data in a transaction to ensure data integrity
-      await db.$transaction(async (tx) => {
+      await db.$transaction(async (tx: any) => {
         // Step 1: Find all chat sessions for these profiles
         const chatSessions = await tx.chatSession.findMany({
           where: {
@@ -64,7 +64,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
           select: { id: true },
         });
 
-        const sessionIds = chatSessions.map(s => s.id);
+        const sessionIds = chatSessions.map((s: any) => s.id);
         console.log(`  - Deleting ${sessionIds.length} chat sessions`);
 
         // Step 2: Delete all chat messages for these sessions

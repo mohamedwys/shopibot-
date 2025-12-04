@@ -20,7 +20,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   try {
     // Perform comprehensive cleanup in a transaction
-    const result = await db.$transaction(async (tx) => {
+    const result = await db.$transaction(async (tx: any) => {
       const deletionStats = {
         sessions: 0,
         widgetSettings: 0,
@@ -37,7 +37,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         select: { id: true },
       });
 
-      const sessionIds = chatSessions.map(s => s.id);
+      const sessionIds = chatSessions.map((s: any) => s.id);
 
       // Delete chat messages first (child records)
       if (sessionIds.length > 0) {
