@@ -257,7 +257,28 @@ This creates a floating chat widget that can be added to any page
     // Function to send message via app proxy
     const sendChatMessage = async () => {
       console.log('🚀 Sending chat message via app proxy');
+
+      // ✨ DEBUG: Log detected language
+      const detectedLocale = navigator.language || navigator.userLanguage || 'en';
+      console.log('🌍 Detected browser language:', detectedLocale);
+      console.log('💰 Shop currency:', '{{ shop.currency }}');
+
       try {
+        // Build context object
+        const contextData = {
+          page: window.location.pathname,
+          productId: getProductIdFromPage(),
+          conversationHistory: conversationHistory,
+          shopDomain: '{{ shop.myshopify_domain }}',
+          // ✨ NEW: Detect user's browser language
+          locale: navigator.language || navigator.userLanguage || 'en',
+          // Also send currency from Shopify if available
+          currency: '{{ shop.currency }}' || 'USD'
+        };
+
+        // ✨ DEBUG: Log full context being sent
+        console.log('📤 Sending context:', JSON.stringify(contextData, null, 2));
+
         const response = await fetch(`${shopUrl}/apps/widget-settings`, {
            method: 'POST',
            headers: {
@@ -268,16 +289,7 @@ This creates a floating chat widget that can be added to any page
            body: JSON.stringify({
              userMessage: message,
              products: [],
-             context: {
-               page: window.location.pathname,
-               productId: getProductIdFromPage(),
-               conversationHistory: conversationHistory,
-               shopDomain: '{{ shop.myshopify_domain }}',
-               // ✨ NEW: Detect user's browser language
-               locale: navigator.language || navigator.userLanguage || 'en',
-               // Also send currency from Shopify if available
-               currency: '{{ shop.currency }}' || 'USD'
-             }
+             context: contextData
            })
          });
          
