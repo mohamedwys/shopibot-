@@ -24,9 +24,6 @@ export function initSentry() {
     integrations: [
       // HTTP integration for tracking API calls
       Sentry.httpIntegration({ tracing: true }),
-
-      // Node profiling integration
-      Sentry.nodeProfilingIntegration(),
     ],
 
     // Before sending error, filter out sensitive data
