@@ -10,7 +10,7 @@ import {
 } from "@remix-run/react";
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { SentryErrorBoundary } from "./lib/sentry.client";
+import { ErrorBoundary as SentryErrorBoundary } from "./lib/sentry.client";
 
 // ADD THIS LINE - Import your Tailwind CSS
 import "./styles/tailwind.css";
@@ -27,7 +27,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   });
 }
 
-function AppWithErrorBoundary() {
+export default function App() {
   const data = useLoaderData<typeof loader>();
 
   return (
@@ -49,7 +49,9 @@ function AppWithErrorBoundary() {
         />
       </head>
       <body>
-        <Outlet />
+        <SentryErrorBoundary fallback={ErrorFallback}>
+          <Outlet />
+        </SentryErrorBoundary>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -58,57 +60,44 @@ function AppWithErrorBoundary() {
 }
 
 /**
- * Export App wrapped with Sentry Error Boundary
+ * Error fallback component for when errors occur in Sentry Error Boundary
  */
-export default SentryErrorBoundary(AppWithErrorBoundary, {
-  fallback: ({ error }) => <ErrorFallback error={error} />,
-});
-
-/**
- * Error fallback component for when errors occur
- */
-function ErrorFallback({ error }: { error: Error }) {
+function ErrorFallback({ error, componentStack }: { error: Error; componentStack?: string }) {
   return (
-    <html>
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width,initial-scale=1" />
-        <title>Error</title>
-      </head>
-      <body style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem' }}>
-        <h1>Oops! Something went wrong</h1>
-        <p>We're sorry, but something unexpected happened. Our team has been notified.</p>
-        {process.env.NODE_ENV === 'development' && (
-          <details style={{ marginTop: '2rem' }}>
-            <summary>Error details (development only)</summary>
-            <pre style={{
-              background: '#f5f5f5',
-              padding: '1rem',
-              borderRadius: '4px',
-              overflow: 'auto'
-            }}>
-              {error.message}
-              {'\n\n'}
-              {error.stack}
-            </pre>
-          </details>
-        )}
-        <button
-          onClick={() => window.location.reload()}
-          style={{
-            marginTop: '2rem',
-            padding: '0.5rem 1rem',
-            background: '#007bff',
-            color: 'white',
-            border: 'none',
+    <div style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem' }}>
+      <h1>Oops! Something went wrong</h1>
+      <p>We're sorry, but something unexpected happened. Our team has been notified.</p>
+      {process.env.NODE_ENV === 'development' && (
+        <details style={{ marginTop: '2rem' }}>
+          <summary>Error details (development only)</summary>
+          <pre style={{
+            background: '#f5f5f5',
+            padding: '1rem',
             borderRadius: '4px',
-            cursor: 'pointer'
-          }}
-        >
-          Reload page
-        </button>
-      </body>
-    </html>
+            overflow: 'auto'
+          }}>
+            {error.message}
+            {'\n\n'}
+            {error.stack}
+            {componentStack && '\n\nComponent Stack:\n' + componentStack}
+          </pre>
+        </details>
+      )}
+      <button
+        onClick={() => window.location.reload()}
+        style={{
+          marginTop: '2rem',
+          padding: '0.5rem 1rem',
+          background: '#007bff',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+      >
+        Reload page
+      </button>
+    </div>
   );
 }
 

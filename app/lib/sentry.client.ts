@@ -71,7 +71,12 @@ export function initSentry() {
 /**
  * Error Boundary component for React
  */
-export const SentryErrorBoundary = Sentry.withErrorBoundary;
+export const ErrorBoundary = Sentry.ErrorBoundary;
+
+/**
+ * withErrorBoundary HOC for wrapping components
+ */
+export const withErrorBoundary = Sentry.withErrorBoundary;
 
 /**
  * Capture exception with context
