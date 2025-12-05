@@ -1,5 +1,6 @@
 import { OpenAI } from 'openai';
 import db from '../db.server';
+import { logger, logError, createLogger } from '../lib/logger.server';
 
 export interface UserPreferences {
   favoriteColors?: string[];
@@ -26,15 +27,16 @@ export interface PersonalizationContext {
 
 export class PersonalizationService {
   private openai: OpenAI | null = null;
+  private logger = createLogger({ service: 'PersonalizationService' });
 
   constructor() {
     const apiKey = process.env.OPENAI_API_KEY;
 
     if (apiKey) {
       this.openai = new OpenAI({ apiKey });
-      console.log('✅ Personalization Service initialized with OpenAI');
+      this.logger.info('Initialized with OpenAI');
     } else {
-      console.warn('⚠️ OPENAI_API_KEY not set. Advanced personalization features disabled.');
+      this.logger.warn('OPENAI_API_KEY not set - advanced features disabled');
     }
   }
 
@@ -77,12 +79,12 @@ export class PersonalizationService {
           },
         });
 
-        console.log(`✅ Created new user profile: ${sessionId}`);
+        this.logger.debug({ sessionId }, 'Created user profile');
       }
 
       return profile;
     } catch (error) {
-      console.error('❌ Error getting/creating user profile:', error.message);
+      logError(error, 'Error getting/creating user profile');
       throw error;
     }
   }
@@ -111,7 +113,7 @@ export class PersonalizationService {
       if (recentSession) {
         const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
         if (recentSession.lastMessageAt > hourAgo) {
-          console.log(`♻️  Reusing existing session: ${recentSession.id}`);
+          this.logger.debug({ sessionId: recentSession.id }, 'Reusing existing session');
           return recentSession;
         }
       }
@@ -128,10 +130,10 @@ export class PersonalizationService {
         },
       });
 
-      console.log(`✅ Created new chat session: ${newSession.id}`);
+      this.logger.debug({ sessionId: newSession.id }, 'Created chat session');
       return newSession;
     } catch (error) {
-      console.error('❌ Error getting/creating chat session:', error.message);
+      logError(error, 'Error getting/creating chat session');
       throw error;
     }
   }
@@ -149,7 +151,7 @@ export class PersonalizationService {
       });
 
       if (!profile) {
-        console.warn(`⚠️ User profile not found: ${userProfileId}`);
+        this.logger.warn({ userProfileId }, 'User profile not found');
         return;
       }
 
@@ -167,9 +169,9 @@ export class PersonalizationService {
         },
       });
 
-      console.log(`✅ Tracked ${interaction.type} interaction for user ${userProfileId}`);
+      this.logger.debug({ userProfileId, type: interaction.type }, 'Tracked interaction');
     } catch (error) {
-      console.error('❌ Error tracking interaction:', error.message);
+      logError(error, 'Error tracking interaction');
     }
   }
 
@@ -202,9 +204,9 @@ export class PersonalizationService {
         },
       });
 
-      console.log(`✅ Updated browsing history for user ${userProfileId}`);
+      this.logger.debug({ userProfileId }, 'Updated browsing history');
     } catch (error) {
-      console.error('❌ Error updating browsing history:', error.message);
+      logError(error, 'Error updating browsing history');
     }
   }
 
@@ -218,7 +220,7 @@ export class PersonalizationService {
   ): Promise<void> {
     try {
       if (!this.openai) {
-        console.log('⏭️  Skipping preference learning (no OpenAI API key)');
+        this.logger.debug('Skipping preference learning - no OpenAI key');
         return;
       }
 
@@ -296,9 +298,9 @@ If no preferences are mentioned, return empty object {}.
         },
       });
 
-      console.log(`✅ Updated preferences for user ${userProfileId}:`, updatedPrefs);
+      this.logger.debug({ userProfileId, preferences: updatedPrefs }, 'Updated preferences');
     } catch (error) {
-      console.error('❌ Error learning preferences:', error.message);
+      logError(error, 'Error learning preferences');
     }
   }
 
@@ -323,7 +325,7 @@ If no preferences are mentioned, return empty object {}.
 
       for (const [intent, pattern] of Object.entries(patterns)) {
         if (pattern.test(message)) {
-          console.log(`🎯 Intent classified: ${intent}`);
+          this.logger.debug({ intent }, 'Intent classified');
           return intent;
         }
       }
@@ -359,13 +361,13 @@ Respond with just the category name.`,
         });
 
         const intent = response.choices[0].message.content?.trim() || 'OTHER';
-        console.log(`🎯 Intent classified (AI): ${intent}`);
+        this.logger.debug({ intent }, 'Intent classified by AI');
         return intent;
       }
 
       return 'OTHER';
     } catch (error) {
-      console.error('❌ Error classifying intent:', error.message);
+      logError(error, 'Error classifying intent');
       return 'OTHER';
     }
   }
@@ -404,13 +406,13 @@ Respond with just the category name.`,
           | 'neutral'
           | 'negative';
 
-        console.log(`😊 Sentiment: ${sentiment}`);
+        this.logger.debug({ sentiment }, 'Sentiment analyzed');
         return sentiment || 'neutral';
       }
 
       return 'neutral';
     } catch (error) {
-      console.error('❌ Error analyzing sentiment:', error.message);
+      logError(error, 'Error analyzing sentiment');
       return 'neutral';
     }
   }
@@ -448,9 +450,9 @@ Respond with just the category name.`,
         data: { lastMessageAt: new Date() },
       });
 
-      console.log(`✅ Saved ${role} message to session ${sessionId}`);
+      this.logger.debug({ role, sessionId }, 'Saved chat message');
     } catch (error) {
-      console.error('❌ Error saving chat message:', error.message);
+      logError(error, 'Error saving chat message');
     }
   }
 
@@ -476,7 +478,7 @@ Respond with just the category name.`,
         intent: undefined,
       };
     } catch (error) {
-      console.error('❌ Error getting personalization context:', error.message);
+      logError(error, 'Error getting personalization context');
       return {
         userProfile: null,
         recentProducts: [],
@@ -560,9 +562,9 @@ Respond with just the category name.`,
         });
       }
 
-      console.log(`✅ Updated analytics for ${shop}`);
+      this.logger.debug({ shop }, 'Updated analytics');
     } catch (error) {
-      console.error('❌ Error updating analytics:', error.message);
+      logError(error, 'Error updating analytics');
     }
   }
 
@@ -634,7 +636,7 @@ Respond with just the category name.`,
         .sort((a, b) => b.personalizedScore - a.personalizedScore)
         .slice(0, limit);
     } catch (error) {
-      console.error('❌ Error getting personalized recommendations:', error.message);
+      logError(error, 'Error getting personalized recommendations');
       return allProducts.slice(0, limit);
     }
   }

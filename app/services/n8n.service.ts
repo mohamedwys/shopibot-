@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { getEmbeddingService, isEmbeddingServiceAvailable } from './embedding.service';
 import { personalizationService, type UserPreferences } from './personalization.service';
+import { logger, logError, createLogger } from '../lib/logger.server';
 // import db from '../db.server';
 
 // Enhanced N8N Response with rich features
@@ -94,6 +95,7 @@ export interface N8NRequest {
 export class N8NService {
   private webhookUrl: string;
   private apiKey?: string;
+  private logger = createLogger({ service: 'N8NService' });
 
   constructor(webhookUrl?: string, apiKey?: string) {
     // ✅ SECURITY FIX: Removed hardcoded webhook URL fallback
@@ -101,11 +103,7 @@ export class N8NService {
     const configuredWebhookUrl = webhookUrl || process.env.N8N_WEBHOOK_URL;
 
     if (!configuredWebhookUrl) {
-      const errorMessage = '🚨 N8N_WEBHOOK_URL is not configured! Please set the N8N_WEBHOOK_URL environment variable.';
-      console.error(errorMessage);
-      console.error('💡 The app will use fallback local processing for all requests.');
-      console.error('💡 To fix this: Set N8N_WEBHOOK_URL in your environment variables or .env file');
-
+      this.logger.warn('N8N_WEBHOOK_URL not configured - will use fallback processing');
       // Use a placeholder that will trigger fallback processing
       this.webhookUrl = 'MISSING_N8N_WEBHOOK_URL';
     } else {
@@ -117,13 +115,12 @@ export class N8NService {
     // Log the webhook URL being used for debugging (hide sensitive parts)
     if (this.webhookUrl !== 'MISSING_N8N_WEBHOOK_URL') {
       const maskedUrl = this.maskWebhookUrl(this.webhookUrl);
-      console.log('🔧 N8N Service: Using webhook URL:', maskedUrl);
+      this.logger.debug({ maskedUrl, hasApiKey: !!this.apiKey }, 'N8N Service initialized');
     }
-    console.log('🔧 N8N Service: Using API key:', this.apiKey ? '[CONFIGURED]' : '[NOT SET]');
 
     // Log important note about webhook URL format
     if (this.webhookUrl.includes('/webhook/webhook/')) {
-      console.warn('⚠️ N8N Service: Webhook URL contains duplicate /webhook/ - this might cause 404 errors');
+      this.logger.warn('Webhook URL contains duplicate /webhook/ - might cause 404 errors');
     }
   }
 
@@ -154,13 +151,12 @@ export class N8NService {
     try {
       // Check if webhook URL is configured
       if (this.webhookUrl === 'MISSING_N8N_WEBHOOK_URL') {
-        console.warn('⚠️ N8N_WEBHOOK_URL not configured, using fallback processing');
+        this.logger.debug('Using fallback processing');
         return this.fallbackProcessing(request);
       }
 
       const maskedUrl = this.maskWebhookUrl(this.webhookUrl);
-      console.log('🚀 N8N Service: Attempting to call webhook:', maskedUrl);
-      console.log('📤 N8N Service: Request payload:', JSON.stringify(request, null, 2));
+      this.logger.debug({ maskedUrl }, 'Calling N8N webhook');
 
       const headers: any = {
         'Content-Type': 'application/json',
@@ -175,46 +171,41 @@ export class N8NService {
         timeout: 30000, // 30 second timeout
       });
 
-      console.log('✅ N8N Response received:');
-      console.log('📦 Response Status:', response.status);
-      console.log('📦 Response Headers:', JSON.stringify(response.headers, null, 2));
-      console.log('📦 Response Data Type:', typeof response.data);
-      console.log('📦 Response Data:', JSON.stringify(response.data, null, 2));
+      this.logger.debug({
+        status: response.status,
+        hasMessage: !!response.data?.message,
+        recommendationsCount: response.data?.recommendations?.length || 0,
+        confidence: response.data?.confidence
+      }, 'N8N response received');
 
-      // Vérifier le format de la réponse
-      if (response.data?.message) {
-        console.log('✅ AI Message found:', response.data.message);
-        console.log('✅ Recommendations count:', response.data.recommendations?.length || 0);
-        console.log('✅ Confidence:', response.data.confidence || 'N/A');
-      } else {
-        console.log('⚠️ Unexpected response format - missing "message" field!');
-        console.log('⚠️ Response keys:', Object.keys(response.data || {}));
+      if (!response.data?.message) {
+        this.logger.warn({ responseKeys: Object.keys(response.data || {}) }, 'Unexpected response format - missing message field');
       }
 
       return response.data;
     } catch (error: any) {
-      console.error('❌❌❌ N8N SERVICE WEBHOOK CALL FAILED ❌❌❌');
-      console.error('🔗 Webhook URL that failed:', this.webhookUrl);
-      console.error('📋 Error message:', error?.message);
-      console.error('📋 Error code:', error?.code);
-      console.error('📋 HTTP status:', error?.response?.status);
-      console.error('📋 Response data:', error?.response?.data);
-      console.error('📋 Request headers used:', error?.config?.headers);
+      const errorDetails = {
+        code: error?.code,
+        status: error?.response?.status,
+        message: error?.message
+      };
 
       // Check for common issues
       if (error?.code === 'ECONNREFUSED') {
-        console.error('💥 CONNECTION REFUSED - N8N server is not reachable');
+        this.logger.error(errorDetails, 'N8N connection refused');
       } else if (error?.code === 'ETIMEDOUT') {
-        console.error('⏱️ TIMEOUT - N8N server did not respond within 30 seconds');
+        this.logger.error(errorDetails, 'N8N request timeout');
       } else if (error?.response?.status === 404) {
-        console.error('🔍 404 NOT FOUND - Check your webhook URL path');
+        this.logger.error(errorDetails, 'N8N webhook not found');
       } else if (error?.response?.status === 401 || error?.response?.status === 403) {
-        console.error('🔒 AUTHENTICATION FAILED - Check your N8N API key');
+        this.logger.error(errorDetails, 'N8N authentication failed');
       } else if (error?.response?.status === 500) {
-        console.error('💔 N8N INTERNAL ERROR - Check your N8N workflow');
+        this.logger.error(errorDetails, 'N8N internal error');
+      } else {
+        logError(error, 'N8N webhook call failed', errorDetails);
       }
 
-      console.log('🔄 N8N Service: Falling back to AI-enhanced local processing');
+      this.logger.debug('Falling back to local processing');
       // Fallback to AI-enhanced local processing if N8N is unavailable
       return this.fallbackProcessing(request);
     }
@@ -232,7 +223,7 @@ export class N8NService {
       const intent = await personalizationService.classifyIntent(userMessage);
       const sentiment = await personalizationService.analyzeSentiment(userMessage);
 
-      console.log(`🎯 Intent: ${intent}, Sentiment: ${sentiment}`);
+      this.logger.debug({ intent, sentiment }, 'Analyzed message');
 
       let recommendations: ProductRecommendation[] = [];
       let message = '';
@@ -244,7 +235,7 @@ export class N8NService {
         ['PRODUCT_SEARCH', 'COMPARISON', 'OTHER'].includes(intent)
       ) {
         try {
-          console.log('🔍 Using semantic search with embeddings...');
+          this.logger.debug('Using semantic search with embeddings');
           const embeddingService = getEmbeddingService();
 
           // Perform semantic search
@@ -280,9 +271,9 @@ export class N8NService {
 
           message = this.generateSemanticSearchMessage(userMessage, recommendations, intent);
 
-          console.log(`✅ Found ${recommendations.length} semantic matches`);
+          this.logger.info({ count: recommendations.length }, 'Found semantic matches');
         } catch (error: any) {
-          console.error('❌ Semantic search failed, falling back to keyword search:', error.message);
+          this.logger.debug({ error: error.message }, 'Semantic search failed, using keyword search');
           // Fall through to keyword-based search
         }
       }
@@ -300,8 +291,8 @@ export class N8NService {
         recommendations,
         confidence,
       };
-    } catch (error: any) {
-      console.error('❌ Enhanced fallback processing error:', error.message);
+    } catch (error) {
+      logError(error, 'Enhanced fallback processing error');
       // Ultimate fallback to simple processing
       return this.simpleFallbackProcessing(request);
     }
@@ -361,8 +352,8 @@ export class N8NService {
       return boostedRecs.sort((a, b) =>
         (b.relevanceScore || 0) - (a.relevanceScore || 0)
       );
-    } catch (error: any) {
-      console.error('❌ Personalization boost error:', error.message);
+    } catch (error) {
+      this.logger.debug('Personalization boost failed');
       return recommendations;
     }
   }
@@ -537,7 +528,7 @@ export class N8NService {
       await this.processUserMessage(testRequest);
       return true;
     } catch (error) {
-      console.error('N8N Connection Test Failed:', error);
+      logError(error, 'N8N connection test failed');
       return false;
     }
   }

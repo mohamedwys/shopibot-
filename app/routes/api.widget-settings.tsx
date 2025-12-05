@@ -7,6 +7,7 @@ import { getSecureCorsHeaders, createCorsPreflightResponse, isOriginAllowed, log
 import { rateLimit, RateLimitPresets } from "../lib/rate-limit.server";
 import { chatRequestSchema, validateData, validationErrorResponse } from "../lib/validation.server";
 import { getAPISecurityHeaders, mergeSecurityHeaders } from "../lib/security-headers.server";
+import { logger, logError, createLogger } from "../lib/logger.server";
 
 // Default settings (same as in settings page)
 const DEFAULT_SETTINGS = {
@@ -74,7 +75,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       }
     );
   } catch (error) {
-    console.error("Error fetching widget settings:", error);
+    logError(error, "Error fetching widget settings");
 
     // Return default settings on error
     return json(
@@ -91,8 +92,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 // Handle POST requests for chat messages to N8N webhook
 export const action = async ({ request }: ActionFunctionArgs) => {
-  console.log('🎯 Chat Message via Widget Settings Route');
-  console.log('📥 Headers:', Object.fromEntries(request.headers.entries()));
+  const routeLogger = createLogger({ route: '/api/widget-settings' });
 
   // ✅ SECURITY FIX: Use secure CORS headers (whitelist Shopify domains only)
   // Handle preflight CORS request
@@ -128,11 +128,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     // Extract shop domain from request headers
     const url = new URL(request.url);
     const shopDomain = url.searchParams.get("shop") || request.headers.get('X-Shopify-Shop-Domain');
-    
-    console.log('🏪 Shop Domain:', shopDomain);
+
+    routeLogger.info({ shop: shopDomain }, 'Processing chat request');
 
     if (!shopDomain) {
-      console.log('❌ No shop domain found');
+      routeLogger.warn('No shop domain found in request');
       return json(
         { error: "Shop domain required" },
         {
@@ -153,37 +153,36 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         // Local development with Prisma storage
         const session = await sessionStorage.findSessionsByShop(shopDomain);
         if (session.length > 0) {
-          console.log('✅ Found existing session for shop');
+          routeLogger.debug({ shop: shopDomain }, 'Found existing session');
           const { admin: sessionAdmin } = await authenticate.admin(request);
           admin = sessionAdmin;
         } else {
-          console.log('❌ No session found, using unauthenticated approach');
+          routeLogger.debug({ shop: shopDomain }, 'No session found, using unauthenticated approach');
           const { admin: unauthenticatedAdmin } = await unauthenticated.admin(shopDomain);
           admin = unauthenticatedAdmin;
         }
       } catch (error) {
-        console.log('⚠️ Authentication failed:', error);
+        routeLogger.debug({ shop: shopDomain }, 'Authentication failed');
         admin = null;
       }
     } else {
-      console.log('🔧 Running on Vercel - skipping admin authentication');
+      routeLogger.debug('Running on Vercel - skipping admin authentication');
     }
     
     // Parse the request body
     const body = await request.json();
-    console.log('📝 Request Body:', JSON.stringify(body, null, 2));
 
     // ✅ SECURITY FIX: Validate request body with Zod schema
     const validation = validateData(chatRequestSchema, body);
 
     if (!validation.success) {
-      console.error('❌ Validation failed:', validation.errors);
-      console.error('❌ Request body was:', JSON.stringify(body, null, 2));
-      console.error('❌ Detailed errors:', validation.errors.errors.map((e: any) => ({
-        path: e.path.join('.'),
-        message: e.message,
-        code: e.code
-      })));
+      routeLogger.warn({
+        errors: validation.errors.errors.map((e: any) => ({
+          path: e.path.join('.'),
+          message: e.message,
+          code: e.code
+        }))
+      }, 'Validation failed');
       const errorResponse = validationErrorResponse(validation.errors);
       return json(errorResponse, {
         status: errorResponse.status,
@@ -199,7 +198,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const context = validatedData.context || {};
 
     if (!finalMessage) {
-      console.log('❌ No message found in request');
+      routeLogger.warn('No message found in request');
       return json(
         { error: "Message is required" },
         {
@@ -211,8 +210,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         }
       );
     }
-    
-    console.log('💬 Processing message:', finalMessage);
+
+    routeLogger.debug({ messageLength: finalMessage.length }, 'Processing chat message');
 
     // Get products for context (skip on Vercel due to MemorySessionStorage limitations)
     let products = [];
@@ -257,13 +256,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
           price: edge.node.variants.edges[0]?.node.price || "0.00"
         })) || [];
 
-        console.log(`✅ Fetched ${products.length} products from Shopify`);
+        routeLogger.info({ count: products.length }, 'Fetched products from Shopify');
       } catch (error) {
-        console.log('⚠️ Could not fetch products from Shopify:', error);
+        routeLogger.debug('Could not fetch products from Shopify');
         products = [];
       }
     } else {
-      console.log('🔧 Running on Vercel - skipping Shopify product fetch');
+      routeLogger.debug('Running on Vercel - skipping Shopify product fetch');
     }
 
     // Enhanced context for better AI responses
@@ -286,10 +285,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       settings = await db.widgetSettings.findUnique({
         where: { shop: shopDomain },
       });
-      console.log('✅ Retrieved settings from database for shop:', shopDomain);
-      console.log('🔧 Custom webhook URL from settings:', (settings as any)?.webhookUrl);
+      routeLogger.debug({
+        shop: shopDomain,
+        hasCustomWebhook: !!(settings as any)?.webhookUrl
+      }, 'Retrieved widget settings');
     } catch (error) {
-      console.log('⚠️ Could not fetch settings from database:', error);
+      routeLogger.debug('Could not fetch settings from database');
       settings = null;
     }
     
@@ -307,26 +308,25 @@ export const action = async ({ request }: ActionFunctionArgs) => {
                             customWebhookUrl.length > 8;
 
     const webhookUrl = isValidCustomUrl ? customWebhookUrl : process.env.N8N_WEBHOOK_URL;
-    console.log('🔧 Final webhook URL being used:', webhookUrl || '[USING FALLBACK]');
-    console.log('🔧 Is using custom URL:', isValidCustomUrl);
-    if (isValidCustomUrl) {
-      console.log('✅ Custom N8N workflow will be used');
-    } else {
-      console.log('ℹ️ Using default workflow (enhanced fallback processing)');
-    }
-    
+    routeLogger.debug({
+      hasWebhookUrl: !!webhookUrl,
+      isCustom: isValidCustomUrl
+    }, 'Processing with N8N service');
+
     // Create N8N service instance with custom webhook URL if provided
     const customN8NService = new N8NService(webhookUrl);
-    
+
     // Process message through N8N service
-    console.log('🚀 Calling N8N service with request...');
     const n8nResponse = await customN8NService.processUserMessage({
       userMessage: finalMessage,
       products,
       context: enhancedContext
     });
-    
-    console.log('✅ N8N Response received:', n8nResponse);
+
+    routeLogger.info({
+      hasRecommendations: !!n8nResponse.recommendations?.length,
+      confidence: n8nResponse.confidence
+    }, 'N8N response received');
 
     return json({
       response: n8nResponse.message,
@@ -341,7 +341,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     });
 
   } catch (error) {
-    console.error("Chat API Error:", error);
+    logError(error, "Chat API Error");
     return json({
       error: "Internal server error",
       message: "Sorry, I'm having trouble processing your request right now. Please try again later."

@@ -1,4 +1,5 @@
 import db from '../db.server';
+import { logger, logError, createLogger } from '../lib/logger.server';
 
 export interface AnalyticsOverview {
   totalSessions: number;
@@ -49,6 +50,7 @@ export interface AnalyticsPeriod {
 }
 
 export class AnalyticsService {
+  private logger = createLogger({ service: 'AnalyticsService' });
   /**
    * Get analytics overview for a shop
    */
@@ -120,7 +122,7 @@ export class AnalyticsService {
         },
       };
     } catch (error: any) {
-      console.error('❌ Error getting analytics overview:', error.message);
+      logError(error, 'Error getting analytics overview');
       return {
         totalSessions: 0,
         totalMessages: 0,
@@ -173,7 +175,7 @@ export class AnalyticsService {
 
       return distribution;
     } catch (error: any) {
-      console.error('❌ Error getting intent distribution:', error.message);
+      logError(error, 'Error getting intent distribution');
       return [];
     }
   }
@@ -216,7 +218,7 @@ export class AnalyticsService {
 
       return breakdown;
     } catch (error: any) {
-      console.error('❌ Error getting sentiment breakdown:', error.message);
+      logError(error, 'Error getting sentiment breakdown');
       return [];
     }
   }
@@ -257,7 +259,7 @@ export class AnalyticsService {
 
       return topProducts;
     } catch (error: any) {
-      console.error('❌ Error getting top products:', error.message);
+      logError(error, 'Error getting top products');
       return [];
     }
   }
@@ -287,7 +289,7 @@ export class AnalyticsService {
         avgConfidence: Math.round(record.avgConfidence * 100) / 100,
       }));
     } catch (error: any) {
-      console.error('❌ Error getting daily trends:', error.message);
+      logError(error, 'Error getting daily trends');
       return [];
     }
   }
@@ -334,7 +336,7 @@ export class AnalyticsService {
         avgSessionDuration: Math.round(avgSessionDuration), // seconds
       };
     } catch (error: any) {
-      console.error('❌ Error getting user engagement:', error.message);
+      logError(error, 'Error getting user engagement');
       return {
         totalSessions: 0,
         totalMessages: 0,
@@ -361,7 +363,7 @@ export class AnalyticsService {
 
       return uniqueUsers;
     } catch (error: any) {
-      console.error('❌ Error getting active users:', error.message);
+      logError(error, 'Error getting active users');
       return 0;
     }
   }
@@ -383,7 +385,7 @@ export class AnalyticsService {
 
       return csv;
     } catch (error: any) {
-      console.error('❌ Error exporting CSV:', error.message);
+      logError(error, 'Error exporting CSV');
       return '';
     }
   }

@@ -1,5 +1,6 @@
 import { OpenAI } from 'openai';
 import db from '../db.server';
+import { logger, logError, createLogger } from '../lib/logger.server';
 
 export interface Product {
   id: string;
@@ -19,17 +20,18 @@ export interface EmbeddingResult {
 export class EmbeddingService {
   private openai: OpenAI;
   private model: string = 'text-embedding-3-small'; // Fast and cost-effective
+  private logger = createLogger({ service: 'EmbeddingService' });
 
   constructor() {
     const apiKey = process.env.OPENAI_API_KEY;
 
     if (!apiKey) {
-      console.warn('⚠️ OPENAI_API_KEY not set. Embedding features will not work.');
+      this.logger.warn('OPENAI_API_KEY not set - embedding features unavailable');
       throw new Error('OpenAI API key required for embedding service');
     }
 
     this.openai = new OpenAI({ apiKey });
-    console.log('✅ Embedding Service initialized with model:', this.model);
+    this.logger.info({ model: this.model }, 'Initialized');
   }
 
   /**
@@ -44,7 +46,7 @@ export class EmbeddingService {
         throw new Error('Empty text after cleaning');
       }
 
-      console.log(`🔄 Generating embedding for text: "${cleanText.substring(0, 50)}..."`);
+      this.logger.debug({ textPreview: cleanText.substring(0, 50) }, 'Generating embedding');
 
       const response = await this.openai.embeddings.create({
         model: this.model,
@@ -52,11 +54,11 @@ export class EmbeddingService {
       });
 
       const embedding = response.data[0].embedding;
-      console.log(`✅ Generated embedding with ${embedding.length} dimensions`);
+      this.logger.debug({ dimensions: embedding.length }, 'Generated embedding');
 
       return embedding;
     } catch (error) {
-      console.error('❌ Error generating embedding:', error.message);
+      logError(error, 'Error generating embedding');
       throw error;
     }
   }
@@ -103,9 +105,9 @@ export class EmbeddingService {
         },
       });
 
-      console.log(`✅ Stored embedding for product: ${product.title} (${product.id})`);
+      this.logger.debug({ productId: product.id, title: product.title }, 'Stored embedding');
     } catch (error) {
-      console.error(`❌ Error storing embedding for ${product.id}:`, error.message);
+      logError(error, 'Error storing embedding', { productId: product.id });
       throw error;
     }
   }
@@ -127,7 +129,7 @@ export class EmbeddingService {
 
       return JSON.parse(stored.embedding);
     } catch (error) {
-      console.error(`❌ Error retrieving embedding for ${productId}:`, error.message);
+      logError(error, 'Error retrieving embedding', { productId });
       return null;
     }
   }
@@ -169,7 +171,7 @@ export class EmbeddingService {
     topK: number = 5
   ): Promise<EmbeddingResult[]> {
     try {
-      console.log(`🔍 Semantic search for: "${query}"`);
+      this.logger.debug({ query }, 'Semantic search');
 
       // Generate embedding for query
       const queryEmbedding = await this.generateEmbedding(query);
@@ -184,7 +186,7 @@ export class EmbeddingService {
 
           // Generate if not cached
           if (!productEmbedding) {
-            console.log(`🔄 Generating missing embedding for: ${product.title}`);
+            this.logger.debug({ productTitle: product.title }, 'Generating missing embedding');
             productEmbedding = await this.generateProductEmbedding(product);
             await this.storeProductEmbedding(shop, product, productEmbedding);
           }
@@ -198,7 +200,7 @@ export class EmbeddingService {
             product,
           });
         } catch (error) {
-          console.warn(`⚠️ Skipping product ${product.id}:`, error.message);
+          this.logger.warn({ productId: product.id }, 'Skipping product');
           continue;
         }
       }
@@ -208,11 +210,11 @@ export class EmbeddingService {
         .sort((a, b) => b.similarity - a.similarity)
         .slice(0, topK);
 
-      console.log(`✅ Found ${topResults.length} results. Top similarity: ${topResults[0]?.similarity.toFixed(3)}`);
+      this.logger.info({ count: topResults.length, topSimilarity: topResults[0]?.similarity }, 'Found semantic search results');
 
       return topResults;
     } catch (error) {
-      console.error('❌ Semantic search error:', error.message);
+      logError(error, 'Semantic search error');
       throw error;
     }
   }
@@ -225,7 +227,7 @@ export class EmbeddingService {
     products: Product[],
     onProgress?: (current: number, total: number) => void
   ): Promise<void> {
-    console.log(`🔄 Batch generating embeddings for ${products.length} products...`);
+    this.logger.info({ count: products.length }, 'Batch generating embeddings');
 
     for (let i = 0; i < products.length; i++) {
       try {
@@ -234,7 +236,7 @@ export class EmbeddingService {
         // Check if embedding already exists
         const existing = await this.getProductEmbedding(shop, product.id);
         if (existing) {
-          console.log(`⏭️  Skipping ${product.title} (already has embedding)`);
+          this.logger.debug({ productTitle: product.title }, 'Skipping - already has embedding');
           if (onProgress) onProgress(i + 1, products.length);
           continue;
         }
@@ -248,12 +250,12 @@ export class EmbeddingService {
         // Rate limiting: wait 100ms between requests
         await new Promise(resolve => setTimeout(resolve, 100));
       } catch (error) {
-        console.error(`❌ Error processing product ${products[i].id}:`, error.message);
+        logError(error, 'Error processing product', { productId: products[i].id });
         continue;
       }
     }
 
-    console.log(`✅ Batch embedding generation complete!`);
+    this.logger.info('Batch embedding generation complete');
   }
 
   /**
@@ -301,7 +303,7 @@ export class EmbeddingService {
         .sort((a, b) => b.similarity - a.similarity)
         .slice(0, topK);
     } catch (error) {
-      console.error('❌ Error finding similar products:', error.message);
+      logError(error, 'Error finding similar products');
       throw error;
     }
   }
@@ -338,9 +340,9 @@ export class EmbeddingService {
         where: { shop },
       });
 
-      console.log(`✅ Cleared ${result.count} embeddings for shop: ${shop}`);
+      this.logger.info({ count: result.count, shop }, 'Cleared embeddings');
     } catch (error) {
-      console.error('❌ Error clearing embeddings:', error.message);
+      logError(error, 'Error clearing embeddings');
       throw error;
     }
   }
@@ -367,7 +369,7 @@ export class EmbeddingService {
         newest: stats._max.updatedAt,
       };
     } catch (error) {
-      console.error('❌ Error getting embedding stats:', error.message);
+      logError(error, 'Error getting embedding stats');
       return { total: 0, oldest: null, newest: null };
     }
   }
@@ -381,7 +383,7 @@ export function getEmbeddingService(): EmbeddingService {
     try {
       embeddingServiceInstance = new EmbeddingService();
     } catch (error) {
-      console.error('❌ Failed to initialize EmbeddingService:', error.message);
+      logger.error('Failed to initialize EmbeddingService');
       throw error;
     }
   }
