@@ -69,17 +69,10 @@ export function initSentry() {
 }
 
 /**
- * Error Boundary component for React
- */
-export const ErrorBoundary = Sentry.ErrorBoundary;
-
-/**
- * withErrorBoundary HOC for wrapping components
- */
-export const withErrorBoundary = Sentry.withErrorBoundary;
-
-/**
  * Capture exception with context
+ *
+ * Note: We rely on Remix's ErrorBoundary + Sentry's automatic error capturing
+ * instead of using Sentry's React ErrorBoundary to avoid compatibility issues.
  */
 export function captureException(error: Error, context?: Record<string, any>) {
   if (!SENTRY_DSN) return;

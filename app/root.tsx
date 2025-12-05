@@ -10,7 +10,8 @@ import {
 } from "@remix-run/react";
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { ErrorBoundary as SentryErrorBoundary } from "./lib/sentry.client";
+import { useEffect } from "react";
+import { captureException } from "./lib/sentry.client";
 
 // ADD THIS LINE - Import your Tailwind CSS
 import "./styles/tailwind.css";
@@ -49,9 +50,7 @@ export default function App() {
         />
       </head>
       <body>
-        <SentryErrorBoundary fallback={ErrorFallback}>
-          <Outlet />
-        </SentryErrorBoundary>
+        <Outlet />
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -60,52 +59,21 @@ export default function App() {
 }
 
 /**
- * Error fallback component for when errors occur in Sentry Error Boundary
- */
-function ErrorFallback({ error, componentStack }: { error: Error; componentStack?: string }) {
-  return (
-    <div style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem' }}>
-      <h1>Oops! Something went wrong</h1>
-      <p>We're sorry, but something unexpected happened. Our team has been notified.</p>
-      {process.env.NODE_ENV === 'development' && (
-        <details style={{ marginTop: '2rem' }}>
-          <summary>Error details (development only)</summary>
-          <pre style={{
-            background: '#f5f5f5',
-            padding: '1rem',
-            borderRadius: '4px',
-            overflow: 'auto'
-          }}>
-            {error.message}
-            {'\n\n'}
-            {error.stack}
-            {componentStack && '\n\nComponent Stack:\n' + componentStack}
-          </pre>
-        </details>
-      )}
-      <button
-        onClick={() => window.location.reload()}
-        style={{
-          marginTop: '2rem',
-          padding: '0.5rem 1rem',
-          background: '#007bff',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer'
-        }}
-      >
-        Reload page
-      </button>
-    </div>
-  );
-}
-
-/**
  * Remix ErrorBoundary for route-level errors
+ * Captures errors and sends them to Sentry
  */
 export function ErrorBoundary() {
   const error = useRouteError();
+
+  // Capture error in Sentry (client-side)
+  useEffect(() => {
+    if (error instanceof Error) {
+      captureException(error, {
+        context: 'Remix ErrorBoundary',
+        errorType: 'route-error',
+      });
+    }
+  }, [error]);
 
   if (isRouteErrorResponse(error)) {
     return (
