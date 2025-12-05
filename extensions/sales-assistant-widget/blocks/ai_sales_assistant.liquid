@@ -195,26 +195,34 @@ This creates a floating chat widget that can be added to any page
   window.toggleAIChat = function() {
     console.log('🔄 AI Widget: toggleAIChat called, current state:', chatOpen);
     const chatWindow = document.getElementById('ai-chat-window');
-    
+    const toggleBtn = document.getElementById('ai-chat-toggle-btn');
+
     if (!chatWindow) {
       console.error('❌ AI Widget: Chat window not found!');
       return;
     }
-    
+
     chatOpen = !chatOpen;
-    
+
+    // ✨ ACCESSIBILITY: Update aria-expanded attribute
+    if (toggleBtn) {
+      toggleBtn.setAttribute('aria-expanded', chatOpen.toString());
+      toggleBtn.setAttribute('aria-label', chatOpen ? 'Close AI chat assistant' : 'Open AI chat assistant');
+    }
+
     // Use CSS classes for better control and smoother animations
     if (chatOpen) {
       chatWindow.classList.add('ai-chat-open');
     } else {
       chatWindow.classList.remove('ai-chat-open');
     }
-    
+
     console.log('✅ AI Widget: Chat window toggled to:', chatOpen ? 'open' : 'closed');
     console.log('🔍 AI Widget: Chat window classes:', chatWindow.className);
     console.log('🔍 AI Widget: Chat window computed display:', window.getComputedStyle(chatWindow).display);
-    
+
     if (chatOpen) {
+      // ✨ ACCESSIBILITY: Focus input field when opening
       const inputField = document.getElementById('ai-chat-input-field');
       if (inputField) {
         // Wait for CSS transition to start before focusing
@@ -224,6 +232,11 @@ This creates a floating chat widget that can be added to any page
       setTimeout(() => {
         scrollToTop();
       }, 250);
+    } else {
+      // ✨ ACCESSIBILITY: Return focus to toggle button when closing
+      if (toggleBtn) {
+        setTimeout(() => toggleBtn.focus(), 100);
+      }
     }
   };
   
@@ -1479,18 +1492,33 @@ This creates a floating chat widget that can be added to any page
           class="ai-chat-toggle"
           id="ai-chat-toggle-btn"
           style="background-color: ${safePrimaryColor};"
+          aria-label="Open AI chat assistant"
+          aria-expanded="false"
+          aria-controls="ai-chat-window"
         >
           <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAABJlBMVEVHcEwb49o9s+I0v+BIoOUuyN9Ui+hZg+pdfOsc49tMl+ZViuke4NtOk+ce39sc4ts3t+Ej19xbf+pTi+gl1N1GoOVCp+RWh+kxwuAa5tpFo+Ue39s0vuAsyt4i2NxIneYpzd5Ml+Yry946suJUiuldfOs6suIc49oZ59oa5do/q+Neeusxwt8Y6dka5touxt88sOJcfupZgupcfuo0veBefOpcfuoZ5toiIiI8sOI2ueFCp+RFouVInuU5tOE/q+MzveAxwt8uxt9LmedQkOdWh+kry98o0N0hHx9Ui+gl1Nwi2dwf3dtOlOZZgulcfuomTFYsRFcrhZc+ZpxUjes4cJsyepkjP0Ei2t0lxs1ImOBPluomy9ZEcbFBo95KgMsmmaIkZ2ysswjsAAAAOHRSTlMA/gUPAic0C7FTd1yYJhPx7WN0zOqTseDK3t/QnT6GGbzjS7idmjlKO63ujvUwzvf08Ty8eiXh80ZVzqoAAAFYSURBVDjLvZPXVsJAEIYpgST0DlIEFAQLFiw0KUGECKJIVECxvf9LaHZmMBG88/hdzX/mO7t7dnYNhv/FVciJYt5iWt015R37bqPRWFrb9rpW9AsOtQuUYuLSKrnYtRb3ulnfFwMDxnQ6hWLg0BmJQJ/Rm81mcyj765zm9Kke8D6ZTD7mUAc2vgVvF+iNZVketTGlFpuYI22gOy6X5ZGE6WCxRGJPAtpMaGGS4iSctBCJCVWKEdyDi1cJJjQoeSx4x5sNpPqoChWKni0SKgQTmpQOUeBCTYQJdzWKO7iFIVgjHlThlVI0iYL9nGBCnVKIRuqM1hEmPFGy0T1wwQsEBAxp52IW1vSQ8ayoQgfC0KYZt60DvCmK8oK1P6kR+MwVcP8FVGGr7kWZM5d6/MUfb5L3hW80CM7lZ23Nnt0CR8d2ftXH4E7tu4IgZH1F/ve/xZlMf/5fPwFR8XwfQCSWdQAAAABJRU5ErkJggg==" alt="iHeard.ai" width="24" height="24" style="object-fit: contain;" />
           <span class="button-text">${safeButtonText}</span>
         </button>
 
         <!-- Chat Window -->
-        <div id="ai-chat-window" class="ai-chat-window" style="display: none;">
+        <div
+          id="ai-chat-window"
+          class="ai-chat-window"
+          style="display: none;"
+          role="dialog"
+          aria-labelledby="ai-chat-title"
+          aria-modal="true"
+        >
           <!-- Chat Header -->
           <div class="ai-chat-header" style="background-color: ${safePrimaryColor};">
-            <h3>${safeChatTitle}</h3>
-            <button class="ai-chat-close" id="ai-chat-close-btn">
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <h3 id="ai-chat-title">${safeChatTitle}</h3>
+            <button
+              class="ai-chat-close"
+              id="ai-chat-close-btn"
+              aria-label="Close chat"
+              title="Close chat (Esc)"
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <path d="M13.5 4.5L4.5 13.5M4.5 4.5L13.5 13.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </button>
@@ -1499,7 +1527,14 @@ This creates a floating chat widget that can be added to any page
           <!-- Chat Messages Container -->
           <div class="ai-chat-messages-container">
             <!-- Chat Messages -->
-            <div id="ai-chat-messages" class="ai-chat-messages">
+            <div
+              id="ai-chat-messages"
+              class="ai-chat-messages"
+              role="log"
+              aria-live="polite"
+              aria-atomic="false"
+              aria-label="Chat messages"
+            >
               <div class="ai-message assistant-message ai-welcome-message" style="margin-bottom: 16px !important; margin-top: 0px !important; display: block !important; max-width: 100% !important; width: 100% !important;">
                 <div class="ai-welcome-container" style="background: transparent; padding: 0;">
                   <div class="ai-welcome-header" style="margin-bottom: 24px;">
@@ -1546,18 +1581,25 @@ This creates a floating chat widget that can be added to any page
           <!-- Chat Input -->
           <div class="ai-chat-input">
             <div class="ai-chat-input-wrapper">
+              <label for="ai-chat-input-field" class="sr-only">Type your message</label>
               <input
                 type="text"
                 id="ai-chat-input-field"
                 placeholder="${safeInputPlaceholder}"
+                aria-label="Type your message"
+                aria-describedby="ai-powered-footer"
               />
-              <button id="ai-chat-send-btn">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <button
+                id="ai-chat-send-btn"
+                aria-label="Send message"
+                title="Send message (Enter)"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                   <path d="M18 2L9 11M18 2L12 18L9 11M18 2L2 8L9 11" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </button>
             </div>
-            <div class="ai-powered-footer">Powered by AI</div>
+            <div id="ai-powered-footer" class="ai-powered-footer">Powered by AI</div>
           </div>
         </div>
       </div>
@@ -1603,6 +1645,19 @@ This creates a floating chat widget that can be added to any page
     const style = document.createElement('style');
     style.id = 'ai-widget-styles';
     style.textContent = `
+/* ✨ ACCESSIBILITY: Screen reader only class */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 /* AI Sales Assistant Widget Styles - Modern Design */
 .ai-sales-assistant-widget {
   position: fixed;
@@ -2683,7 +2738,47 @@ This creates a floating chat widget that can be added to any page
     } else {
       console.warn('⚠️ AI Widget: Input field not found');
     }
-    
+
+    // ✨ ACCESSIBILITY: Escape key handler to close chat
+    window.aiWidgetHandlers.escapeHandler = function(e) {
+      if (e.key === 'Escape' && chatOpen) {
+        e.preventDefault();
+        toggleAIChat();
+      }
+    };
+    document.addEventListener('keydown', window.aiWidgetHandlers.escapeHandler);
+    console.log('✅ AI Widget: Escape key handler added');
+
+    // ✨ ACCESSIBILITY: Focus trap for dialog
+    window.aiWidgetHandlers.focusTrapHandler = function(e) {
+      if (!chatOpen) return;
+
+      const chatWindow = document.getElementById('ai-chat-window');
+      if (!chatWindow) return;
+
+      const focusableElements = chatWindow.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      // Tab key pressed
+      if (e.key === 'Tab') {
+        // Shift + Tab: focus last element if at first
+        if (e.shiftKey && document.activeElement === firstElement) {
+          e.preventDefault();
+          lastElement.focus();
+        }
+        // Tab: focus first element if at last
+        else if (!e.shiftKey && document.activeElement === lastElement) {
+          e.preventDefault();
+          firstElement.focus();
+        }
+      }
+    };
+    document.addEventListener('keydown', window.aiWidgetHandlers.focusTrapHandler);
+    console.log('✅ AI Widget: Focus trap handler added');
+
     // Add suggestion button event listeners
     const suggestionBtns = document.querySelectorAll('.suggestion-btn');
     suggestionBtns.forEach(btn => {
