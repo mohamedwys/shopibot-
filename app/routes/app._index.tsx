@@ -79,14 +79,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         if (!intentCounts[msg.intent]) {
           intentCounts[msg.intent] = { count: 0, example: msg.content };
         }
-        intentCounts[msg.intent].count++;
+        intentCounts[msg.intent]!.count++;
       }
     });
 
     const topQuestions = Object.entries(intentCounts)
       .sort((a, b) => b[1].count - a[1].count)
       .slice(0, 5)
-      .map(([_, data]) => data.example);
+      .map(([_, data]) => ({ question: data.example, count: data.count }));
 
     // Calculate customer satisfaction (based on positive sentiment)
     const satisfaction = (overview.sentimentBreakdown?.positive && overview.totalMessages > 0)
@@ -101,7 +101,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         : '0.0s',
       customerSatisfaction: parseFloat(satisfaction) || 0,
       topQuestions: topQuestions.length > 0 ? topQuestions : [
-        "No questions yet - waiting for first customer interaction"
+        { question: "No questions yet - waiting for first customer interaction", count: 0 }
       ],
     };
 
@@ -114,7 +114,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       avgResponseTime: "0.0s",
       customerSatisfaction: 0,
       topQuestions: [
-        "No data available yet - install the widget to start tracking"
+        { question: "No data available yet - install the widget to start tracking", count: 0 }
       ],
     };
 
@@ -382,25 +382,25 @@ export default function Index() {
                   </BlockStack>
 
                   <BlockStack gap="300">
-                    {stats.topQuestions.map((question, index) => {
-                                          const count = Math.floor(Math.random() * 20) + 5;
-                                          const maxCount = 25;
-                                          const percentage = (count / maxCount) * 100;
-                                          
-                                          return (
-                                            <Box key={index}>
-                                              <BlockStack gap="200">
-                                                <InlineStack align="space-between" blockAlign="center">
-                                                  <Text variant="bodyMd" as="p">
-                                                    {index + 1}. {question}
-                                                  </Text>
-                                                  <Badge tone="info">{`${count}x`}</Badge>
-                                                </InlineStack>
-                                                <ProgressBar progress={percentage} size="small" tone="primary" />
-                                              </BlockStack>
-                                            </Box>
-                                          );
-                                        })}
+                    {stats.topQuestions.map((item, index) => {
+                      // Calculate percentage based on the highest count in the list
+                      const maxCount = Math.max(...stats.topQuestions.map(q => q.count), 1);
+                      const percentage = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
+
+                      return (
+                        <Box key={index}>
+                          <BlockStack gap="200">
+                            <InlineStack align="space-between" blockAlign="center">
+                              <Text variant="bodyMd" as="p">
+                                {index + 1}. {item.question}
+                              </Text>
+                              <Badge tone="info">{item.count > 0 ? `${item.count}x` : 'New'}</Badge>
+                            </InlineStack>
+                            <ProgressBar progress={percentage} size="small" tone="primary" />
+                          </BlockStack>
+                        </Box>
+                      );
+                    })}
                   </BlockStack>
 
                   <Box paddingBlockStart="200">
