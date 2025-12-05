@@ -17,8 +17,6 @@ import { getWebhookSecurityHeaders } from "../lib/security-headers.server";
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { shop, topic } = await authenticate.webhook(request);
 
-  console.log(`Received ${topic} webhook for ${shop}`);
-  console.log(`🗑️ Deleting ALL shop data for: ${shop}`);
 
   try {
     // Delete all shop data in a transaction to ensure data integrity
@@ -41,14 +39,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       });
 
       const sessionIds = chatSessions.map((s: any) => s.id);
-      console.log(`Found ${sessionIds.length} chat sessions to delete`);
 
       if (sessionIds.length > 0) {
         const deletedMessages = await tx.chatMessage.deleteMany({
           where: { sessionId: { in: sessionIds } },
         });
         deletionStats.chatMessages = deletedMessages.count;
-        console.log(`  - Deleted ${deletedMessages.count} chat messages`);
       }
 
       // Step 2: Delete all chat sessions
@@ -56,35 +52,30 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         where: { shop },
       });
       deletionStats.chatSessions = deletedSessions.count;
-      console.log(`  - Deleted ${deletedSessions.count} chat sessions`);
 
       // Step 3: Delete all user profiles
       const deletedProfiles = await tx.userProfile.deleteMany({
         where: { shop },
       });
       deletionStats.userProfiles = deletedProfiles.count;
-      console.log(`  - Deleted ${deletedProfiles.count} user profiles`);
 
       // Step 4: Delete all product embeddings
       const deletedEmbeddings = await tx.productEmbedding.deleteMany({
         where: { shop },
       });
       deletionStats.productEmbeddings = deletedEmbeddings.count;
-      console.log(`  - Deleted ${deletedEmbeddings.count} product embeddings`);
 
       // Step 5: Delete widget settings
       const deletedSettings = await tx.widgetSettings.deleteMany({
         where: { shop },
       });
       deletionStats.widgetSettings = deletedSettings.count;
-      console.log(`  - Deleted ${deletedSettings.count} widget settings`);
 
       // Step 6: Delete all analytics data
       const deletedAnalytics = await tx.chatAnalytics.deleteMany({
         where: { shop },
       });
       deletionStats.chatAnalytics = deletedAnalytics.count;
-      console.log(`  - Deleted ${deletedAnalytics.count} analytics records`);
 
       // Step 7: Delete all sessions
       // Note: This might already be done by webhooks.app.uninstalled, but we do it again to be sure
@@ -92,13 +83,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         where: { shop },
       });
       deletionStats.sessions = deletedSessionRecords.count;
-      console.log(`  - Deleted ${deletedSessionRecords.count} session records`);
 
       return deletionStats;
     });
 
-    console.log(`✅ Successfully deleted all data for shop ${shop}`);
-    console.log(`Deletion summary:`, result);
 
     return new Response(JSON.stringify({
       success: true,
@@ -112,10 +100,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     });
 
   } catch (error) {
-    console.error("❌ Error processing shop redaction request:", error);
 
     // Log detailed error for investigation
-    console.error("Error details:", {
       shop,
       error: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,

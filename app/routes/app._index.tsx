@@ -17,27 +17,108 @@ import {
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { checkBillingStatus } from "../lib/billing.server";
+import { AnalyticsService } from "../services/analytics.service";
+import db from "../db.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { billing } = await authenticate.admin(request);
+  const { billing, session } = await authenticate.admin(request);
 
   const billingStatus = await checkBillingStatus(billing);
+  const analyticsService = new AnalyticsService();
 
-  const stats = {
-    totalConversations: 127,
-    activeToday: 23,
-    avgResponseTime: "2.3s",
-    customerSatisfaction: 4.8,
-    topQuestions: [
-      "What's your return policy?",
-      "Do you offer free shipping?",
-      "What sizes do you have available?",
-      "When will my order arrive?",
-      "Can I track my package?"
-    ]
-  };
+  // Get analytics for last 30 days
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const now = new Date();
 
-  return json({ stats, billingStatus });
+  try {
+    // Fetch real analytics data
+    const overview = await analyticsService.getOverview(session.shop, {
+      startDate: thirtyDaysAgo,
+      endDate: now,
+    });
+
+    // Get today's active sessions
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const todaySessions = await db.chatSession.count({
+      where: {
+        shop: session.shop,
+        lastMessageAt: {
+          gte: todayStart,
+        },
+      },
+    });
+
+    // Get top questions from recent messages
+    const recentMessages = await db.chatMessage.findMany({
+      where: {
+        session: {
+          shop: session.shop,
+        },
+        role: 'user',
+        timestamp: {
+          gte: thirtyDaysAgo,
+        },
+      },
+      select: {
+        content: true,
+        intent: true,
+      },
+      orderBy: {
+        timestamp: 'desc',
+      },
+      take: 100,
+    });
+
+    // Group by intent and get most common questions
+    const intentCounts: Record<string, { count: number; example: string }> = {};
+    recentMessages.forEach(msg => {
+      if (msg.intent) {
+        if (!intentCounts[msg.intent]) {
+          intentCounts[msg.intent] = { count: 0, example: msg.content };
+        }
+        intentCounts[msg.intent].count++;
+      }
+    });
+
+    const topQuestions = Object.entries(intentCounts)
+      .sort((a, b) => b[1].count - a[1].count)
+      .slice(0, 5)
+      .map(([_, data]) => data.example);
+
+    // Calculate customer satisfaction (based on positive sentiment)
+    const satisfaction = overview.sentimentBreakdown.positive
+      ? (overview.sentimentBreakdown.positive / overview.totalMessages * 5).toFixed(1)
+      : '0.0';
+
+    const stats = {
+      totalConversations: overview.totalSessions || 0,
+      activeToday: todaySessions || 0,
+      avgResponseTime: overview.avgResponseTime
+        ? `${(overview.avgResponseTime / 1000).toFixed(1)}s`
+        : '0.0s',
+      customerSatisfaction: parseFloat(satisfaction) || 0,
+      topQuestions: topQuestions.length > 0 ? topQuestions : [
+        "No questions yet - waiting for first customer interaction"
+      ],
+    };
+
+    return json({ stats, billingStatus });
+  } catch (error) {
+    // Fallback to zero stats if analytics fail
+    const stats = {
+      totalConversations: 0,
+      activeToday: 0,
+      avgResponseTime: "0.0s",
+      customerSatisfaction: 0,
+      topQuestions: [
+        "No data available yet - install the widget to start tracking"
+      ],
+    };
+
+    return json({ stats, billingStatus });
+  }
 };
 
 export default function Index() {
