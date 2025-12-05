@@ -7,6 +7,10 @@ import {
 } from "@remix-run/node";
 import { isbot } from "isbot";
 import { addDocumentResponseHeaders } from "./shopify.server";
+import { initSentry, captureException } from "./lib/sentry.server";
+
+// Initialize Sentry for server-side error tracking
+initSentry();
 
 export const streamTimeout = 5000;
 
@@ -43,10 +47,18 @@ export default async function handleRequest(
           pipe(body);
         },
         onShellError(error) {
+          captureException(error instanceof Error ? error : new Error(String(error)), {
+            context: 'Shell rendering error',
+            url: request.url,
+          });
           reject(error);
         },
         onError(error) {
           responseStatusCode = 500;
+          captureException(error instanceof Error ? error : new Error(String(error)), {
+            context: 'React rendering error',
+            url: request.url,
+          });
           console.error(error);
         },
       }
