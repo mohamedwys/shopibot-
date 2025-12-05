@@ -34,7 +34,7 @@ function Footer({
         <div className="flex flex-col items-center space-y-8">
           {/* Logo */}
           <div className="rounded-full bg-primary/10 p-8">
-            <Icons.logo className="w-8 h-8" />
+            <Icons.logo className="w-20 h-20" />
           </div>
 
           {/* Links - Single Line */}
