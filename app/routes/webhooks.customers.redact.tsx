@@ -17,8 +17,6 @@ import { getWebhookSecurityHeaders } from "../lib/security-headers.server";
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { shop, payload, topic } = await authenticate.webhook(request);
 
-  console.log(`Received ${topic} webhook for ${shop}`);
-  console.log(`Customer ID: ${payload.customer?.id || 'N/A'}`);
 
   try {
     // Extract customer information from payload
@@ -27,7 +25,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const customerPhone = payload.customer?.phone;
 
     if (!customerId && !customerEmail) {
-      console.log('⚠️ No customer identifier provided in webhook payload');
       return new Response(JSON.stringify({
         error: "No customer identifier provided"
       }), {
@@ -36,7 +33,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       });
     }
 
-    console.log(`🗑️ Deleting all data for customer: ${customerId || customerEmail}`);
 
     // Find all user profiles for this customer
     const userProfiles = await db.userProfile.findMany({
@@ -51,7 +47,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     });
 
     const profileIds = userProfiles.map((p: any) => p.id);
-    console.log(`Found ${profileIds.length} profiles to delete`);
 
     if (profileIds.length > 0) {
       // Delete all related data in a transaction to ensure data integrity
@@ -65,7 +60,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         });
 
         const sessionIds = chatSessions.map((s: any) => s.id);
-        console.log(`  - Deleting ${sessionIds.length} chat sessions`);
 
         // Step 2: Delete all chat messages for these sessions
         if (sessionIds.length > 0) {
@@ -74,7 +68,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
               sessionId: { in: sessionIds },
             },
           });
-          console.log(`  - Deleted ${deletedMessages.count} chat messages`);
         }
 
         // Step 3: Delete all chat sessions
@@ -84,7 +77,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
               id: { in: sessionIds },
             },
           });
-          console.log(`  - Deleted ${deletedSessions.count} chat sessions`);
         }
 
         // Step 4: Delete all user profiles
@@ -93,14 +85,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
             id: { in: profileIds },
           },
         });
-        console.log(`  - Deleted ${deletedProfiles.count} user profiles`);
 
         // Note: We keep aggregated analytics data as it doesn't contain
         // personal information, only counts and averages.
         // If your analytics contain personal data, delete those records too.
       });
 
-      console.log(`✅ Successfully deleted all data for customer ${customerId || customerEmail}`);
 
       return new Response(JSON.stringify({
         success: true,
@@ -113,7 +103,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         headers: { "Content-Type": "application/json", ...getWebhookSecurityHeaders() }
       });
     } else {
-      console.log(`ℹ️ No data found for customer ${customerId || customerEmail}`);
 
       return new Response(JSON.stringify({
         success: true,
@@ -126,7 +115,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
 
   } catch (error) {
-    console.error("❌ Error processing customer redaction request:", error);
 
     // Log the error but return success to Shopify
     // This prevents webhook retries while we investigate the issue

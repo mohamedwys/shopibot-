@@ -10,10 +10,6 @@ import { chatRequestSchema, validateData, validationErrorResponse } from "../lib
 import { getAPISecurityHeaders, mergeSecurityHeaders } from "../lib/security-headers.server";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  console.log('🎯 API Route Called: /apps/sales-assistant-api');
-  console.log('📥 Headers:', Object.fromEntries(request.headers.entries()));
-
-  // ✅ SECURITY FIX: Use secure CORS headers (whitelist Shopify domains only)
   // Handle preflight CORS request
   if (request.method === 'OPTIONS') {
     return createCorsPreflightResponse(request);
@@ -46,7 +42,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   try {
     // Get shop domain from headers for theme extension
     let shopDomain = request.headers.get('X-Shopify-Shop-Domain');
-    
+
     // Fallback: extract shop domain from origin header
     if (!shopDomain) {
       const origin = request.headers.get('origin');
@@ -54,16 +50,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         const match = origin.match(/https:\/\/([^.]+)\.myshopify\.com/);
         if (match) {
           shopDomain = match[1] + '.myshopify.com';
-          console.log('🌐 Extracted shop domain from origin:', shopDomain);
         }
       }
     }
-    
-    console.log('🏪 Shop Domain:', shopDomain);
-    console.log('🌐 Origin:', request.headers.get('origin'));
-    
+
     if (!shopDomain) {
-      console.log('❌ No shop domain found in headers or origin');
       return json(
         { error: "Shop domain required" },
         {
@@ -74,37 +65,30 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
 
     // For theme extensions, we'll try to get an existing session or use unauthenticated approach
-    console.log('🔐 Attempting to get session for shop:', shopDomain);
-    
     let admin;
     try {
       // Try to get existing session for this shop
       const session = await sessionStorage.findSessionsByShop(shopDomain);
       if (session.length > 0) {
-        console.log('✅ Found existing session for shop');
         const { admin: sessionAdmin } = await authenticate.admin(request);
         admin = sessionAdmin;
       } else {
-        console.log('❌ No session found, using unauthenticated approach');
         // Use unauthenticated approach for theme extensions
         const { admin: unauthenticatedAdmin } = await unauthenticated.admin(shopDomain);
         admin = unauthenticatedAdmin;
       }
     } catch (error) {
-      console.log('⚠️ Authentication failed, trying unauthenticated admin:', error);
       const { admin: unauthenticatedAdmin } = await unauthenticated.admin(shopDomain);
       admin = unauthenticatedAdmin;
     }
-    
+
     // Parse the request body
     const body = await request.json();
-    console.log('📝 Request Body:', JSON.stringify(body, null, 2));
 
     // ✅ SECURITY FIX: Validate request body with Zod schema
     const validation = validateData(chatRequestSchema, body);
 
     if (!validation.success) {
-      console.error('❌ Validation failed:', validation.errors);
       const errorResponse = validationErrorResponse(validation.errors);
       return json(errorResponse, {
         status: errorResponse.status,
@@ -116,7 +100,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const finalMessage = validatedData.userMessage || validatedData.message;
 
     if (!finalMessage) {
-      console.log('❌ No message found in request');
       return json(
         { error: "Message is required" },
         {
@@ -125,8 +108,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         }
       );
     }
-
-    console.log('💬 Final Message:', finalMessage);
 
     // Generate or extract session ID
     const context = validatedData.context || {};
@@ -173,7 +154,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     })) || [];
 
     // Get or create user profile and session
-    console.log('👤 Getting/creating user profile...');
     const userProfile = await personalizationService.getOrCreateUserProfile(
       shopDomain,
       sessionId,
@@ -185,17 +165,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       userProfile.id
     );
 
-    console.log(`✅ User Profile: ${userProfile.id}, Chat Session: ${chatSession.id}`);
-
     // Classify intent and sentiment
     const startTime = Date.now();
-    console.log('🤖 Analyzing message...');
     const [intent, sentiment] = await Promise.all([
       personalizationService.classifyIntent(finalMessage),
       personalizationService.analyzeSentiment(finalMessage),
     ]);
-
-    console.log(`🎯 Intent: ${intent}, Sentiment: ${sentiment}`);
 
     // Save user message to database
     await personalizationService.saveChatMessage(
@@ -255,10 +230,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     });
 
     // Process message through N8N service (or fallback with AI enhancements)
-    console.log('🚀 Calling N8N service with request...');
-    console.log('🌍 User locale detected:', enhancedContext.locale);
-
-    // ✨ NEW: Add language instruction to context for AI
+    // Add language instruction to context for AI
     const languageInstruction = enhancedContext.locale && enhancedContext.locale !== 'en'
       ? `IMPORTANT: Respond in the user's language (${enhancedContext.locale}). Detect the language from their message and use the same language in your response.`
       : '';
@@ -272,17 +244,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       }
     });
 
-    console.log('📥 N8N Response received in API route:');
-    console.log('📥 Response type:', typeof n8nResponse);
-    console.log('📥 Response keys:', Object.keys(n8nResponse || {}));
-    console.log('📥 Message:', n8nResponse?.message);
-    console.log('📥 Recommendations:', n8nResponse?.recommendations?.length || 0);
-    console.log('📥 Confidence:', n8nResponse?.confidence);
-    console.log('📥 Full response:', JSON.stringify(n8nResponse, null, 2));
-
     // Validate N8N response
     if (!n8nResponse || !n8nResponse.message) {
-      console.error('❌ Invalid N8N response! Response:', n8nResponse);
       throw new Error('Invalid response from N8N service');
     }
 
@@ -318,8 +281,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       responseTime,
       confidence: n8nResponse.confidence,
     });
-
-    console.log(`✅ Response generated in ${responseTime}ms with confidence ${n8nResponse.confidence}`);
 
     return json(
       {
@@ -370,7 +331,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     );
 
   } catch (error) {
-    console.error("Sales Assistant API Error:", error);
+    // Log error without sensitive data
+    if (error instanceof Error) {
+      console.error("Sales Assistant API Error:", error.message);
+    }
     return json({
       error: "Internal server error",
       message: "Sorry, I'm having trouble processing your request right now. Please try again later."

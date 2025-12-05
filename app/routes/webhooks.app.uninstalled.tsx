@@ -15,8 +15,6 @@ import { getWebhookSecurityHeaders } from "../lib/security-headers.server";
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { shop, session, topic } = await authenticate.webhook(request);
 
-  console.log(`Received ${topic} webhook for ${shop}`);
-  console.log(`🗑️ Starting immediate cleanup for uninstalled shop: ${shop}`);
 
   try {
     // Perform comprehensive cleanup in a transaction
@@ -86,8 +84,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       return deletionStats;
     });
 
-    console.log(`✅ Cleanup completed for shop ${shop}`);
-    console.log(`Deletion summary:`, result);
 
     return new Response(JSON.stringify({
       success: true,
@@ -99,7 +95,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     });
 
   } catch (error) {
-    console.error(`❌ Error during uninstall cleanup for ${shop}:`, error);
 
     // Return success to prevent webhook retries
     // The shop/redact webhook (48 hours later) will catch any missed data

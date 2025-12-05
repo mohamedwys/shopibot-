@@ -15,8 +15,6 @@ import { getWebhookSecurityHeaders } from "../lib/security-headers.server";
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { shop, payload, topic } = await authenticate.webhook(request);
 
-  console.log(`Received ${topic} webhook for ${shop}`);
-  console.log(`Customer ID: ${payload.customer?.id || 'N/A'}`);
 
   try {
     // Extract customer information from payload
@@ -25,7 +23,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const customerPhone = payload.customer?.phone;
 
     if (!customerId && !customerEmail) {
-      console.log('⚠️ No customer identifier provided in webhook payload');
       return new Response(JSON.stringify({
         error: "No customer identifier provided"
       }), {
@@ -37,7 +34,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       });
     }
 
-    console.log(`📊 Collecting data for customer: ${customerId || customerEmail}`);
 
     // Collect all customer data from our database
     const customerData: any = {
@@ -67,7 +63,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       },
     });
 
-    console.log(`Found ${userProfiles.length} user profiles`);
 
     // Collect data from each profile
     for (const profile of userProfiles) {
@@ -125,10 +120,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       avg_confidence: a.avgConfidence,
     }));
 
-    console.log(`✅ Collected data for customer ${customerId || customerEmail}:`);
-    console.log(`  - ${customerData.profiles.length} profiles`);
-    console.log(`  - ${customerData.chat_sessions.length} chat sessions`);
-    console.log(`  - ${customerData.chat_messages.length} messages`);
 
     // Return the collected data
     // Note: Shopify will store this and provide it to the customer
@@ -141,7 +132,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     });
 
   } catch (error) {
-    console.error("❌ Error processing customer data request:", error);
 
     // Return error but don't fail the webhook
     return new Response(JSON.stringify({
