@@ -53,6 +53,19 @@ export default async function handleRequest(
       backend: {
         loadPath: localesPath,
       },
+      // Fallback configuration - use English for missing namespaces
+      fallbackLng: {
+        'es': ['en'],
+        'fr': ['en'],
+        'de': ['en'],
+        'ja': ['en'],
+        'it': ['en'],
+        'pt': ['en'],
+        'zh': ['en'],
+        'default': ['en']
+      },
+      // Allow partial bundle loading
+      partialBundledLanguages: true,
     });
 
   return new Promise((resolve, reject) => {
