@@ -1,5 +1,6 @@
 {
   "settings": {
+<<<<<<< HEAD
     "title": "AI Sales Assistant Settings",
     "subtitle": "Configure your AI-powered sales assistant widget",
     "saveSettings": "Save Settings",
@@ -61,6 +62,69 @@
       "step4": "4. Find <strong>AI Sales Assistant</strong> and toggle it ON",
       "step5": "5. Save your theme changes",
       "footer": "The widget will appear on all pages of your store once enabled in the theme editor. Settings configured here will automatically apply to the widget."
+=======
+    "title": "AI销售助手设置",
+    "subtitle": "配置您的AI驱动销售助手小部件",
+    "saveSettings": "保存设置",
+    "saveSuccess": "设置保存成功！",
+    "widgetConfiguration": {
+      "title": "小部件配置",
+      "enableWidget": "启用AI销售助手小部件",
+      "enableWidgetHelp": "在整个商店中切换AI助手小部件的开/关",
+      "widgetPosition": "小部件位置",
+      "widgetPositionHelp": "选择小部件在商店页面上显示的位置",
+      "positions": {
+        "bottomRight": "右下角",
+        "bottomLeft": "左下角",
+        "topRight": "右上角",
+        "topLeft": "左上角",
+        "centerRight": "中右",
+        "centerLeft": "中左"
+      },
+      "buttonText": "按钮文本",
+      "buttonTextHelp": "聊天按钮上显示的文本",
+      "chatTitle": "聊天标题",
+      "chatTitleHelp": "聊天窗口标题中显示的标题",
+      "welcomeMessage": "欢迎消息",
+      "welcomeMessageHelp": "客户打开聊天时看到的第一条消息",
+      "inputPlaceholder": "输入占位符",
+      "inputPlaceholderHelp": "消息输入字段中的占位符文本",
+      "primaryColor": "主色",
+      "currentColor": "当前颜色: {{color}}"
+    },
+    "aiWorkflow": {
+      "title": "AI工作流配置",
+      "subtitle": "选择用于处理客户消息的AI工作流。您可以使用开发者的默认工作流或配置自己的N8N工作流。",
+      "workflowType": "工作流类型",
+      "workflowTypeHelp": "选择使用内置AI工作流还是自己的自定义设置",
+      "types": {
+        "default": "使用开发者的默认工作流",
+        "custom": "使用我的自定义N8N工作流"
+      },
+      "webhookUrl": "自定义N8N Webhook URL",
+      "webhookUrlPlaceholder": "https://your-n8n-instance.com/webhook/your-workflow",
+      "webhookUrlValid": "✅ 已配置有效的Webhook URL。消息将发送到您的N8N工作流。",
+      "webhookUrlEnter": "输入您的完整N8N Webhook URL（必须以https://开头）",
+      "webhookUrlEmpty": "输入您的N8N Webhook URL以使用自定义工作流。留空以使用默认工作流。",
+      "defaultWorkflow": "默认工作流:",
+      "defaultWorkflowDesc": "使用开发者预配置的AI助手，具有产品推荐和商店上下文。",
+      "customWorkflow": "自定义工作流:",
+      "customWorkflowDesc": "将消息转发到您自己的N8N工作流以进行自定义AI处理和响应。"
+    },
+    "preview": {
+      "title": "小部件预览",
+      "subtitle": "小部件预览",
+      "position": "位置: {{position}}"
+    },
+    "integration": {
+      "title": "集成说明",
+      "step1": "1. 转到<strong>在线商店 → 主题</strong>",
+      "step2": "2. 在活动主题上点击<strong>自定义</strong>",
+      "step3": "3. 在主题编辑器中向下滚动到<strong>应用嵌入</strong>",
+      "step4": "4. 找到<strong>AI销售助手</strong>并将其打开",
+      "step5": "5. 保存主题更改",
+      "footer": "在主题编辑器中启用后，小部件将显示在商店的所有页面上。此处配置的设置将自动应用于小部件。"
+>>>>>>> origin/claude/shopify-app-readiness-report-01MBwkY2tuZb4wBQBjkaopGX
     }
   }
 }

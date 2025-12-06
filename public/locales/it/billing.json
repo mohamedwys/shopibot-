@@ -1,5 +1,6 @@
 {
   "billing": {
+<<<<<<< HEAD
     "title": "Pricing Plans",
     "hero": {
       "title": "Choose the Perfect Plan for Your Store",
@@ -10,10 +11,23 @@
       "testModeDesc": "You won't be charged during development. Billing will be activated in production.",
       "activeSubscription": "Active Subscription:",
       "trialDays": "🎉 {{days}} days remaining in your free trial"
+=======
+    "title": "Piani Tariffari",
+    "hero": {
+      "title": "Scegli il Piano Perfetto per il Tuo Negozio",
+      "subtitle": "Sblocca la potenza delle conversazioni guidate dall'IA. Inizia con una prova gratuita di 7 giorni."
+    },
+    "status": {
+      "testMode": "Modalità Test Attiva",
+      "testModeDesc": "Non ti verrà addebitato durante lo sviluppo. La fatturazione verrà attivata in produzione.",
+      "activeSubscription": "Abbonamento Attivo:",
+      "trialDays": "🎉 {{days}} giorni rimanenti nella prova gratuita"
+>>>>>>> origin/claude/shopify-app-readiness-report-01MBwkY2tuZb4wBQBjkaopGX
     },
     "plans": {
       "starter": {
         "title": "Starter",
+<<<<<<< HEAD
         "badge": "Most Popular",
         "description": "Perfect for small stores getting started",
         "price": "$25",
@@ -99,6 +113,93 @@
       "guarantee": {
         "value": "30-Day",
         "label": "Money-Back Guarantee"
+=======
+        "badge": "Più Popolare",
+        "description": "Perfetto per piccoli negozi che iniziano",
+        "price": "$25",
+        "period": "/mese",
+        "trialBadge": "Prova gratuita di 7 giorni inclusa",
+        "included": "Cosa è incluso:",
+        "features": {
+          "conversations": "Fino a 1.000 conversazioni/mese",
+          "recommendations": "Raccomandazioni prodotti basate su IA",
+          "analytics": "Dashboard analitico base",
+          "support": "Supporto via email",
+          "customization": "Personalizzazione widget"
+        },
+        "currentPlan": "✓ Piano Attuale",
+        "startTrial": "Inizia Prova Gratuita"
+      },
+      "professional": {
+        "title": "Professionale",
+        "badge": "Miglior Valore",
+        "description": "Per aziende in crescita che necessitano di più potenza",
+        "price": "$79",
+        "period": "/mese",
+        "trialBadge": "Prova gratuita di 7 giorni inclusa",
+        "included": "Tutto in Starter, più:",
+        "features": {
+          "unlimited": "Conversazioni illimitate",
+          "advancedAnalytics": "Analisi e approfondimenti avanzati",
+          "n8nIntegration": "Integrazione webhook N8N personalizzata",
+          "prioritySupport": "Supporto prioritario (24/7)",
+          "sentimentAnalysis": "Analisi del sentiment e tracciamento intenzioni",
+          "userProfiling": "Profilazione utente e personalizzazione",
+          "productTracking": "Tracciamento clic sui prodotti"
+        },
+        "currentPlan": "✓ Piano Attuale",
+        "startTrial": "Inizia Prova Gratuita"
+      }
+    },
+    "comparison": {
+      "title": "Confronta i Piani",
+      "features": {
+        "conversations": "Conversazioni mensili",
+        "conversationsStarter": "1.000",
+        "conversationsPro": "Illimitato",
+        "recommendations": "Raccomandazioni IA",
+        "analytics": "Dashboard analitico",
+        "analyticsStarter": "Base",
+        "analyticsPro": "Avanzato",
+        "n8n": "Integrazione webhook N8N",
+        "support": "Supporto",
+        "supportStarter": "Email",
+        "supportPro": "Priorità 24/7"
+      }
+    },
+    "faq": {
+      "title": "Domande Frequenti",
+      "changePlans": {
+        "question": "Posso cambiare piano in seguito?",
+        "answer": "Assolutamente! Puoi aggiornare o ridurre il tuo piano in qualsiasi momento dalla tua dashboard. Le modifiche hanno effetto immediato e calcoleremo proporzionalmente eventuali differenze."
+      },
+      "afterTrial": {
+        "question": "Cosa succede dopo la prova di 7 giorni?",
+        "answer": "Dopo la fine della prova, ti verrà addebitato mensilmente in base al piano selezionato. Puoi annullare in qualsiasi momento durante o dopo il periodo di prova senza penali."
+      },
+      "refunds": {
+        "question": "Offrite rimborsi?",
+        "answer": "Sì! Offriamo una garanzia di rimborso di 30 giorni. Se non sei completamente soddisfatto del nostro servizio, contatta il nostro team di supporto per un rimborso completo, senza domande."
+      },
+      "conversationDefinition": {
+        "question": "Cosa conta come conversazione?",
+        "answer": "Una conversazione è una sessione di interazione completa con un cliente, indipendentemente dal numero di messaggi scambiati. Le sessioni scadono dopo 30 minuti di inattività."
+      }
+    },
+    "trust": {
+      "title": "Fidato da oltre 1.000+ negozi Shopify in tutto il mondo",
+      "satisfaction": {
+        "value": "98%",
+        "label": "Soddisfazione Cliente"
+      },
+      "support": {
+        "value": "24/7",
+        "label": "Supporto Prioritario"
+      },
+      "guarantee": {
+        "value": "30-Giorni",
+        "label": "Garanzia Rimborso"
+>>>>>>> origin/claude/shopify-app-readiness-report-01MBwkY2tuZb4wBQBjkaopGX
       }
     }
   }

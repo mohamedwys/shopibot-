@@ -1,5 +1,6 @@
 {
   "settings": {
+<<<<<<< HEAD
     "title": "AI Sales Assistant Settings",
     "subtitle": "Configure your AI-powered sales assistant widget",
     "saveSettings": "Save Settings",
@@ -61,6 +62,69 @@
       "step4": "4. Find <strong>AI Sales Assistant</strong> and toggle it ON",
       "step5": "5. Save your theme changes",
       "footer": "The widget will appear on all pages of your store once enabled in the theme editor. Settings configured here will automatically apply to the widget."
+=======
+    "title": "KI-Verkaufsassistent Einstellungen",
+    "subtitle": "Konfigurieren Sie Ihr KI-gestütztes Verkaufsassistent-Widget",
+    "saveSettings": "Einstellungen Speichern",
+    "saveSuccess": "Einstellungen erfolgreich gespeichert!",
+    "widgetConfiguration": {
+      "title": "Widget-Konfiguration",
+      "enableWidget": "KI-Verkaufsassistent-Widget Aktivieren",
+      "enableWidgetHelp": "KI-Assistenten-Widget im gesamten Shop ein-/ausschalten",
+      "widgetPosition": "Widget-Position",
+      "widgetPositionHelp": "Wählen Sie, wo das Widget auf Ihren Shop-Seiten erscheint",
+      "positions": {
+        "bottomRight": "Unten Rechts",
+        "bottomLeft": "Unten Links",
+        "topRight": "Oben Rechts",
+        "topLeft": "Oben Links",
+        "centerRight": "Mitte Rechts",
+        "centerLeft": "Mitte Links"
+      },
+      "buttonText": "Button-Text",
+      "buttonTextHelp": "Text, der auf dem Chat-Button angezeigt wird",
+      "chatTitle": "Chat-Titel",
+      "chatTitleHelp": "Titel, der im Chat-Fenster-Header angezeigt wird",
+      "welcomeMessage": "Willkommensnachricht",
+      "welcomeMessageHelp": "Erste Nachricht, die Kunden beim Öffnen des Chats sehen",
+      "inputPlaceholder": "Eingabe-Platzhalter",
+      "inputPlaceholderHelp": "Platzhaltertext im Nachrichteneingabefeld",
+      "primaryColor": "Primärfarbe",
+      "currentColor": "Aktuelle Farbe: {{color}}"
+    },
+    "aiWorkflow": {
+      "title": "KI-Workflow-Konfiguration",
+      "subtitle": "Wählen Sie, welchen KI-Workflow Sie zur Verarbeitung von Kundennachrichten verwenden möchten. Sie können den Standard-Workflow des Entwicklers verwenden oder Ihren eigenen N8N-Workflow konfigurieren.",
+      "workflowType": "Workflow-Typ",
+      "workflowTypeHelp": "Wählen Sie, ob Sie den integrierten KI-Workflow oder Ihre eigene benutzerdefinierte Einrichtung verwenden möchten",
+      "types": {
+        "default": "Standard-Workflow des Entwicklers Verwenden",
+        "custom": "Meinen Benutzerdefinierten N8N-Workflow Verwenden"
+      },
+      "webhookUrl": "Benutzerdefinierte N8N-Webhook-URL",
+      "webhookUrlPlaceholder": "https://ihre-n8n-instanz.com/webhook/ihr-workflow",
+      "webhookUrlValid": "✅ Gültige Webhook-URL konfiguriert. Nachrichten werden an Ihren N8N-Workflow gesendet.",
+      "webhookUrlEnter": "Geben Sie Ihre vollständige N8N-Webhook-URL ein (muss mit https:// beginnen)",
+      "webhookUrlEmpty": "Geben Sie Ihre N8N-Webhook-URL ein, um einen benutzerdefinierten Workflow zu verwenden. Lassen Sie das Feld leer für den Standard-Workflow.",
+      "defaultWorkflow": "Standard-Workflow:",
+      "defaultWorkflowDesc": "Verwendet den vorkonfigurierten KI-Assistenten des Entwicklers mit Produktempfehlungen und Shop-Kontext.",
+      "customWorkflow": "Benutzerdefinierter Workflow:",
+      "customWorkflowDesc": "Leiten Sie Nachrichten an Ihren eigenen N8N-Workflow für benutzerdefinierte KI-Verarbeitung und Antworten weiter."
+    },
+    "preview": {
+      "title": "Widget-Vorschau",
+      "subtitle": "Widget-Vorschau",
+      "position": "Position: {{position}}"
+    },
+    "integration": {
+      "title": "Integrationsanweisungen",
+      "step1": "1. Gehen Sie zu <strong>Online-Shop → Themes</strong>",
+      "step2": "2. Klicken Sie auf <strong>Anpassen</strong> bei Ihrem aktiven Theme",
+      "step3": "3. Scrollen Sie zu <strong>App-Einbettungen</strong> im Theme-Editor",
+      "step4": "4. Finden Sie <strong>KI-Verkaufsassistent</strong> und aktivieren Sie es",
+      "step5": "5. Speichern Sie Ihre Theme-Änderungen",
+      "footer": "Das Widget erscheint auf allen Seiten Ihres Shops, sobald es im Theme-Editor aktiviert ist. Hier konfigurierte Einstellungen werden automatisch auf das Widget angewendet."
+>>>>>>> origin/claude/shopify-app-readiness-report-01MBwkY2tuZb4wBQBjkaopGX
     }
   }
 }

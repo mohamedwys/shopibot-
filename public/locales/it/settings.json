@@ -1,5 +1,6 @@
 {
   "settings": {
+<<<<<<< HEAD
     "title": "AI Sales Assistant Settings",
     "subtitle": "Configure your AI-powered sales assistant widget",
     "saveSettings": "Save Settings",
@@ -61,6 +62,69 @@
       "step4": "4. Find <strong>AI Sales Assistant</strong> and toggle it ON",
       "step5": "5. Save your theme changes",
       "footer": "The widget will appear on all pages of your store once enabled in the theme editor. Settings configured here will automatically apply to the widget."
+=======
+    "title": "Impostazioni Assistente Vendite IA",
+    "subtitle": "Configura il tuo widget assistente vendite basato sull'IA",
+    "saveSettings": "Salva Impostazioni",
+    "saveSuccess": "Impostazioni salvate con successo!",
+    "widgetConfiguration": {
+      "title": "Configurazione Widget",
+      "enableWidget": "Abilita Widget Assistente Vendite IA",
+      "enableWidgetHelp": "Attiva/disattiva il widget assistente IA in tutto il negozio",
+      "widgetPosition": "Posizione Widget",
+      "widgetPositionHelp": "Scegli dove appare il widget sulle pagine del tuo negozio",
+      "positions": {
+        "bottomRight": "In Basso a Destra",
+        "bottomLeft": "In Basso a Sinistra",
+        "topRight": "In Alto a Destra",
+        "topLeft": "In Alto a Sinistra",
+        "centerRight": "Centro Destra",
+        "centerLeft": "Centro Sinistra"
+      },
+      "buttonText": "Testo Pulsante",
+      "buttonTextHelp": "Testo visualizzato sul pulsante chat",
+      "chatTitle": "Titolo Chat",
+      "chatTitleHelp": "Titolo mostrato nell'intestazione della finestra chat",
+      "welcomeMessage": "Messaggio di Benvenuto",
+      "welcomeMessageHelp": "Primo messaggio che i clienti vedono quando aprono la chat",
+      "inputPlaceholder": "Segnaposto Input",
+      "inputPlaceholderHelp": "Testo segnaposto nel campo di input del messaggio",
+      "primaryColor": "Colore Primario",
+      "currentColor": "Colore attuale: {{color}}"
+    },
+    "aiWorkflow": {
+      "title": "Configurazione Flusso di Lavoro IA",
+      "subtitle": "Scegli quale flusso di lavoro IA utilizzare per elaborare i messaggi dei clienti. Puoi utilizzare il flusso di lavoro predefinito dello sviluppatore o configurare il tuo flusso di lavoro N8N.",
+      "workflowType": "Tipo di Flusso di Lavoro",
+      "workflowTypeHelp": "Seleziona se utilizzare il flusso di lavoro IA integrato o la tua configurazione personalizzata",
+      "types": {
+        "default": "Usa Flusso di Lavoro Predefinito dello Sviluppatore",
+        "custom": "Usa il Mio Flusso di Lavoro N8N Personalizzato"
+      },
+      "webhookUrl": "URL Webhook N8N Personalizzato",
+      "webhookUrlPlaceholder": "https://tua-istanza-n8n.com/webhook/tuo-flusso-di-lavoro",
+      "webhookUrlValid": "✅ URL webhook valido configurato. I messaggi verranno inviati al tuo flusso di lavoro N8N.",
+      "webhookUrlEnter": "Inserisci il tuo URL webhook N8N completo (deve iniziare con https://)",
+      "webhookUrlEmpty": "Inserisci il tuo URL webhook N8N per utilizzare un flusso di lavoro personalizzato. Lascia vuoto per il flusso di lavoro predefinito.",
+      "defaultWorkflow": "Flusso di Lavoro Predefinito:",
+      "defaultWorkflowDesc": "Utilizza l'assistente IA preconfigurato dello sviluppatore con raccomandazioni prodotti e contesto negozio.",
+      "customWorkflow": "Flusso di Lavoro Personalizzato:",
+      "customWorkflowDesc": "Inoltra messaggi al tuo flusso di lavoro N8N per elaborazione IA e risposte personalizzate."
+    },
+    "preview": {
+      "title": "Anteprima Widget",
+      "subtitle": "Anteprima Widget",
+      "position": "Posizione: {{position}}"
+    },
+    "integration": {
+      "title": "Istruzioni Integrazione",
+      "step1": "1. Vai su <strong>Negozio Online → Temi</strong>",
+      "step2": "2. Clicca su <strong>Personalizza</strong> sul tuo tema attivo",
+      "step3": "3. Scorri fino a <strong>Incorporamenti app</strong> nell'editor del tema",
+      "step4": "4. Trova <strong>Assistente Vendite IA</strong> e attivalo",
+      "step5": "5. Salva le modifiche al tema",
+      "footer": "Il widget apparirà su tutte le pagine del tuo negozio una volta abilitato nell'editor del tema. Le impostazioni configurate qui verranno applicate automaticamente al widget."
+>>>>>>> origin/claude/shopify-app-readiness-report-01MBwkY2tuZb4wBQBjkaopGX
     }
   }
 }

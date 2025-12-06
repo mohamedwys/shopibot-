@@ -1,5 +1,6 @@
 {
   "analytics": {
+<<<<<<< HEAD
     "title": "Analytics Dashboard",
     "subtitle": "Track chatbot performance and customer interactions",
     "exportCsv": "Export CSV",
@@ -53,6 +54,61 @@
       "lowEngagement": "• Low engagement (<2 messages per session). Consider improving welcome message and suggestions.",
       "highOther": "• Many queries classified as \"OTHER\". Review unhandled intents and add more training data.",
       "noData": "• No data yet! Install the widget on your storefront and start getting insights."
+=======
+    "title": "Tableau de Bord Analytique",
+    "subtitle": "Suivez les performances du chatbot et les interactions avec les clients",
+    "exportCsv": "Exporter CSV",
+    "timePeriod": {
+      "title": "Période",
+      "today": "Aujourd'hui",
+      "week": "7 derniers jours",
+      "month": "30 derniers jours",
+      "quarter": "90 derniers jours"
+    },
+    "overview": {
+      "totalMessages": "Messages Totaux",
+      "activeUsers": "Utilisateurs Actifs",
+      "uniqueUsers": "utilisateurs uniques",
+      "aiConfidence": "Confiance IA",
+      "averageAccuracy": "précision moyenne",
+      "vsPrevious": "vs. période précédente"
+    },
+    "engagement": {
+      "title": "Métriques d'Engagement",
+      "messagesPerSession": "Messages par Session",
+      "avgSessionDuration": "Durée Moyenne de Session",
+      "avgResponseTime": "Temps de Réponse Moyen",
+      "totalSessions": "Sessions Totales"
+    },
+    "intent": {
+      "title": "Distribution de l'Intention Client",
+      "noData": "Aucune donnée d'intention disponible pour cette période"
+    },
+    "sentiment": {
+      "title": "Analyse des Sentiments",
+      "positive": "Positif",
+      "neutral": "Neutre",
+      "negative": "Négatif",
+      "messages": "messages",
+      "noData": "Aucune donnée de sentiment disponible pour cette période"
+    },
+    "products": {
+      "title": "Produits les Plus Cliqués",
+      "clicks": "clics",
+      "noData": "Aucune donnée de clic sur les produits disponible pour cette période"
+    },
+    "trends": {
+      "title": "Tendances Quotidiennes des Messages",
+      "noData": "Aucune donnée de tendance disponible pour cette période"
+    },
+    "insights": {
+      "title": "💡 Insights et Recommandations",
+      "lowConfidence": "• La confiance IA est inférieure à 70%. Envisagez de revoir les descriptions de produits et de générer des embeddings.",
+      "highNegative": "• Plus de 20% de sentiment négatif détecté. Examinez les interactions avec les clients et améliorez les réponses.",
+      "lowEngagement": "• Engagement faible (<2 messages par session). Envisagez d'améliorer le message de bienvenue et les suggestions.",
+      "highOther": "• De nombreuses requêtes classées comme \"AUTRES\". Examinez les intentions non gérées et ajoutez plus de données d'entraînement.",
+      "noData": "• Pas encore de données! Installez le widget sur votre vitrine et commencez à obtenir des insights."
+>>>>>>> origin/claude/shopify-app-readiness-report-01MBwkY2tuZb4wBQBjkaopGX
     }
   }
 }

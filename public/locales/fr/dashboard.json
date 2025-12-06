@@ -1,5 +1,6 @@
 {
   "dashboard": {
+<<<<<<< HEAD
     "title": "Dashboard",
     "subtitle": "Welcome to your AI Sales Assistant",
     "billing": {
@@ -79,6 +80,87 @@
       "upgradePlan": "💎 Upgrade Plan",
       "upgradePlanDesc": "Unlock unlimited conversations, advanced features, and priority support",
       "viewPlans": "View Plans"
+=======
+    "title": "Tableau de Bord",
+    "subtitle": "Bienvenue dans votre Assistant Commercial IA",
+    "billing": {
+      "unlockPotential": "🚀 Débloquer Tout le Potentiel",
+      "viewPlans": "Voir les Plans",
+      "freeTierMessage": "Vous êtes actuellement sur le niveau gratuit. Passez à la version supérieure pour débloquer les conversations illimitées, les analyses avancées, l'intégration N8N et le support prioritaire 24/7.",
+      "planActive": "✓ {{planName}} Actif",
+      "manageBilling": "Gérer la Facturation",
+      "subscriptionActive": "Votre abonnement est actif et toutes les fonctionnalités premium sont débloquées.",
+      "testMode": " (Mode test - vous ne serez pas facturé)"
+    },
+    "performance": {
+      "title": "Aperçu des Performances",
+      "totalConversations": "Conversations Totales",
+      "allTime": "Tout le temps",
+      "growthFromLastMonth": "↑ 12% depuis le mois dernier",
+      "activeToday": "Actifs Aujourd'hui",
+      "live": "En direct",
+      "conversationsStarted": "Conversations démarrées",
+      "responseTime": "Temps de Réponse",
+      "avg": "Moyenne",
+      "aiProcessingSpeed": "Vitesse de traitement IA",
+      "satisfactionScore": "Score de Satisfaction",
+      "excellent": "⭐ Excellent",
+      "outOf5": "/ 5.0",
+      "basedOnFeedback": "Basé sur les commentaires des clients"
+    },
+    "systemStatus": {
+      "title": "État du Système",
+      "subtitle": "Surveillez les composants de votre assistant IA",
+      "aiAssistant": "Assistant IA",
+      "coreEngine": "Moteur central du chatbot",
+      "active": "● Actif",
+      "themeIntegration": "Intégration de Thème",
+      "widgetEmbedded": "Widget intégré dans la vitrine",
+      "enabled": "● Activé",
+      "n8nWebhook": "Webhook N8N",
+      "advancedWorkflow": "Automatisation de flux de travail avancée",
+      "fallback": "○ Secours",
+      "analyticsTracking": "Suivi Analytique",
+      "dataCollection": "Collecte de données et insights",
+      "running": "● En cours d'exécution",
+      "configureSettings": "Configurer les Paramètres"
+    },
+    "topQuestions": {
+      "title": "Questions Principales des Clients",
+      "subtitle": "Questions les plus posées cette semaine",
+      "last7Days": "7 derniers jours",
+      "new": "Nouveau",
+      "viewFullAnalytics": "Voir Toutes les Analytiques"
+    },
+    "setupProgress": {
+      "title": "Progression de la Configuration",
+      "completed": "{{count}} sur {{total}} terminé",
+      "subtitle": "Complétez ces étapes pour tirer le meilleur parti de votre assistant IA",
+      "appInstalled": "Application Installée et Configurée",
+      "appInstalledDesc": "Votre Assistant Commercial IA est prêt à l'emploi avec les paramètres par défaut",
+      "widgetAdded": "Widget Ajouté au Thème",
+      "widgetAddedDesc": "Le widget de chat est en direct et visible sur votre vitrine",
+      "analyticsEnabled": "Analytiques Activées",
+      "analyticsEnabledDesc": "Suivi des interactions avec les clients et génération d'insights",
+      "connectN8N": "Connecter le Flux de Travail N8N",
+      "connectN8NDesc": "Activer le traitement IA avancé, les flux de travail personnalisés et les intégrations tierces",
+      "optional": "Optionnel",
+      "connectNow": "Connecter Maintenant",
+      "customizeWidget": "Personnaliser le Widget",
+      "testChat": "Tester l'Interface de Chat"
+    },
+    "quickActions": {
+      "title": "Actions Rapides",
+      "viewAnalytics": "📊 Voir les Analytiques",
+      "viewAnalyticsDesc": "Plongez dans les insights de conversation, le comportement des clients et les métriques de performance IA",
+      "openAnalytics": "Ouvrir les Analytiques",
+      "widgetSettings": "⚙️ Paramètres du Widget",
+      "widgetSettingsDesc": "Personnalisez l'apparence, le comportement et configurez l'intégration du webhook N8N",
+      "configure": "Configurer",
+      "upgradePlan": "💎 Améliorer le Plan",
+      "upgradePlanDesc": "Débloquez les conversations illimitées, les fonctionnalités avancées et le support prioritaire",
+      "viewPlans": "Voir les Plans"
+>>>>>>> origin/claude/shopify-app-readiness-report-01MBwkY2tuZb4wBQBjkaopGX
     }
   }
 }

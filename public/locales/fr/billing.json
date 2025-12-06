@@ -1,5 +1,6 @@
 {
   "billing": {
+<<<<<<< HEAD
     "title": "Pricing Plans",
     "hero": {
       "title": "Choose the Perfect Plan for Your Store",
@@ -99,6 +100,107 @@
       "guarantee": {
         "value": "30-Day",
         "label": "Money-Back Guarantee"
+=======
+    "title": "Plans Tarifaires",
+    "hero": {
+      "title": "Choisissez le Plan Parfait pour Votre Boutique",
+      "subtitle": "Débloquez la puissance des conversations alimentées par l'IA. Commencez avec un essai gratuit de 7 jours."
+    },
+    "status": {
+      "testMode": "Mode Test Actif",
+      "testModeDesc": "Vous ne serez pas facturé pendant le développement. La facturation sera activée en production.",
+      "activeSubscription": "Abonnement Actif:",
+      "trialDays": "🎉 {{days}} jours restants dans votre essai gratuit"
+    },
+    "plans": {
+      "starter": {
+        "title": "Débutant",
+        "badge": "Le Plus Populaire",
+        "description": "Parfait pour les petites boutiques qui débutent",
+        "price": "$25",
+        "period": "/mois",
+        "trialBadge": "Essai gratuit de 7 jours inclus",
+        "included": "Ce qui est inclus:",
+        "features": {
+          "conversations": "Jusqu'à 1 000 conversations/mois",
+          "recommendations": "Recommandations de produits alimentées par l'IA",
+          "analytics": "Tableau de bord analytique de base",
+          "support": "Support par e-mail",
+          "customization": "Personnalisation du widget"
+        },
+        "currentPlan": "✓ Plan Actuel",
+        "startTrial": "Commencer l'Essai Gratuit"
+      },
+      "professional": {
+        "title": "Professionnel",
+        "badge": "Meilleur Rapport Qualité-Prix",
+        "description": "Pour les entreprises en croissance qui ont besoin de plus de puissance",
+        "price": "$79",
+        "period": "/mois",
+        "trialBadge": "Essai gratuit de 7 jours inclus",
+        "included": "Tout dans Débutant, plus:",
+        "features": {
+          "unlimited": "Conversations illimitées",
+          "advancedAnalytics": "Analytiques et insights avancés",
+          "n8nIntegration": "Intégration webhook N8N personnalisée",
+          "prioritySupport": "Support prioritaire (24/7)",
+          "sentimentAnalysis": "Analyse des sentiments et suivi des intentions",
+          "userProfiling": "Profilage des utilisateurs et personnalisation",
+          "productTracking": "Suivi des clics sur les produits"
+        },
+        "currentPlan": "✓ Plan Actuel",
+        "startTrial": "Commencer l'Essai Gratuit"
+      }
+    },
+    "comparison": {
+      "title": "Comparer les Plans",
+      "features": {
+        "conversations": "Conversations mensuelles",
+        "conversationsStarter": "1 000",
+        "conversationsPro": "Illimité",
+        "recommendations": "Recommandations IA",
+        "analytics": "Tableau de bord analytique",
+        "analyticsStarter": "Basique",
+        "analyticsPro": "Avancé",
+        "n8n": "Intégration webhook N8N",
+        "support": "Support",
+        "supportStarter": "E-mail",
+        "supportPro": "Priorité 24/7"
+      }
+    },
+    "faq": {
+      "title": "Questions Fréquemment Posées",
+      "changePlans": {
+        "question": "Puis-je changer de plan plus tard?",
+        "answer": "Absolument! Vous pouvez mettre à niveau ou rétrograder votre plan à tout moment depuis votre tableau de bord. Les changements prennent effet immédiatement et nous calculerons au prorata toute différence."
+      },
+      "afterTrial": {
+        "question": "Que se passe-t-il après l'essai de 7 jours?",
+        "answer": "Après la fin de votre essai, vous serez facturé mensuellement selon le plan sélectionné. Vous pouvez annuler à tout moment pendant ou après la période d'essai sans pénalités."
+      },
+      "refunds": {
+        "question": "Offrez-vous des remboursements?",
+        "answer": "Oui! Nous offrons une garantie de remboursement de 30 jours. Si vous n'êtes pas complètement satisfait de notre service, contactez notre équipe de support pour un remboursement complet, sans poser de questions."
+      },
+      "conversationDefinition": {
+        "question": "Qu'est-ce qui compte comme une conversation?",
+        "answer": "Une conversation est une session d'interaction complète avec un client, quel que soit le nombre de messages échangés. Les sessions expirent après 30 minutes d'inactivité."
+      }
+    },
+    "trust": {
+      "title": "Approuvé par plus de 1 000 boutiques Shopify dans le monde",
+      "satisfaction": {
+        "value": "98%",
+        "label": "Satisfaction Client"
+      },
+      "support": {
+        "value": "24/7",
+        "label": "Support Prioritaire"
+      },
+      "guarantee": {
+        "value": "30-Jours",
+        "label": "Garantie de Remboursement"
+>>>>>>> origin/claude/shopify-app-readiness-report-01MBwkY2tuZb4wBQBjkaopGX
       }
     }
   }

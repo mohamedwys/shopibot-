@@ -1,5 +1,6 @@
 {
   "settings": {
+<<<<<<< HEAD
     "title": "AI Sales Assistant Settings",
     "subtitle": "Configure your AI-powered sales assistant widget",
     "saveSettings": "Save Settings",
@@ -61,6 +62,69 @@
       "step4": "4. Find <strong>AI Sales Assistant</strong> and toggle it ON",
       "step5": "5. Save your theme changes",
       "footer": "The widget will appear on all pages of your store once enabled in the theme editor. Settings configured here will automatically apply to the widget."
+=======
+    "title": "AIセールスアシスタント設定",
+    "subtitle": "AI搭載セールスアシスタントウィジェットを構成",
+    "saveSettings": "設定を保存",
+    "saveSuccess": "設定が正常に保存されました！",
+    "widgetConfiguration": {
+      "title": "ウィジェット構成",
+      "enableWidget": "AIセールスアシスタントウィジェットを有効化",
+      "enableWidgetHelp": "ストア全体でAIアシスタントウィジェットをオン/オフ切り替え",
+      "widgetPosition": "ウィジェット位置",
+      "widgetPositionHelp": "ストアページでウィジェットが表示される場所を選択",
+      "positions": {
+        "bottomRight": "右下",
+        "bottomLeft": "左下",
+        "topRight": "右上",
+        "topLeft": "左上",
+        "centerRight": "中央右",
+        "centerLeft": "中央左"
+      },
+      "buttonText": "ボタンテキスト",
+      "buttonTextHelp": "チャットボタンに表示されるテキスト",
+      "chatTitle": "チャットタイトル",
+      "chatTitleHelp": "チャットウィンドウヘッダーに表示されるタイトル",
+      "welcomeMessage": "ウェルカムメッセージ",
+      "welcomeMessageHelp": "顧客がチャットを開いたときに最初に表示されるメッセージ",
+      "inputPlaceholder": "入力プレースホルダー",
+      "inputPlaceholderHelp": "メッセージ入力フィールドのプレースホルダーテキスト",
+      "primaryColor": "プライマリカラー",
+      "currentColor": "現在の色: {{color}}"
+    },
+    "aiWorkflow": {
+      "title": "AIワークフロー構成",
+      "subtitle": "顧客メッセージの処理に使用するAIワークフローを選択します。開発者のデフォルトワークフローを使用するか、独自のN8Nワークフローを構成できます。",
+      "workflowType": "ワークフロータイプ",
+      "workflowTypeHelp": "組み込みAIワークフローを使用するか、独自のカスタムセットアップを使用するかを選択",
+      "types": {
+        "default": "開発者のデフォルトワークフローを使用",
+        "custom": "カスタムN8Nワークフローを使用"
+      },
+      "webhookUrl": "カスタムN8NウェブフックURL",
+      "webhookUrlPlaceholder": "https://your-n8n-instance.com/webhook/your-workflow",
+      "webhookUrlValid": "✅ 有効なウェブフックURLが構成されています。メッセージはN8Nワークフローに送信されます。",
+      "webhookUrlEnter": "完全なN8NウェブフックURLを入力してください（https://で始まる必要があります）",
+      "webhookUrlEmpty": "カスタムワークフローを使用するには、N8NウェブフックURLを入力してください。デフォルトワークフローの場合は空のままにしてください。",
+      "defaultWorkflow": "デフォルトワークフロー:",
+      "defaultWorkflowDesc": "製品推奨とストアコンテキストを備えた開発者の事前構成済みAIアシスタントを使用します。",
+      "customWorkflow": "カスタムワークフロー:",
+      "customWorkflowDesc": "カスタムAI処理と応答のために、メッセージを独自のN8Nワークフローに転送します。"
+    },
+    "preview": {
+      "title": "ウィジェットプレビュー",
+      "subtitle": "ウィジェットプレビュー",
+      "position": "位置: {{position}}"
+    },
+    "integration": {
+      "title": "統合手順",
+      "step1": "1. <strong>オンラインストア → テーマ</strong>に移動",
+      "step2": "2. アクティブなテーマで<strong>カスタマイズ</strong>をクリック",
+      "step3": "3. テーマエディターで<strong>アプリ埋め込み</strong>までスクロール",
+      "step4": "4. <strong>AIセールスアシスタント</strong>を見つけてオンにする",
+      "step5": "5. テーマの変更を保存",
+      "footer": "テーマエディターで有効にすると、ウィジェットはストアのすべてのページに表示されます。ここで構成した設定は、ウィジェットに自動的に適用されます。"
+>>>>>>> origin/claude/shopify-app-readiness-report-01MBwkY2tuZb4wBQBjkaopGX
     }
   }
 }

@@ -1,5 +1,6 @@
 {
   "dashboard": {
+<<<<<<< HEAD
     "title": "Dashboard",
     "subtitle": "Welcome to your AI Sales Assistant",
     "billing": {
@@ -79,6 +80,87 @@
       "upgradePlan": "💎 Upgrade Plan",
       "upgradePlanDesc": "Unlock unlimited conversations, advanced features, and priority support",
       "viewPlans": "View Plans"
+=======
+    "title": "仪表板",
+    "subtitle": "欢迎使用AI销售助手",
+    "billing": {
+      "unlockPotential": "🚀 解锁全部潜力",
+      "viewPlans": "查看计划",
+      "freeTierMessage": "您目前使用的是免费套餐。升级以解锁无限对话、高级分析、N8N集成和24/7优先支持。",
+      "planActive": "✓ {{planName}}已激活",
+      "manageBilling": "管理账单",
+      "subscriptionActive": "您的订阅已激活，所有高级功能已解锁。",
+      "testMode": " （测试模式 - 不会收费）"
+    },
+    "performance": {
+      "title": "性能概览",
+      "totalConversations": "总对话数",
+      "allTime": "全部时间",
+      "growthFromLastMonth": "↑ 比上月增长12%",
+      "activeToday": "今日活跃",
+      "live": "实时",
+      "conversationsStarted": "已开始的对话",
+      "responseTime": "响应时间",
+      "avg": "平均",
+      "aiProcessingSpeed": "AI处理速度",
+      "satisfactionScore": "满意度评分",
+      "excellent": "⭐ 优秀",
+      "outOf5": "/ 5.0",
+      "basedOnFeedback": "基于客户反馈"
+    },
+    "systemStatus": {
+      "title": "系统状态",
+      "subtitle": "监控您的AI助手组件",
+      "aiAssistant": "AI助手",
+      "coreEngine": "核心聊天机器人引擎",
+      "active": "● 活跃",
+      "themeIntegration": "主题集成",
+      "widgetEmbedded": "小部件已嵌入店面",
+      "enabled": "● 已启用",
+      "n8nWebhook": "N8N Webhook",
+      "advancedWorkflow": "高级工作流自动化",
+      "fallback": "○ 备用",
+      "analyticsTracking": "分析跟踪",
+      "dataCollection": "数据收集和洞察",
+      "running": "● 运行中",
+      "configureSettings": "配置设置"
+    },
+    "topQuestions": {
+      "title": "热门客户问题",
+      "subtitle": "本周最常问的问题",
+      "last7Days": "最近7天",
+      "new": "新",
+      "viewFullAnalytics": "查看完整分析"
+    },
+    "setupProgress": {
+      "title": "设置进度",
+      "completed": "已完成{{count}}/{{total}}",
+      "subtitle": "完成这些步骤以充分利用您的AI助手",
+      "appInstalled": "应用已安装和配置",
+      "appInstalledDesc": "您的AI销售助手已准备好使用默认设置",
+      "widgetAdded": "小部件已添加到主题",
+      "widgetAddedDesc": "聊天小部件已上线并在您的店面可见",
+      "analyticsEnabled": "分析已启用",
+      "analyticsEnabledDesc": "跟踪客户互动并生成洞察",
+      "connectN8N": "连接N8N工作流",
+      "connectN8NDesc": "启用高级AI处理、自定义工作流和第三方集成",
+      "optional": "可选",
+      "connectNow": "立即连接",
+      "customizeWidget": "自定义小部件",
+      "testChat": "测试聊天界面"
+    },
+    "quickActions": {
+      "title": "快速操作",
+      "viewAnalytics": "📊 查看分析",
+      "viewAnalyticsDesc": "深入了解对话洞察、客户行为和AI性能指标",
+      "openAnalytics": "打开分析",
+      "widgetSettings": "⚙️ 小部件设置",
+      "widgetSettingsDesc": "自定义外观、行为并配置N8N Webhook集成",
+      "configure": "配置",
+      "upgradePlan": "💎 升级计划",
+      "upgradePlanDesc": "解锁无限对话、高级功能和优先支持",
+      "viewPlans": "查看计划"
+>>>>>>> origin/claude/shopify-app-readiness-report-01MBwkY2tuZb4wBQBjkaopGX
     }
   }
 }

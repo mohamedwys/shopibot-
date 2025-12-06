@@ -1,5 +1,6 @@
 {
   "billing": {
+<<<<<<< HEAD
     "title": "Pricing Plans",
     "hero": {
       "title": "Choose the Perfect Plan for Your Store",
@@ -10,10 +11,23 @@
       "testModeDesc": "You won't be charged during development. Billing will be activated in production.",
       "activeSubscription": "Active Subscription:",
       "trialDays": "🎉 {{days}} days remaining in your free trial"
+=======
+    "title": "Preispläne",
+    "hero": {
+      "title": "Wählen Sie den Perfekten Plan für Ihren Shop",
+      "subtitle": "Entfesseln Sie die Kraft KI-gesteuerter Gespräche. Beginnen Sie mit einer 7-tägigen kostenlosen Testversion."
+    },
+    "status": {
+      "testMode": "Testmodus Aktiv",
+      "testModeDesc": "Sie werden während der Entwicklung nicht belastet. Die Abrechnung wird in der Produktion aktiviert.",
+      "activeSubscription": "Aktives Abonnement:",
+      "trialDays": "🎉 {{days}} Tage in Ihrer kostenlosen Testversion verbleibend"
+>>>>>>> origin/claude/shopify-app-readiness-report-01MBwkY2tuZb4wBQBjkaopGX
     },
     "plans": {
       "starter": {
         "title": "Starter",
+<<<<<<< HEAD
         "badge": "Most Popular",
         "description": "Perfect for small stores getting started",
         "price": "$25",
@@ -99,6 +113,93 @@
       "guarantee": {
         "value": "30-Day",
         "label": "Money-Back Guarantee"
+=======
+        "badge": "Am Beliebtesten",
+        "description": "Perfekt für kleine Shops, die gerade anfangen",
+        "price": "$25",
+        "period": "/Monat",
+        "trialBadge": "7-tägige kostenlose Testversion enthalten",
+        "included": "Was ist enthalten:",
+        "features": {
+          "conversations": "Bis zu 1.000 Gespräche/Monat",
+          "recommendations": "KI-gestützte Produktempfehlungen",
+          "analytics": "Basis-Analyse-Dashboard",
+          "support": "E-Mail-Support",
+          "customization": "Widget-Anpassung"
+        },
+        "currentPlan": "✓ Aktueller Plan",
+        "startTrial": "Kostenlose Testversion Starten"
+      },
+      "professional": {
+        "title": "Professionell",
+        "badge": "Bester Wert",
+        "description": "Für wachsende Unternehmen, die mehr Leistung benötigen",
+        "price": "$79",
+        "period": "/Monat",
+        "trialBadge": "7-tägige kostenlose Testversion enthalten",
+        "included": "Alles in Starter, plus:",
+        "features": {
+          "unlimited": "Unbegrenzte Gespräche",
+          "advancedAnalytics": "Erweiterte Analysen & Erkenntnisse",
+          "n8nIntegration": "Benutzerdefinierte N8N-Webhook-Integration",
+          "prioritySupport": "Prioritätssupport (24/7)",
+          "sentimentAnalysis": "Stimmungsanalyse & Absichtsverfolgung",
+          "userProfiling": "Benutzerprofilierung & Personalisierung",
+          "productTracking": "Produktklick-Verfolgung"
+        },
+        "currentPlan": "✓ Aktueller Plan",
+        "startTrial": "Kostenlose Testversion Starten"
+      }
+    },
+    "comparison": {
+      "title": "Pläne Vergleichen",
+      "features": {
+        "conversations": "Monatliche Gespräche",
+        "conversationsStarter": "1.000",
+        "conversationsPro": "Unbegrenzt",
+        "recommendations": "KI-Empfehlungen",
+        "analytics": "Analyse-Dashboard",
+        "analyticsStarter": "Basis",
+        "analyticsPro": "Erweitert",
+        "n8n": "N8N-Webhook-Integration",
+        "support": "Support",
+        "supportStarter": "E-Mail",
+        "supportPro": "Priorität 24/7"
+      }
+    },
+    "faq": {
+      "title": "Häufig Gestellte Fragen",
+      "changePlans": {
+        "question": "Kann ich Pläne später ändern?",
+        "answer": "Auf jeden Fall! Sie können Ihren Plan jederzeit von Ihrem Dashboard aus aktualisieren oder herunterstufen. Änderungen werden sofort wirksam, und wir werden alle Unterschiede anteilig berechnen."
+      },
+      "afterTrial": {
+        "question": "Was passiert nach der 7-tägigen Testversion?",
+        "answer": "Nach Ablauf Ihrer Testversion werden Sie monatlich basierend auf Ihrem gewählten Plan belastet. Sie können jederzeit während oder nach der Testphase ohne Strafen kündigen."
+      },
+      "refunds": {
+        "question": "Bieten Sie Rückerstattungen an?",
+        "answer": "Ja! Wir bieten eine 30-tägige Geld-zurück-Garantie. Wenn Sie mit unserem Service nicht vollständig zufrieden sind, wenden Sie sich an unser Support-Team für eine vollständige Rückerstattung - keine Fragen gestellt."
+      },
+      "conversationDefinition": {
+        "question": "Was zählt als Gespräch?",
+        "answer": "Ein Gespräch ist eine vollständige Interaktionssitzung mit einem Kunden, unabhängig von der Anzahl der ausgetauschten Nachrichten. Sitzungen laufen nach 30 Minuten Inaktivität ab."
+      }
+    },
+    "trust": {
+      "title": "Vertraut von über 1.000+ Shopify-Shops weltweit",
+      "satisfaction": {
+        "value": "98%",
+        "label": "Kundenzufriedenheit"
+      },
+      "support": {
+        "value": "24/7",
+        "label": "Prioritätssupport"
+      },
+      "guarantee": {
+        "value": "30-Tage",
+        "label": "Geld-zurück-Garantie"
+>>>>>>> origin/claude/shopify-app-readiness-report-01MBwkY2tuZb4wBQBjkaopGX
       }
     }
   }
