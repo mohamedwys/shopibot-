@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { useActionData, useLoaderData, useSubmit } from "@remix-run/react";
+import { useTranslation } from "react-i18next";
 import {
   Page,
   Layout,
@@ -17,9 +18,11 @@ import {
   List,
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
+import { i18n } from "../i18n.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { billing, session } = await authenticate.admin(request);
+  const t = await i18n.getFixedT(request, "billing");
 
   const { hasActivePayment, appSubscriptions } = await billing.check({
     plans: ["Starter Plan", "Professional Plan"] as any,
@@ -59,6 +62,7 @@ export default function BillingPage() {
   const { hasActivePayment, appSubscriptions, shop, isTestMode } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const submit = useSubmit();
+  const { t } = useTranslation("billing");
 
   const activePlan = appSubscriptions?.[0];
 
@@ -69,17 +73,17 @@ export default function BillingPage() {
   };
 
   return (
-    <Page title="Pricing Plans">
+    <Page title={t("billing.title")}>
       <Layout>
         {/* Hero Section */}
         <Layout.Section>
           <Box paddingBlockEnd="600">
             <BlockStack gap="300" align="center">
               <Text as="h1" variant="heading2xl" alignment="center">
-                Choose the Perfect Plan for Your Store
+                {t("billing.hero.title")}
               </Text>
               <Text as="p" variant="bodyLg" alignment="center" tone="subdued">
-                Unlock the power of AI-driven conversations. Start with a 7-day free trial.
+                {t("billing.hero.subtitle")}
               </Text>
             </BlockStack>
           </Box>
@@ -91,10 +95,10 @@ export default function BillingPage() {
             <Banner tone="info">
               <BlockStack gap="400">
                 <Text as="p" variant="bodyMd" fontWeight="semibold">
-                  Test Mode Active
+                  {t("billing.status.testMode")}
                 </Text>
                 <Text as="p" variant="bodyMd">
-                  You won't be charged during development. Billing will be activated in production.
+                  {t("billing.status.testModeDesc")}
                 </Text>
               </BlockStack>
             </Banner>
@@ -106,11 +110,11 @@ export default function BillingPage() {
             <Banner tone="success">
               <BlockStack gap="400">
                 <Text as="p" variant="bodyMd">
-                  <strong>Active Subscription:</strong> {activePlan.name}
+                  <strong>{t("billing.status.activeSubscription")}</strong> {activePlan.name}
                 </Text>
                 {activePlan.trialDays && activePlan.trialDays > 0 && (
                   <Text as="p" variant="bodyMd">
-                    🎉 {activePlan.trialDays} days remaining in your free trial
+                    {t("billing.status.trialDays", { days: activePlan.trialDays })}
                   </Text>
                 )}
               </BlockStack>
@@ -137,12 +141,12 @@ export default function BillingPage() {
                   <BlockStack gap="400">
                     <InlineStack align="space-between" blockAlign="start">
                       <Text as="h2" variant="headingLg" fontWeight="bold">
-                        Starter
+                        {t("billing.plans.starter.title")}
                       </Text>
-                      <Badge tone="attention">Most Popular</Badge>
+                      <Badge tone="attention">{t("billing.plans.starter.badge")}</Badge>
                     </InlineStack>
                     <Text as="p" variant="bodyMd" tone="subdued">
-                      Perfect for small stores getting started
+                      {t("billing.plans.starter.description")}
                     </Text>
                   </BlockStack>
 
@@ -150,13 +154,13 @@ export default function BillingPage() {
                   <BlockStack gap="100">
                     <InlineStack gap="100" blockAlign="end">
                       <Text as="h3" variant="heading3xl" fontWeight="bold">
-                        $25
+                        {t("billing.plans.starter.price")}
                       </Text>
                       <Text as="span" variant="bodyLg" tone="subdued">
-                        /month
+                        {t("billing.plans.starter.period")}
                       </Text>
                     </InlineStack>
-                    <Badge tone="info">7-day free trial included</Badge>
+                    <Badge tone="info">{t("billing.plans.starter.trialBadge")}</Badge>
                   </BlockStack>
 
                   <Divider />
@@ -204,8 +208,8 @@ export default function BillingPage() {
                     disabled={hasActivePayment && activePlan?.name === "Starter Plan"}
                   >
                     {hasActivePayment && activePlan?.name === "Starter Plan"
-                      ? "✓ Current Plan"
-                      : "Start Free Trial"}
+                      ? t("billing.plans.starter.currentPlan")
+                      : t("billing.plans.starter.startTrial")}
                   </Button>
                 </BlockStack>
               </Card>
@@ -219,12 +223,12 @@ export default function BillingPage() {
                   <BlockStack gap="400">
                     <InlineStack align="space-between" blockAlign="start">
                       <Text as="h2" variant="headingLg" fontWeight="bold">
-                        Professional
+                        {t("billing.plans.professional.title")}
                       </Text>
-                      <Badge tone="success">Best Value</Badge>
+                      <Badge tone="success">{t("billing.plans.professional.badge")}</Badge>
                     </InlineStack>
                     <Text as="p" variant="bodyMd" tone="subdued">
-                      For growing businesses that need more power
+                      {t("billing.plans.professional.description")}
                     </Text>
                   </BlockStack>
 
@@ -232,13 +236,13 @@ export default function BillingPage() {
                   <BlockStack gap="100">
                     <InlineStack gap="100" blockAlign="end">
                       <Text as="h3" variant="heading3xl" fontWeight="bold">
-                        $79
+                        {t("billing.plans.professional.price")}
                       </Text>
                       <Text as="span" variant="bodyLg" tone="subdued">
-                        /month
+                        {t("billing.plans.professional.period")}
                       </Text>
                     </InlineStack>
-                    <Badge tone="info">7-day free trial included</Badge>
+                    <Badge tone="info">{t("billing.plans.professional.trialBadge")}</Badge>
                   </BlockStack>
 
                   <Divider />
@@ -297,8 +301,8 @@ export default function BillingPage() {
                     disabled={hasActivePayment && activePlan?.name === "Professional Plan"}
                   >
                     {hasActivePayment && activePlan?.name === "Professional Plan"
-                      ? "✓ Current Plan"
-                      : "Start Free Trial"}
+                      ? t("billing.plans.professional.currentPlan")
+                      : t("billing.plans.professional.startTrial")}
                   </Button>
                 </BlockStack>
               </Card>

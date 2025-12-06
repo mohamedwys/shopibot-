@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData, useSubmit, useNavigation } from "@remix-run/react";
+import { useTranslation } from "react-i18next";
 import {
   Page,
   Layout,
@@ -27,9 +28,11 @@ import {
 } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
 import { analyticsService, AnalyticsService } from "../services/analytics.service";
+import { i18n } from "../i18n.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
+  const t = await i18n.getFixedT(request, "analytics");
 
   // Get period from query params or default to last 7 days
   const url = new URL(request.url);
@@ -124,6 +127,7 @@ export default function AnalyticsPage() {
   const data = useLoaderData<typeof loader>();
   const submit = useSubmit();
   const navigation = useNavigation();
+  const { t } = useTranslation("analytics");
 
   const [selectedPeriod, setSelectedPeriod] = useState(data.periodPreset);
 
@@ -142,10 +146,10 @@ export default function AnalyticsPage() {
   }, [submit, selectedPeriod]);
 
   const periodOptions = [
-    { label: "Today", value: "today" },
-    { label: "Last 7 days", value: "week" },
-    { label: "Last 30 days", value: "month" },
-    { label: "Last 90 days", value: "quarter" },
+    { label: t("analytics.timePeriod.today"), value: "today" },
+    { label: t("analytics.timePeriod.week"), value: "week" },
+    { label: t("analytics.timePeriod.month"), value: "month" },
+    { label: t("analytics.timePeriod.quarter"), value: "quarter" },
   ];
 
   // Helper to format numbers
@@ -198,10 +202,10 @@ export default function AnalyticsPage() {
 
   return (
     <Page
-      title="Analytics Dashboard"
-      subtitle="Track chatbot performance and customer interactions"
+      title={t("analytics.title")}
+      subtitle={t("analytics.subtitle")}
       primaryAction={{
-        content: "Export CSV",
+        content: t("analytics.exportCsv"),
         onAction: handleExport,
         icon: CalendarIcon,
       }}
@@ -211,7 +215,7 @@ export default function AnalyticsPage() {
         <Card>
           <InlineStack align="space-between" blockAlign="center">
             <Text variant="headingMd" as="h2">
-              Time Period
+              {t("analytics.timePeriod.title")}
             </Text>
             <Box minWidth="200px">
               <Select
@@ -233,7 +237,7 @@ export default function AnalyticsPage() {
               <BlockStack gap="200">
                 <InlineStack align="space-between">
                   <Text variant="bodyMd" as="p" tone="subdued">
-                    Total Messages
+                    {t("analytics.overview.totalMessages")}
                   </Text>
                   <Icon source={ChartVerticalIcon} tone="base" />
                 </InlineStack>
@@ -242,7 +246,7 @@ export default function AnalyticsPage() {
                 </Text>
                 {getChangeBadge(data.overview.periodComparison.messagesChange)}
                 <Text variant="bodySm" as="p" tone="subdued">
-                  vs. previous period
+                  {t("analytics.overview.vsPrevious")}
                 </Text>
               </BlockStack>
             </Card>
@@ -253,7 +257,7 @@ export default function AnalyticsPage() {
               <BlockStack gap="200">
                 <InlineStack align="space-between">
                   <Text variant="bodyMd" as="p" tone="subdued">
-                    Active Users
+                    {t("analytics.overview.activeUsers")}
                   </Text>
                   <Icon source={PersonIcon} tone="base" />
                 </InlineStack>
@@ -261,7 +265,7 @@ export default function AnalyticsPage() {
                   {formatNumber(data.activeUsers)}
                 </Text>
                 <Text variant="bodySm" as="p" tone="subdued">
-                  unique users
+                  {t("analytics.overview.uniqueUsers")}
                 </Text>
               </BlockStack>
             </Card>
@@ -272,7 +276,7 @@ export default function AnalyticsPage() {
               <BlockStack gap="200">
                 <InlineStack align="space-between">
                   <Text variant="bodyMd" as="p" tone="subdued">
-                    AI Confidence
+                    {t("analytics.overview.aiConfidence")}
                   </Text>
                   <Icon source={ChartVerticalIcon} tone="base" />
                 </InlineStack>
@@ -281,7 +285,7 @@ export default function AnalyticsPage() {
                 </Text>
                 {getChangeBadge(data.overview.periodComparison.confidenceChange)}
                 <Text variant="bodySm" as="p" tone="subdued">
-                  average accuracy
+                  {t("analytics.overview.averageAccuracy")}
                 </Text>
               </BlockStack>
             </Card>
@@ -292,7 +296,7 @@ export default function AnalyticsPage() {
         <Card>
           <BlockStack gap="400">
             <Text variant="headingMd" as="h2">
-              Engagement Metrics
+              {t("analytics.engagement.title")}
             </Text>
 
             <InlineGrid columns={4} gap="400">
@@ -339,7 +343,7 @@ export default function AnalyticsPage() {
         <Card>
           <BlockStack gap="400">
             <Text variant="headingMd" as="h2">
-              Customer Intent Distribution
+              {t("analytics.intent.title")}
             </Text>
 
             {data.intents.length > 0 ? (
@@ -386,7 +390,7 @@ export default function AnalyticsPage() {
         <Card>
           <BlockStack gap="400">
             <Text variant="headingMd" as="h2">
-              Sentiment Analysis
+              {t("analytics.sentiment.title")}
             </Text>
 
             {data.sentiments.length > 0 ? (
@@ -429,7 +433,7 @@ export default function AnalyticsPage() {
         <Card>
           <BlockStack gap="400">
             <Text variant="headingMd" as="h2">
-              Most Clicked Products
+              {t("analytics.products.title")}
             </Text>
 
             {data.topProducts.length > 0 ? (
@@ -467,7 +471,7 @@ export default function AnalyticsPage() {
         <Card>
           <BlockStack gap="400">
             <Text variant="headingMd" as="h2">
-              Daily Message Trends
+              {t("analytics.trends.title")}
             </Text>
 
             {data.trends.length > 0 ? (
@@ -528,7 +532,7 @@ export default function AnalyticsPage() {
         <Card>
           <BlockStack gap="200">
             <Text variant="headingMd" as="h2">
-              💡 Insights & Recommendations
+              {t("analytics.insights.title")}
             </Text>
             <BlockStack gap="100">
               {data.overview.avgConfidence < 70 && (

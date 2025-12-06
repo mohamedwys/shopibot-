@@ -11,7 +11,9 @@ import {
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useEffect } from "react";
+import { useChangeLanguage } from "remix-i18next/react";
 import { captureException } from "./lib/sentry.client";
+import { i18n } from "./i18n.server";
 
 // ADD THIS LINE - Import your Tailwind CSS
 import "./styles/tailwind.css";
@@ -20,7 +22,10 @@ import "./styles/tailwind.css";
  * Loader to expose environment variables to the client
  */
 export async function loader({ request }: LoaderFunctionArgs) {
+  const locale = await i18n.getLocale(request);
+
   return json({
+    locale,
     ENV: {
       SENTRY_DSN: process.env.SENTRY_DSN,
       NODE_ENV: process.env.NODE_ENV,
@@ -30,9 +35,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export default function App() {
   const data = useLoaderData<typeof loader>();
+  const { locale } = data;
+
+  useChangeLanguage(locale);
 
   return (
-    <html>
+    <html lang={locale}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />

@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useActionData, useLoaderData, useSubmit } from "@remix-run/react";
+import { useTranslation } from "react-i18next";
 import {
   Page,
   Layout,
@@ -19,6 +20,7 @@ import {
   Checkbox,
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
+import { i18n } from "../i18n.server";
 import db from "../db.server";
 
 // Default settings
@@ -104,6 +106,7 @@ function hsbToHex(hsb: { hue: number; saturation: number; brightness: number }) 
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
+  const t = await i18n.getFixedT(request, "settings");
   
   try {
     // Ensure db is available
@@ -198,7 +201,8 @@ export default function SettingsPage() {
   const { settings: initialSettings } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const submit = useSubmit();
-  
+  const { t } = useTranslation("settings");
+
   const [settings, setSettings] = useState(initialSettings);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
@@ -223,20 +227,20 @@ export default function SettingsPage() {
   }, [settings, submit]);
 
   const positionOptions = [
-    { label: "Bottom Right", value: "bottom-right" },
-    { label: "Bottom Left", value: "bottom-left" },
-    { label: "Top Right", value: "top-right" },
-    { label: "Top Left", value: "top-left" },
-    { label: "Center Right", value: "center-right" },
-    { label: "Center Left", value: "center-left" },
+    { label: t("settings.widgetConfiguration.positions.bottomRight"), value: "bottom-right" },
+    { label: t("settings.widgetConfiguration.positions.bottomLeft"), value: "bottom-left" },
+    { label: t("settings.widgetConfiguration.positions.topRight"), value: "top-right" },
+    { label: t("settings.widgetConfiguration.positions.topLeft"), value: "top-left" },
+    { label: t("settings.widgetConfiguration.positions.centerRight"), value: "center-right" },
+    { label: t("settings.widgetConfiguration.positions.centerLeft"), value: "center-left" },
   ];
 
   return (
     <Page
-      title="AI Sales Assistant Settings"
-      subtitle="Configure your AI-powered sales assistant widget"
+      title={t("settings.title")}
+      subtitle={t("settings.subtitle")}
       primaryAction={{
-        content: "Save Settings",
+        content: t("settings.saveSettings"),
         onAction: handleSave,
         loading: isSaving,
       }}
@@ -254,73 +258,73 @@ export default function SettingsPage() {
           <Card>
             <BlockStack gap="400">
               <Text variant="headingMd" as="h2">
-                Widget Configuration
+                {t("settings.widgetConfiguration.title")}
               </Text>
-              
+
               <FormLayout>
                 <Checkbox
-                  label="Enable AI Sales Assistant Widget"
+                  label={t("settings.widgetConfiguration.enableWidget")}
                   checked={settings.enabled}
-                  onChange={(checked) => 
+                  onChange={(checked) =>
                     setSettings((prev: SettingsType) => ({ ...prev, enabled: checked }))
                   }
-                  helpText="Toggle the AI assistant widget on/off across your store"
+                  helpText={t("settings.widgetConfiguration.enableWidgetHelp")}
                 />
 
                 <Select
-                  label="Widget Position"
+                  label={t("settings.widgetConfiguration.widgetPosition")}
                   options={positionOptions}
                   value={settings.position}
-                  onChange={(value) => 
+                  onChange={(value) =>
                     setSettings((prev: SettingsType) => ({ ...prev, position: value }))
                   }
-                  helpText="Choose where the widget appears on your store pages"
+                  helpText={t("settings.widgetConfiguration.widgetPositionHelp")}
                 />
 
                 <TextField
-                  label="Button Text"
+                  label={t("settings.widgetConfiguration.buttonText")}
                   value={settings.buttonText}
-                  onChange={(value) => 
+                  onChange={(value) =>
                     setSettings((prev: SettingsType) => ({ ...prev, buttonText: value }))
                   }
-                  helpText="Text displayed on the chat button"
+                  helpText={t("settings.widgetConfiguration.buttonTextHelp")}
                   autoComplete="off"
                 />
 
                 <TextField
-                  label="Chat Title"
+                  label={t("settings.widgetConfiguration.chatTitle")}
                   value={settings.chatTitle}
-                  onChange={(value) => 
+                  onChange={(value) =>
                     setSettings((prev: SettingsType) => ({ ...prev, chatTitle: value }))
                   }
-                  helpText="Title shown in the chat window header"
+                  helpText={t("settings.widgetConfiguration.chatTitleHelp")}
                   autoComplete="off"
                 />
 
                 <TextField
-                  label="Welcome Message"
+                  label={t("settings.widgetConfiguration.welcomeMessage")}
                   value={settings.welcomeMessage}
-                  onChange={(value) => 
+                  onChange={(value) =>
                     setSettings((prev: SettingsType) => ({ ...prev, welcomeMessage: value }))
                   }
                   multiline={4}
-                  helpText="First message customers see when they open the chat"
+                  helpText={t("settings.widgetConfiguration.welcomeMessageHelp")}
                   autoComplete="off"
                 />
 
                 <TextField
-                  label="Input Placeholder"
+                  label={t("settings.widgetConfiguration.inputPlaceholder")}
                   value={settings.inputPlaceholder}
-                  onChange={(value) => 
+                  onChange={(value) =>
                     setSettings((prev: SettingsType) => ({ ...prev, inputPlaceholder: value }))
                   }
-                  helpText="Placeholder text in the message input field"
+                  helpText={t("settings.widgetConfiguration.inputPlaceholderHelp")}
                   autoComplete="off"
                 />
 
                 <BlockStack gap="200">
                   <Text variant="bodyMd" as="p">
-                    Primary Color
+                    {t("settings.widgetConfiguration.primaryColor")}
                   </Text>
                   <ColorPicker
                     color={hexToHsb(settings.primaryColor)}
@@ -330,7 +334,7 @@ export default function SettingsPage() {
                     }}
                   />
                   <Text variant="bodySm" as="p" tone="subdued">
-                    Current color: {settings.primaryColor}
+                    {t("settings.widgetConfiguration.currentColor", { color: settings.primaryColor })}
                   </Text>
                 </BlockStack>
               </FormLayout>
@@ -342,15 +346,15 @@ export default function SettingsPage() {
           <Card>
             <BlockStack gap="400">
               <Text variant="headingMd" as="h2">
-                AI Workflow Configuration
+                {t("settings.aiWorkflow.title")}
               </Text>
               <Text variant="bodyMd" as="p" tone="subdued">
-                Choose which AI workflow to use for processing customer messages. You can use the developer's default workflow or configure your own N8N workflow.
+                {t("settings.aiWorkflow.subtitle")}
               </Text>
               
               <FormLayout>
                 <Select
-                  label="Workflow Type"
+                  label={t("settings.aiWorkflow.workflowType")}
                   value={(() => {
                     const url = (settings as any).webhookUrl;
                     // Check if webhook URL is valid for custom workflow
@@ -365,8 +369,8 @@ export default function SettingsPage() {
                     return isValidCustomUrl ? "custom" : "default";
                   })()}
                   options={[
-                    { label: "Use Developer's Default Workflow", value: "default" },
-                    { label: "Use My Custom N8N Workflow", value: "custom" }
+                    { label: t("settings.aiWorkflow.types.default"), value: "default" },
+                    { label: t("settings.aiWorkflow.types.custom"), value: "custom" }
                   ]}
                   onChange={(value) => {
                     if (value === "default") {
@@ -381,16 +385,16 @@ export default function SettingsPage() {
                       });
                     }
                   }}
-                  helpText="Select whether to use the built-in AI workflow or your own custom setup"
+                  helpText={t("settings.aiWorkflow.workflowTypeHelp")}
                 />
                 
                 <TextField
-                  label="Custom N8N Webhook URL"
+                  label={t("settings.aiWorkflow.webhookUrl")}
                   value={(settings as any).webhookUrl || ""}
                   onChange={(value) =>
                     setSettings((prev: any) => ({ ...prev, webhookUrl: value }))
                   }
-                  placeholder="https://your-n8n-instance.com/webhook/your-workflow"
+                  placeholder={t("settings.aiWorkflow.webhookUrlPlaceholder")}
                   helpText={(() => {
                     const url = (settings as any).webhookUrl;
                     const isValidCustomUrl = url &&
@@ -402,23 +406,23 @@ export default function SettingsPage() {
                                            url.startsWith('https://') &&
                                            url.length > 8;
                     if (isValidCustomUrl) {
-                      return "✅ Valid webhook URL configured. Messages will be sent to your N8N workflow.";
+                      return t("settings.aiWorkflow.webhookUrlValid");
                     } else if (url && url.length > 0) {
-                      return "Enter your complete N8N webhook URL (must start with https://)";
+                      return t("settings.aiWorkflow.webhookUrlEnter");
                     } else {
-                      return "Enter your N8N webhook URL to use custom workflow. Leave empty for default workflow.";
+                      return t("settings.aiWorkflow.webhookUrlEmpty");
                     }
                   })()}
                   autoComplete="off"
                   type="url"
                 />
-                
+
                 <Banner tone="info">
                   <Text variant="bodyMd" as="p">
-                    <strong>Default Workflow:</strong> Uses the developer's pre-configured AI assistant with product recommendations and store context.
+                    <strong>{t("settings.aiWorkflow.defaultWorkflow")}</strong> {t("settings.aiWorkflow.defaultWorkflowDesc")}
                   </Text>
                   <Text variant="bodyMd" as="p">
-                    <strong>Custom Workflow:</strong> Forward messages to your own N8N workflow for custom AI processing and responses.
+                    <strong>{t("settings.aiWorkflow.customWorkflow")}</strong> {t("settings.aiWorkflow.customWorkflowDesc")}
                   </Text>
                 </Banner>
               </FormLayout>
@@ -430,7 +434,7 @@ export default function SettingsPage() {
           <Card>
             <BlockStack gap="400">
               <Text variant="headingMd" as="h2">
-                Widget Preview
+                {t("settings.preview.title")}
               </Text>
               
               <div style={{ 
@@ -478,11 +482,11 @@ export default function SettingsPage() {
                    color: "#6d7175"
                  }}>
                    <Text variant="bodyMd" as="p" tone="subdued">
-                     Widget Preview
+                     {t("settings.preview.subtitle")}
                    </Text>
                    <br />
                    <Text variant="bodySm" as="p" tone="subdued">
-                     Position: {positionOptions.find(opt => opt.value === settings.position)?.label}
+                     {t("settings.preview.position", { position: positionOptions.find(opt => opt.value === settings.position)?.label })}
                    </Text>
                  </div>
               </div>
@@ -494,36 +498,21 @@ export default function SettingsPage() {
           <Card>
             <BlockStack gap="400">
               <Text variant="headingMd" as="h2">
-                Integration Instructions
+                {t("settings.integration.title")}
               </Text>
-              
-              <Text variant="bodyMd" as="p">
-                Your AI Sales Assistant is configured as an app embed. To activate it on your store:
-              </Text>
-              
+
               <BlockStack gap="200">
-                <Text variant="bodyMd" as="p">
-                  1. Go to <strong>Online Store → Themes</strong>
-                </Text>
-                <Text variant="bodyMd" as="p">
-                  2. Click <strong>Customize</strong> on your active theme
-                </Text>
-                <Text variant="bodyMd" as="p">
-                  3. Scroll down to <strong>App embeds</strong> in the theme editor
-                </Text>
-                <Text variant="bodyMd" as="p">
-                  4. Find <strong>AI Sales Assistant</strong> and toggle it ON
-                </Text>
-                <Text variant="bodyMd" as="p">
-                  5. Save your theme changes
-                </Text>
+                <Text variant="bodyMd" as="p" dangerouslySetInnerHTML={{ __html: t("settings.integration.step1") }} />
+                <Text variant="bodyMd" as="p" dangerouslySetInnerHTML={{ __html: t("settings.integration.step2") }} />
+                <Text variant="bodyMd" as="p" dangerouslySetInnerHTML={{ __html: t("settings.integration.step3") }} />
+                <Text variant="bodyMd" as="p" dangerouslySetInnerHTML={{ __html: t("settings.integration.step4") }} />
+                <Text variant="bodyMd" as="p" dangerouslySetInnerHTML={{ __html: t("settings.integration.step5") }} />
               </BlockStack>
-              
+
               <Divider />
-              
+
               <Text variant="bodyMd" as="p" tone="subdued">
-                The widget will appear on all pages of your store once enabled in the theme editor.
-                Settings configured here will automatically apply to the widget.
+                {t("settings.integration.footer")}
               </Text>
             </BlockStack>
           </Card>
