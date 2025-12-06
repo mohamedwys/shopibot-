@@ -32,6 +32,19 @@ async function hydrate() {
         cookieMinutes: 525600, // 1 year
         cookieDomain: window.location.hostname,
       },
+      // Fallback configuration - use English for missing namespaces
+      fallbackLng: {
+        'es': ['en'],
+        'fr': ['en'],
+        'de': ['en'],
+        'ja': ['en'],
+        'it': ['en'],
+        'pt': ['en'],
+        'zh': ['en'],
+        'default': ['en']
+      },
+      // Allow partial bundle loading
+      partialBundledLanguages: true,
     });
 
   startTransition(() => {

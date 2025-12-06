@@ -8,4 +8,12 @@ export default {
   defaultNS: "common",
   // Disabling suspense is recommended for Remix
   react: { useSuspense: false },
+  // Load namespaces on-demand and allow partial bundles
+  load: "languageOnly",
+  // Don't fail when a namespace is missing, fall back to fallbackLng
+  fallbackNS: false,
+  // Return empty string for missing keys instead of the key itself
+  returnEmptyString: false,
+  // Use fallback language for missing namespaces
+  saveMissing: false,
 };
