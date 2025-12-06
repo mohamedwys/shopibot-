@@ -19,6 +19,11 @@ import { authenticate } from "../shopify.server";
 import { checkBillingStatus } from "../lib/billing.server";
 import { AnalyticsService } from "../services/analytics.service";
 import db from "../db.server";
+import { useTranslation } from "react-i18next";
+
+export const handle = {
+  i18n: "common",
+};
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { billing, session } = await authenticate.admin(request);
@@ -124,27 +129,27 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function Index() {
   const { stats, billingStatus } = useLoaderData<typeof loader>();
+  const { t } = useTranslation();
 
   return (
     <Page
-      title="Dashboard"
-      subtitle="Welcome to your AI Sales Assistant"
+      title={t("dashboard.title")}
+      subtitle={t("dashboard.subtitle")}
     >
       <Layout>
         {/* Billing Status Banner */}
         {!billingStatus.hasActivePayment && (
           <Layout.Section>
             <Banner
-              title="🚀 Unlock Full Potential"
+              title={t("dashboard.unlockPotential")}
               tone="warning"
               action={{
-                content: "View Plans",
+                content: t("dashboard.viewPlans"),
                 url: "/app/billing",
               }}
             >
               <p>
-                You're currently on the free tier. Upgrade to unlock unlimited conversations, 
-                advanced analytics, N8N integration, and 24/7 priority support.
+                {t("dashboard.freeTierMessage")}
               </p>
             </Banner>
           </Layout.Section>
@@ -153,17 +158,17 @@ export default function Index() {
         {billingStatus.hasActivePayment && billingStatus.activePlan && (
           <Layout.Section>
             <Banner
-              title={`✓ ${billingStatus.activePlan} Active`}
+              title={`✓ ${billingStatus.activePlan} ${t("dashboard.planActive")}`}
               tone="success"
               action={{
-                content: "Manage Billing",
+                content: t("dashboard.manageBilling"),
                 url: "/app/billing",
               }}
             >
               <p>
-                Your subscription is active and all premium features are unlocked.
+                {t("dashboard.subscriptionActive")}
                 {billingStatus.appSubscriptions[0]?.test && (
-                  <> (Test mode - you won't be charged)</>
+                  <> {t("dashboard.testModeNote")}</>
                 )}
               </p>
             </Banner>
@@ -174,25 +179,25 @@ export default function Index() {
         <Layout.Section>
           <BlockStack gap="400">
             <Text as="h2" variant="headingLg">
-              Performance Overview
+              {t("dashboard.performanceOverview")}
             </Text>
-            
+
             <InlineStack gap="400" wrap={false}>
               <Box width="25%">
                 <Card>
                   <BlockStack gap="300">
                     <InlineStack align="space-between" blockAlign="start">
                       <Text variant="bodyMd" as="p" tone="subdued">
-                        Total Conversations
+                        {t("dashboard.totalConversations")}
                       </Text>
-                      <Badge tone="info">All time</Badge>
+                      <Badge tone="info">{t("dashboard.allTime")}</Badge>
                     </InlineStack>
                     <Text variant="heading2xl" as="p" fontWeight="bold">
                       {stats.totalConversations.toLocaleString()}
                     </Text>
                     <Box>
                       <Text variant="bodySm" as="p" tone="success">
-                        ↑ 12% from last month
+                        {t("dashboard.growthLastMonth")}
                       </Text>
                     </Box>
                   </BlockStack>
@@ -204,16 +209,16 @@ export default function Index() {
                   <BlockStack gap="300">
                     <InlineStack align="space-between" blockAlign="start">
                       <Text variant="bodyMd" as="p" tone="subdued">
-                        Active Today
+                        {t("dashboard.activeToday")}
                       </Text>
-                      <Badge tone="success">Live</Badge>
+                      <Badge tone="success">{t("dashboard.live")}</Badge>
                     </InlineStack>
                     <Text variant="heading2xl" as="p" fontWeight="bold">
                       {stats.activeToday}
                     </Text>
                     <Box>
                       <Text variant="bodySm" as="p" tone="subdued">
-                        Conversations started
+                        {t("dashboard.conversationsStarted")}
                       </Text>
                     </Box>
                   </BlockStack>
@@ -225,16 +230,16 @@ export default function Index() {
                   <BlockStack gap="300">
                     <InlineStack align="space-between" blockAlign="start">
                       <Text variant="bodyMd" as="p" tone="subdued">
-                        Response Time
+                        {t("dashboard.responseTime")}
                       </Text>
-                      <Badge tone="attention">Avg</Badge>
+                      <Badge tone="attention">{t("dashboard.avg")}</Badge>
                     </InlineStack>
                     <Text variant="heading2xl" as="p" fontWeight="bold">
                       {stats.avgResponseTime}
                     </Text>
                     <Box>
                       <Text variant="bodySm" as="p" tone="subdued">
-                        AI processing speed
+                        {t("dashboard.aiProcessingSpeed")}
                       </Text>
                     </Box>
                   </BlockStack>
@@ -246,21 +251,21 @@ export default function Index() {
                   <BlockStack gap="300">
                     <InlineStack align="space-between" blockAlign="start">
                       <Text variant="bodyMd" as="p" tone="subdued">
-                        Satisfaction Score
+                        {t("dashboard.satisfactionScore")}
                       </Text>
-                      <Badge tone="success">⭐ Excellent</Badge>
+                      <Badge tone="success">{t("dashboard.excellent")}</Badge>
                     </InlineStack>
                     <InlineStack gap="200" blockAlign="center">
                       <Text variant="heading2xl" as="p" fontWeight="bold">
                         {stats.customerSatisfaction}
                       </Text>
                       <Text variant="bodyMd" as="p" tone="subdued">
-                        / 5.0
+                        {t("dashboard.outOf5")}
                       </Text>
                     </InlineStack>
                     <Box>
                       <Text variant="bodySm" as="p" tone="subdued">
-                        Based on customer feedback
+                        {t("dashboard.basedOnFeedback")}
                       </Text>
                     </Box>
                   </BlockStack>
@@ -279,10 +284,10 @@ export default function Index() {
                 <BlockStack gap="500">
                   <BlockStack gap="200">
                     <Text variant="headingLg" as="h3" fontWeight="bold">
-                      System Status
+                      {t("dashboard.systemStatus")}
                     </Text>
                     <Text variant="bodyMd" as="p" tone="subdued">
-                      Monitor your AI assistant components
+                      {t("dashboard.monitorComponents")}
                     </Text>
                   </BlockStack>
 
@@ -292,13 +297,13 @@ export default function Index() {
                       <InlineStack align="space-between" blockAlign="center">
                         <BlockStack gap="100">
                           <Text variant="bodyMd" as="p" fontWeight="semibold">
-                            AI Assistant
+                            {t("dashboard.aiAssistant")}
                           </Text>
                           <Text variant="bodySm" as="p" tone="subdued">
-                            Core chatbot engine
+                            {t("dashboard.coreChatbot")}
                           </Text>
                         </BlockStack>
-                        <Badge tone="success" size="medium">● Active</Badge>
+                        <Badge tone="success" size="medium">{t("dashboard.active")}</Badge>
                       </InlineStack>
                     </Box>
 
@@ -309,13 +314,13 @@ export default function Index() {
                       <InlineStack align="space-between" blockAlign="center">
                         <BlockStack gap="100">
                           <Text variant="bodyMd" as="p" fontWeight="semibold">
-                            Theme Integration
+                            {t("dashboard.themeIntegration")}
                           </Text>
                           <Text variant="bodySm" as="p" tone="subdued">
-                            Widget embedded in storefront
+                            {t("dashboard.widgetEmbedded")}
                           </Text>
                         </BlockStack>
-                        <Badge tone="success" size="medium">● Enabled</Badge>
+                        <Badge tone="success" size="medium">{t("dashboard.enabled")}</Badge>
                       </InlineStack>
                     </Box>
 
@@ -326,13 +331,13 @@ export default function Index() {
                       <InlineStack align="space-between" blockAlign="center">
                         <BlockStack gap="100">
                           <Text variant="bodyMd" as="p" fontWeight="semibold">
-                            N8N Webhook
+                            {t("dashboard.n8nWebhook")}
                           </Text>
                           <Text variant="bodySm" as="p" tone="subdued">
-                            Advanced workflow automation
+                            {t("dashboard.advancedWorkflow")}
                           </Text>
                         </BlockStack>
-                        <Badge tone="warning" size="medium">○ Fallback</Badge>
+                        <Badge tone="warning" size="medium">{t("dashboard.fallback")}</Badge>
                       </InlineStack>
                     </Box>
 
@@ -343,20 +348,20 @@ export default function Index() {
                       <InlineStack align="space-between" blockAlign="center">
                         <BlockStack gap="100">
                           <Text variant="bodyMd" as="p" fontWeight="semibold">
-                            Analytics Tracking
+                            {t("dashboard.analyticsTracking")}
                           </Text>
                           <Text variant="bodySm" as="p" tone="subdued">
-                            Data collection & insights
+                            {t("dashboard.dataCollection")}
                           </Text>
                         </BlockStack>
-                        <Badge tone="success" size="medium">● Running</Badge>
+                        <Badge tone="success" size="medium">{t("dashboard.running")}</Badge>
                       </InlineStack>
                     </Box>
                   </BlockStack>
 
                   <Box paddingBlockStart="200">
                     <Button variant="primary" size="large" fullWidth url="/app/settings">
-                      Configure Settings
+                      {t("dashboard.configureSettings")}
                     </Button>
                   </Box>
                 </BlockStack>
@@ -371,13 +376,13 @@ export default function Index() {
                     <InlineStack align="space-between" blockAlign="start">
                       <BlockStack gap="100">
                         <Text variant="headingLg" as="h3" fontWeight="bold">
-                          Top Customer Questions
+                          {t("dashboard.topQuestions")}
                         </Text>
                         <Text variant="bodyMd" as="p" tone="subdued">
-                          Most asked questions this week
+                          {t("dashboard.mostAsked")}
                         </Text>
                       </BlockStack>
-                      <Badge>Last 7 days</Badge>
+                      <Badge>{t("dashboard.last7Days")}</Badge>
                     </InlineStack>
                   </BlockStack>
 
@@ -394,7 +399,7 @@ export default function Index() {
                               <Text variant="bodyMd" as="p">
                                 {index + 1}. {item.question}
                               </Text>
-                              <Badge tone="info">{item.count > 0 ? `${item.count}x` : 'New'}</Badge>
+                              <Badge tone="info">{item.count > 0 ? `${item.count}${t("dashboard.timesAsked")}` : t("dashboard.new")}</Badge>
                             </InlineStack>
                             <ProgressBar progress={percentage} size="small" tone="primary" />
                           </BlockStack>
@@ -405,7 +410,7 @@ export default function Index() {
 
                   <Box paddingBlockStart="200">
                     <Button size="large" fullWidth url="/app/sales-assistant">
-                      View Full Analytics
+                      {t("dashboard.viewFullAnalytics")}
                     </Button>
                   </Box>
                 </BlockStack>
@@ -421,12 +426,12 @@ export default function Index() {
               <BlockStack gap="200">
                 <InlineStack align="space-between" blockAlign="center">
                   <Text variant="headingLg" as="h3" fontWeight="bold">
-                    Setup Progress
+                    {t("dashboard.setupProgress")}
                   </Text>
-                  <Badge tone="success">3 of 4 completed</Badge>
+                  <Badge tone="success">{t("dashboard.stepsCompleted")}</Badge>
                 </InlineStack>
                 <Text variant="bodyMd" as="p" tone="subdued">
-                  Complete these steps to get the most out of your AI assistant
+                  {t("dashboard.completeSteps")}
                 </Text>
               </BlockStack>
 
@@ -443,10 +448,10 @@ export default function Index() {
                     </Box>
                     <BlockStack gap="200">
                       <Text variant="bodyLg" as="p" fontWeight="semibold">
-                        App Installed & Configured
+                        {t("dashboard.step1Title")}
                       </Text>
                       <Text variant="bodyMd" as="p" tone="subdued">
-                        Your AI Sales Assistant is ready to use with default settings
+                        {t("dashboard.step1Desc")}
                       </Text>
                     </BlockStack>
                   </InlineStack>
@@ -460,10 +465,10 @@ export default function Index() {
                     </Box>
                     <BlockStack gap="200">
                       <Text variant="bodyLg" as="p" fontWeight="semibold">
-                        Widget Added to Theme
+                        {t("dashboard.step2Title")}
                       </Text>
                       <Text variant="bodyMd" as="p" tone="subdued">
-                        The chat widget is live and visible on your storefront
+                        {t("dashboard.step2Desc")}
                       </Text>
                     </BlockStack>
                   </InlineStack>
@@ -477,10 +482,10 @@ export default function Index() {
                     </Box>
                     <BlockStack gap="200">
                       <Text variant="bodyLg" as="p" fontWeight="semibold">
-                        Analytics Enabled
+                        {t("dashboard.step3Title")}
                       </Text>
                       <Text variant="bodyMd" as="p" tone="subdued">
-                        Tracking customer interactions and generating insights
+                        {t("dashboard.step3Desc")}
                       </Text>
                     </BlockStack>
                   </InlineStack>
@@ -497,16 +502,16 @@ export default function Index() {
                         <BlockStack gap="200">
                           <InlineStack gap="200" blockAlign="center">
                             <Text variant="bodyLg" as="p" fontWeight="semibold">
-                              Connect N8N Workflow
+                              {t("dashboard.step4Title")}
                             </Text>
-                            <Badge tone="info">Optional</Badge>
+                            <Badge tone="info">{t("dashboard.optional")}</Badge>
                           </InlineStack>
                           <Text variant="bodyMd" as="p" tone="subdued">
-                            Enable advanced AI processing, custom workflows, and third-party integrations
+                            {t("dashboard.step4Desc")}
                           </Text>
                         </BlockStack>
                         <Button url="/app/settings">
-                          Connect Now
+                          {t("dashboard.connectNow")}
                         </Button>
                       </InlineStack>
                     </Box>
@@ -518,10 +523,10 @@ export default function Index() {
 
               <InlineStack gap="300">
                 <Button variant="primary" url="/app/settings">
-                  Customize Widget
+                  {t("dashboard.customizeWidget")}
                 </Button>
                 <Button url="/app/sales-assistant">
-                  Test Chat Interface
+                  {t("dashboard.testChat")}
                 </Button>
               </InlineStack>
             </BlockStack>
@@ -532,22 +537,22 @@ export default function Index() {
         <Layout.Section>
           <BlockStack gap="400">
             <Text as="h2" variant="headingLg">
-              Quick Actions
+              {t("dashboard.quickActions")}
             </Text>
-            
+
             <InlineStack gap="400" wrap={false}>
               <Box width="33.33%">
                 <Card>
                   <BlockStack gap="300">
                     <Text variant="headingMd" as="h3" fontWeight="semibold">
-                      📊 View Analytics
+                      {t("dashboard.viewAnalyticsTitle")}
                     </Text>
                     <Text variant="bodyMd" as="p" tone="subdued">
-                      Dive deep into conversation insights, customer behavior, and AI performance metrics
+                      {t("dashboard.viewAnalyticsDesc")}
                     </Text>
                     <Box paddingBlockStart="200">
                       <Button fullWidth url="/app/sales-assistant">
-                        Open Analytics
+                        {t("dashboard.openAnalytics")}
                       </Button>
                     </Box>
                   </BlockStack>
@@ -558,14 +563,14 @@ export default function Index() {
                 <Card>
                   <BlockStack gap="300">
                     <Text variant="headingMd" as="h3" fontWeight="semibold">
-                      ⚙️ Widget Settings
+                      {t("dashboard.widgetSettingsTitle")}
                     </Text>
                     <Text variant="bodyMd" as="p" tone="subdued">
-                      Customize appearance, behavior, and configure N8N webhook integration
+                      {t("dashboard.widgetSettingsDesc")}
                     </Text>
                     <Box paddingBlockStart="200">
                       <Button fullWidth url="/app/settings">
-                        Configure
+                        {t("dashboard.configure")}
                       </Button>
                     </Box>
                   </BlockStack>
@@ -576,14 +581,14 @@ export default function Index() {
                 <Card>
                   <BlockStack gap="300">
                     <Text variant="headingMd" as="h3" fontWeight="semibold">
-                      💎 Upgrade Plan
+                      {t("dashboard.upgradePlanTitle")}
                     </Text>
                     <Text variant="bodyMd" as="p" tone="subdued">
-                      Unlock unlimited conversations, advanced features, and priority support
+                      {t("dashboard.upgradePlanDesc")}
                     </Text>
                     <Box paddingBlockStart="200">
                       <Button fullWidth tone="success" url="/app/billing">
-                        View Plans
+                        {t("dashboard.viewPlansAction")}
                       </Button>
                     </Box>
                   </BlockStack>

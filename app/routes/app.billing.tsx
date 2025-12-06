@@ -112,11 +112,11 @@ export default function BillingPage() {
             <Banner tone="success">
               <BlockStack gap="400">
                 <Text as="p" variant="bodyMd">
-                  <strong>Active Subscription:</strong> {activePlan.name}
+                  <strong>{t("billing.activeSubscription")}:</strong> {activePlan.name}
                 </Text>
                 {activePlan.trialDays && activePlan.trialDays > 0 && (
                   <Text as="p" variant="bodyMd">
-                    🎉 {activePlan.trialDays} days remaining in your free trial
+                    🎉 {activePlan.trialDays} {t("billing.daysRemaining")}
                   </Text>
                 )}
               </BlockStack>
@@ -143,12 +143,12 @@ export default function BillingPage() {
                   <BlockStack gap="400">
                     <InlineStack align="space-between" blockAlign="start">
                       <Text as="h2" variant="headingLg" fontWeight="bold">
-                        Starter
+                        {t("billing.starterPlan")}
                       </Text>
-                      <Badge tone="attention">Most Popular</Badge>
+                      <Badge tone="attention">{t("billing.mostPopular")}</Badge>
                     </InlineStack>
                     <Text as="p" variant="bodyMd" tone="subdued">
-                      Perfect for small stores getting started
+                      {t("billing.starterDesc")}
                     </Text>
                   </BlockStack>
 
@@ -159,10 +159,10 @@ export default function BillingPage() {
                         $25
                       </Text>
                       <Text as="span" variant="bodyLg" tone="subdued">
-                        /month
+                        {t("billing.perMonth")}
                       </Text>
                     </InlineStack>
-                    <Badge tone="info">7-day free trial included</Badge>
+                    <Badge tone="info">{t("billing.freeTrialIncluded")}</Badge>
                   </BlockStack>
 
                   <Divider />
@@ -170,32 +170,32 @@ export default function BillingPage() {
                   {/* Features */}
                   <BlockStack gap="400">
                     <Text as="p" variant="headingSm" fontWeight="semibold">
-                      What's included:
+                      {t("billing.whatsIncluded")}
                     </Text>
                     <List type="bullet">
                       <List.Item>
                         <Text as="span" variant="bodyMd">
-                          Up to 1,000 conversations/month
+                          {t("billing.features.conversations1k")}
                         </Text>
                       </List.Item>
                       <List.Item>
                         <Text as="span" variant="bodyMd">
-                          AI-powered product recommendations
+                          {t("billing.features.aiRecommendations")}
                         </Text>
                       </List.Item>
                       <List.Item>
                         <Text as="span" variant="bodyMd">
-                          Basic analytics dashboard
+                          {t("billing.features.basicAnalytics")}
                         </Text>
                       </List.Item>
                       <List.Item>
                         <Text as="span" variant="bodyMd">
-                          Email support
+                          {t("billing.features.emailSupport")}
                         </Text>
                       </List.Item>
                       <List.Item>
                         <Text as="span" variant="bodyMd">
-                          Widget customization
+                          {t("billing.features.widgetCustomization")}
                         </Text>
                       </List.Item>
                     </List>
@@ -210,8 +210,8 @@ export default function BillingPage() {
                     disabled={hasActivePayment && activePlan?.name === "Starter Plan"}
                   >
                     {hasActivePayment && activePlan?.name === "Starter Plan"
-                      ? "✓ Current Plan"
-                      : "Start Free Trial"}
+                      ? t("billing.currentPlan")
+                      : t("billing.startFreeTrial")}
                   </Button>
                 </BlockStack>
               </Card>
@@ -225,12 +225,12 @@ export default function BillingPage() {
                   <BlockStack gap="400">
                     <InlineStack align="space-between" blockAlign="start">
                       <Text as="h2" variant="headingLg" fontWeight="bold">
-                        Professional
+                        {t("billing.professionalPlan")}
                       </Text>
-                      <Badge tone="success">Best Value</Badge>
+                      <Badge tone="success">{t("billing.bestValue")}</Badge>
                     </InlineStack>
                     <Text as="p" variant="bodyMd" tone="subdued">
-                      For growing businesses that need more power
+                      {t("billing.professionalDesc")}
                     </Text>
                   </BlockStack>
 
@@ -241,10 +241,10 @@ export default function BillingPage() {
                         $79
                       </Text>
                       <Text as="span" variant="bodyLg" tone="subdued">
-                        /month
+                        {t("billing.perMonth")}
                       </Text>
                     </InlineStack>
-                    <Badge tone="info">7-day free trial included</Badge>
+                    <Badge tone="info">{t("billing.freeTrialIncluded")}</Badge>
                   </BlockStack>
 
                   <Divider />
@@ -252,42 +252,42 @@ export default function BillingPage() {
                   {/* Features */}
                   <BlockStack gap="400">
                     <Text as="p" variant="headingSm" fontWeight="semibold">
-                      Everything in Starter, plus:
+                      {t("billing.everythingInStarter")}
                     </Text>
                     <List type="bullet">
                       <List.Item>
                         <Text as="span" variant="bodyMd" fontWeight="semibold">
-                          Unlimited conversations
+                          {t("billing.features.unlimitedConversations")}
                         </Text>
                       </List.Item>
                       <List.Item>
                         <Text as="span" variant="bodyMd">
-                          Advanced analytics & insights
+                          {t("billing.features.advancedAnalytics")}
                         </Text>
                       </List.Item>
                       <List.Item>
                         <Text as="span" variant="bodyMd">
-                          Custom N8N webhook integration
+                          {t("billing.features.n8nIntegration")}
                         </Text>
                       </List.Item>
                       <List.Item>
                         <Text as="span" variant="bodyMd">
-                          Priority support (24/7)
+                          {t("billing.features.prioritySupport")}
                         </Text>
                       </List.Item>
                       <List.Item>
                         <Text as="span" variant="bodyMd">
-                          Sentiment analysis & intent tracking
+                          {t("billing.features.sentimentAnalysis")}
                         </Text>
                       </List.Item>
                       <List.Item>
                         <Text as="span" variant="bodyMd">
-                          User profiling & personalization
+                          {t("billing.features.userProfiling")}
                         </Text>
                       </List.Item>
                       <List.Item>
                         <Text as="span" variant="bodyMd">
-                          Product click tracking
+                          {t("billing.features.productTracking")}
                         </Text>
                       </List.Item>
                     </List>
@@ -303,8 +303,8 @@ export default function BillingPage() {
                     disabled={hasActivePayment && activePlan?.name === "Professional Plan"}
                   >
                     {hasActivePayment && activePlan?.name === "Professional Plan"
-                      ? "✓ Current Plan"
-                      : "Start Free Trial"}
+                      ? t("billing.currentPlan")
+                      : t("billing.startFreeTrial")}
                   </Button>
                 </BlockStack>
               </Card>
@@ -317,23 +317,23 @@ export default function BillingPage() {
           <Card>
             <BlockStack gap="400">
               <Text as="h3" variant="headingLg" alignment="center">
-                Compare Plans
+                {t("billing.comparePlans")}
               </Text>
               <Divider />
               <BlockStack gap="300">
                 <InlineStack align="space-between">
                   <Text as="p" variant="bodyMd" tone="subdued">
-                    Monthly conversations
+                    {t("billing.monthlyConversations")}
                   </Text>
                   <InlineStack gap="800">
                     <Text as="span" variant="bodyMd">1,000</Text>
-                    <Text as="span" variant="bodyMd" fontWeight="semibold">Unlimited</Text>
+                    <Text as="span" variant="bodyMd" fontWeight="semibold">{t("billing.unlimited")}</Text>
                   </InlineStack>
                 </InlineStack>
                 <Divider />
                 <InlineStack align="space-between">
                   <Text as="p" variant="bodyMd" tone="subdued">
-                    AI recommendations
+                    {t("billing.aiRecommendations")}
                   </Text>
                   <InlineStack gap="800">
                     <Text as="span" variant="bodyMd">✓</Text>
@@ -343,17 +343,17 @@ export default function BillingPage() {
                 <Divider />
                 <InlineStack align="space-between">
                   <Text as="p" variant="bodyMd" tone="subdued">
-                    Analytics dashboard
+                    {t("billing.analyticsDashboard")}
                   </Text>
                   <InlineStack gap="800">
-                    <Text as="span" variant="bodyMd">Basic</Text>
-                    <Text as="span" variant="bodyMd" fontWeight="semibold">Advanced</Text>
+                    <Text as="span" variant="bodyMd">{t("billing.basic")}</Text>
+                    <Text as="span" variant="bodyMd" fontWeight="semibold">{t("billing.advanced")}</Text>
                   </InlineStack>
                 </InlineStack>
                 <Divider />
                 <InlineStack align="space-between">
                   <Text as="p" variant="bodyMd" tone="subdued">
-                    N8N webhook integration
+                    {t("billing.n8nWebhook")}
                   </Text>
                   <InlineStack gap="800">
                     <Text as="span" variant="bodyMd">–</Text>
@@ -363,11 +363,11 @@ export default function BillingPage() {
                 <Divider />
                 <InlineStack align="space-between">
                   <Text as="p" variant="bodyMd" tone="subdued">
-                    Support
+                    {t("billing.support")}
                   </Text>
                   <InlineStack gap="800">
-                    <Text as="span" variant="bodyMd">Email</Text>
-                    <Text as="span" variant="bodyMd" fontWeight="semibold">24/7 Priority</Text>
+                    <Text as="span" variant="bodyMd">{t("billing.email")}</Text>
+                    <Text as="span" variant="bodyMd" fontWeight="semibold">{t("billing.priority24x7")}</Text>
                   </InlineStack>
                 </InlineStack>
               </BlockStack>
@@ -380,17 +380,16 @@ export default function BillingPage() {
           <Card>
             <BlockStack gap="500">
               <Text as="h3" variant="headingLg" alignment="center">
-                Frequently Asked Questions
+                {t("billing.faq")}
               </Text>
 
               <BlockStack gap="400">
                 <BlockStack gap="400">
                   <Text as="p" variant="bodyLg" fontWeight="semibold">
-                    Can I change plans later?
+                    {t("billing.faqChangePlansQ")}
                   </Text>
                   <Text as="p" variant="bodyMd" tone="subdued">
-                    Absolutely! You can upgrade or downgrade your plan at any time from your dashboard. 
-                    Changes take effect immediately, and we'll prorate any differences.
+                    {t("billing.faqChangePlansA")}
                   </Text>
                 </BlockStack>
 
@@ -398,11 +397,10 @@ export default function BillingPage() {
 
                 <BlockStack gap="400">
                   <Text as="p" variant="bodyLg" fontWeight="semibold">
-                    What happens after the 7-day trial?
+                    {t("billing.faqTrialQ")}
                   </Text>
                   <Text as="p" variant="bodyMd" tone="subdued">
-                    After your trial ends, you'll be charged monthly based on your selected plan. 
-                    You can cancel anytime during or after the trial period with no penalties.
+                    {t("billing.faqTrialA")}
                   </Text>
                 </BlockStack>
 
@@ -410,11 +408,10 @@ export default function BillingPage() {
 
                 <BlockStack gap="400">
                   <Text as="p" variant="bodyLg" fontWeight="semibold">
-                    Do you offer refunds?
+                    {t("billing.faqRefundQ")}
                   </Text>
                   <Text as="p" variant="bodyMd" tone="subdued">
-                    Yes! We offer a 30-day money-back guarantee. If you're not completely satisfied 
-                    with our service, contact our support team for a full refund—no questions asked.
+                    {t("billing.faqRefundA")}
                   </Text>
                 </BlockStack>
 
@@ -422,11 +419,10 @@ export default function BillingPage() {
 
                 <BlockStack gap="400">
                   <Text as="p" variant="bodyLg" fontWeight="semibold">
-                    What counts as a conversation?
+                    {t("billing.faqConversationQ")}
                   </Text>
                   <Text as="p" variant="bodyMd" tone="subdued">
-                    A conversation is a complete interaction session with a customer, regardless of the 
-                    number of messages exchanged. Sessions timeout after 30 minutes of inactivity.
+                    {t("billing.faqConversationA")}
                   </Text>
                 </BlockStack>
               </BlockStack>
@@ -439,7 +435,7 @@ export default function BillingPage() {
           <Card>
             <BlockStack gap="400" align="center">
               <Text as="p" variant="bodyLg" alignment="center" tone="subdued">
-                Trusted by over 1,000+ Shopify stores worldwide
+                {t("billing.trustTitle")}
               </Text>
               <InlineStack gap="600" align="center">
                 <BlockStack gap="100" align="center">
@@ -447,7 +443,7 @@ export default function BillingPage() {
                     98%
                   </Text>
                   <Text as="p" variant="bodySm" tone="subdued">
-                    Customer Satisfaction
+                    {t("billing.customerSatisfaction")}
                   </Text>
                 </BlockStack>
                 <Divider />
@@ -456,7 +452,7 @@ export default function BillingPage() {
                     24/7
                   </Text>
                   <Text as="p" variant="bodySm" tone="subdued">
-                    Priority Support
+                    {t("billing.prioritySupport")}
                   </Text>
                 </BlockStack>
                 <Divider />
@@ -465,7 +461,7 @@ export default function BillingPage() {
                     30-Day
                   </Text>
                   <Text as="p" variant="bodySm" tone="subdued">
-                    Money-Back Guarantee
+                    {t("billing.moneyBackGuarantee")}
                   </Text>
                 </BlockStack>
               </InlineStack>
