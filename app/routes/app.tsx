@@ -9,7 +9,6 @@ import { json } from "@remix-run/node";
 import i18nServer from "../i18n.server";
 import { Select, Box, InlineStack } from "@shopify/polaris";
 import { useCallback } from "react";
-import i18next from "i18next";
 
 import { authenticate } from "../shopify.server";
 
@@ -58,21 +57,16 @@ export default function App() {
     { label: "中文", value: "zh" },
   ];
 
-  const handleLanguageChange = useCallback(async (value: string) => {
-    try {
-      // Change language in i18next client using the global instance
-      await i18next.changeLanguage(value);
+  const handleLanguageChange = useCallback((value: string) => {
+    // Submit to server to set cookie
+    const formData = new FormData();
+    formData.append("locale", value);
+    submit(formData, { method: "post" });
 
-      // Submit to server to set cookie
-      const formData = new FormData();
-      formData.append("locale", value);
-      submit(formData, { method: "post", replace: true });
-
-      // Navigate to current page to trigger re-render with new language
+    // Navigate to current page to trigger re-render with new language
+    setTimeout(() => {
       navigate(".", { replace: true });
-    } catch (error) {
-      console.error("Language change failed:", error);
-    }
+    }, 100);
   }, [submit, navigate]);
 
   return (
