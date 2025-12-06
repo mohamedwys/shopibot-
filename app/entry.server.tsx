@@ -9,16 +9,9 @@ import { isbot } from "isbot";
 import { addDocumentResponseHeaders } from "./shopify.server";
 import { initSentry, captureException } from "./lib/sentry.server";
 import { createInstance } from "i18next";
-import i18nServer from "./i18n.server";
+import i18nServer from "./i18n/i18next.server";
 import { I18nextProvider, initReactI18next } from "react-i18next";
-import enCommon from "./locales/en/common.json";
-import esCommon from "./locales/es/common.json";
-import frCommon from "./locales/fr/common.json";
-import deCommon from "./locales/de/common.json";
-import jaCommon from "./locales/ja/common.json";
-import itCommon from "./locales/it/common.json";
-import ptCommon from "./locales/pt/common.json";
-import zhCommon from "./locales/zh/common.json";
+import { resources } from "./i18n/resources";
 
 // Initialize Sentry for server-side error tracking
 initSentry();
@@ -37,32 +30,21 @@ export default async function handleRequest(
     ? "onAllReady"
     : "onShellReady";
 
-  // Get locale from request
+  // Get locale from request using remix-i18next
   const locale = await i18nServer.getLocale(request);
 
   // Create i18next instance for this request
   const instance = createInstance();
   const ns = i18nServer.getRouteNamespaces(remixContext);
 
-  // Bundle translations directly for serverless compatibility
-  const resources = {
-    en: { common: enCommon },
-    es: { common: esCommon },
-    fr: { common: frCommon },
-    de: { common: deCommon },
-    ja: { common: jaCommon },
-    it: { common: itCommon },
-    pt: { common: ptCommon },
-    zh: { common: zhCommon },
-  };
-
+  // Initialize i18next with bundled resources (serverless-compatible)
   await instance
     .use(initReactI18next)
     .init({
       ...i18nServer.options,
       lng: locale,
       ns,
-      resources,
+      resources, // Bundled translations from app/i18n/resources.ts
     });
 
   return new Promise((resolve, reject) => {

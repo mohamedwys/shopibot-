@@ -6,7 +6,7 @@ import { NavMenu } from "@shopify/app-bridge-react";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import { useTranslation } from "react-i18next";
 import { json } from "@remix-run/node";
-import i18nServer from "../i18n.server";
+import i18nServer from "../i18n/i18next.server";
 import { Select, Box, InlineStack } from "@shopify/polaris";
 import { useCallback } from "react";
 

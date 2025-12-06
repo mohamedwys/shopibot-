@@ -13,7 +13,7 @@ import { json } from "@remix-run/node";
 import { useEffect } from "react";
 import { captureException } from "./lib/sentry.client";
 import { useChangeLanguage } from "remix-i18next/react";
-import i18nServer from "./i18n.server";
+import i18nServer from "./i18n/i18next.server";
 
 // ADD THIS LINE - Import your Tailwind CSS
 import "./styles/tailwind.css";
