@@ -1,17 +1,5 @@
 {
   "billing": {
-<<<<<<< HEAD
-    "title": "Pricing Plans",
-    "hero": {
-      "title": "Choose the Perfect Plan for Your Store",
-      "subtitle": "Unlock the power of AI-driven conversations. Start with a 7-day free trial."
-    },
-    "status": {
-      "testMode": "Test Mode Active",
-      "testModeDesc": "You won't be charged during development. Billing will be activated in production.",
-      "activeSubscription": "Active Subscription:",
-      "trialDays": "🎉 {{days}} days remaining in your free trial"
-=======
     "title": "Piani Tariffari",
     "hero": {
       "title": "Scegli il Piano Perfetto per il Tuo Negozio",
@@ -22,98 +10,10 @@
       "testModeDesc": "Non ti verrà addebitato durante lo sviluppo. La fatturazione verrà attivata in produzione.",
       "activeSubscription": "Abbonamento Attivo:",
       "trialDays": "🎉 {{days}} giorni rimanenti nella prova gratuita"
->>>>>>> origin/claude/shopify-app-readiness-report-01MBwkY2tuZb4wBQBjkaopGX
     },
     "plans": {
       "starter": {
         "title": "Starter",
-<<<<<<< HEAD
-        "badge": "Most Popular",
-        "description": "Perfect for small stores getting started",
-        "price": "$25",
-        "period": "/month",
-        "trialBadge": "7-day free trial included",
-        "included": "What's included:",
-        "features": {
-          "conversations": "Up to 1,000 conversations/month",
-          "recommendations": "AI-powered product recommendations",
-          "analytics": "Basic analytics dashboard",
-          "support": "Email support",
-          "customization": "Widget customization"
-        },
-        "currentPlan": "✓ Current Plan",
-        "startTrial": "Start Free Trial"
-      },
-      "professional": {
-        "title": "Professional",
-        "badge": "Best Value",
-        "description": "For growing businesses that need more power",
-        "price": "$79",
-        "period": "/month",
-        "trialBadge": "7-day free trial included",
-        "included": "Everything in Starter, plus:",
-        "features": {
-          "unlimited": "Unlimited conversations",
-          "advancedAnalytics": "Advanced analytics & insights",
-          "n8nIntegration": "Custom N8N webhook integration",
-          "prioritySupport": "Priority support (24/7)",
-          "sentimentAnalysis": "Sentiment analysis & intent tracking",
-          "userProfiling": "User profiling & personalization",
-          "productTracking": "Product click tracking"
-        },
-        "currentPlan": "✓ Current Plan",
-        "startTrial": "Start Free Trial"
-      }
-    },
-    "comparison": {
-      "title": "Compare Plans",
-      "features": {
-        "conversations": "Monthly conversations",
-        "conversationsStarter": "1,000",
-        "conversationsPro": "Unlimited",
-        "recommendations": "AI recommendations",
-        "analytics": "Analytics dashboard",
-        "analyticsStarter": "Basic",
-        "analyticsPro": "Advanced",
-        "n8n": "N8N webhook integration",
-        "support": "Support",
-        "supportStarter": "Email",
-        "supportPro": "24/7 Priority"
-      }
-    },
-    "faq": {
-      "title": "Frequently Asked Questions",
-      "changePlans": {
-        "question": "Can I change plans later?",
-        "answer": "Absolutely! You can upgrade or downgrade your plan at any time from your dashboard. Changes take effect immediately, and we'll prorate any differences."
-      },
-      "afterTrial": {
-        "question": "What happens after the 7-day trial?",
-        "answer": "After your trial ends, you'll be charged monthly based on your selected plan. You can cancel anytime during or after the trial period with no penalties."
-      },
-      "refunds": {
-        "question": "Do you offer refunds?",
-        "answer": "Yes! We offer a 30-day money-back guarantee. If you're not completely satisfied with our service, contact our support team for a full refund—no questions asked."
-      },
-      "conversationDefinition": {
-        "question": "What counts as a conversation?",
-        "answer": "A conversation is a complete interaction session with a customer, regardless of the number of messages exchanged. Sessions timeout after 30 minutes of inactivity."
-      }
-    },
-    "trust": {
-      "title": "Trusted by over 1,000+ Shopify stores worldwide",
-      "satisfaction": {
-        "value": "98%",
-        "label": "Customer Satisfaction"
-      },
-      "support": {
-        "value": "24/7",
-        "label": "Priority Support"
-      },
-      "guarantee": {
-        "value": "30-Day",
-        "label": "Money-Back Guarantee"
-=======
         "badge": "Più Popolare",
         "description": "Perfetto per piccoli negozi che iniziano",
         "price": "$25",
@@ -199,7 +99,6 @@
       "guarantee": {
         "value": "30-Giorni",
         "label": "Garanzia Rimborso"
->>>>>>> origin/claude/shopify-app-readiness-report-01MBwkY2tuZb4wBQBjkaopGX
       }
     }
   }

@@ -1,68 +1,5 @@
 {
   "settings": {
-<<<<<<< HEAD
-    "title": "AI Sales Assistant Settings",
-    "subtitle": "Configure your AI-powered sales assistant widget",
-    "saveSettings": "Save Settings",
-    "saveSuccess": "Settings saved successfully!",
-    "widgetConfiguration": {
-      "title": "Widget Configuration",
-      "enableWidget": "Enable AI Sales Assistant Widget",
-      "enableWidgetHelp": "Toggle the AI assistant widget on/off across your store",
-      "widgetPosition": "Widget Position",
-      "widgetPositionHelp": "Choose where the widget appears on your store pages",
-      "positions": {
-        "bottomRight": "Bottom Right",
-        "bottomLeft": "Bottom Left",
-        "topRight": "Top Right",
-        "topLeft": "Top Left",
-        "centerRight": "Center Right",
-        "centerLeft": "Center Left"
-      },
-      "buttonText": "Button Text",
-      "buttonTextHelp": "Text displayed on the chat button",
-      "chatTitle": "Chat Title",
-      "chatTitleHelp": "Title shown in the chat window header",
-      "welcomeMessage": "Welcome Message",
-      "welcomeMessageHelp": "First message customers see when they open the chat",
-      "inputPlaceholder": "Input Placeholder",
-      "inputPlaceholderHelp": "Placeholder text in the message input field",
-      "primaryColor": "Primary Color",
-      "currentColor": "Current color: {{color}}"
-    },
-    "aiWorkflow": {
-      "title": "AI Workflow Configuration",
-      "subtitle": "Choose which AI workflow to use for processing customer messages. You can use the developer's default workflow or configure your own N8N workflow.",
-      "workflowType": "Workflow Type",
-      "workflowTypeHelp": "Select whether to use the built-in AI workflow or your own custom setup",
-      "types": {
-        "default": "Use Developer's Default Workflow",
-        "custom": "Use My Custom N8N Workflow"
-      },
-      "webhookUrl": "Custom N8N Webhook URL",
-      "webhookUrlPlaceholder": "https://your-n8n-instance.com/webhook/your-workflow",
-      "webhookUrlValid": "✅ Valid webhook URL configured. Messages will be sent to your N8N workflow.",
-      "webhookUrlEnter": "Enter your complete N8N webhook URL (must start with https://)",
-      "webhookUrlEmpty": "Enter your N8N webhook URL to use custom workflow. Leave empty for default workflow.",
-      "defaultWorkflow": "Default Workflow:",
-      "defaultWorkflowDesc": "Uses the developer's pre-configured AI assistant with product recommendations and store context.",
-      "customWorkflow": "Custom Workflow:",
-      "customWorkflowDesc": "Forward messages to your own N8N workflow for custom AI processing and responses."
-    },
-    "preview": {
-      "title": "Widget Preview",
-      "subtitle": "Widget Preview",
-      "position": "Position: {{position}}"
-    },
-    "integration": {
-      "title": "Integration Instructions",
-      "step1": "1. Go to <strong>Online Store → Themes</strong>",
-      "step2": "2. Click <strong>Customize</strong> on your active theme",
-      "step3": "3. Scroll down to <strong>App embeds</strong> in the theme editor",
-      "step4": "4. Find <strong>AI Sales Assistant</strong> and toggle it ON",
-      "step5": "5. Save your theme changes",
-      "footer": "The widget will appear on all pages of your store once enabled in the theme editor. Settings configured here will automatically apply to the widget."
-=======
     "title": "Impostazioni Assistente Vendite IA",
     "subtitle": "Configura il tuo widget assistente vendite basato sull'IA",
     "saveSettings": "Salva Impostazioni",
@@ -124,7 +61,6 @@
       "step4": "4. Trova <strong>Assistente Vendite IA</strong> e attivalo",
       "step5": "5. Salva le modifiche al tema",
       "footer": "Il widget apparirà su tutte le pagine del tuo negozio una volta abilitato nell'editor del tema. Le impostazioni configurate qui verranno applicate automaticamente al widget."
->>>>>>> origin/claude/shopify-app-readiness-report-01MBwkY2tuZb4wBQBjkaopGX
     }
   }
 }

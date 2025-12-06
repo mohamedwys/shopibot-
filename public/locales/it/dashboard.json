@@ -1,86 +1,6 @@
 {
   "dashboard": {
     "title": "Dashboard",
-<<<<<<< HEAD
-    "subtitle": "Welcome to your AI Sales Assistant",
-    "billing": {
-      "unlockPotential": "🚀 Unlock Full Potential",
-      "viewPlans": "View Plans",
-      "freeTierMessage": "You're currently on the free tier. Upgrade to unlock unlimited conversations, advanced analytics, N8N integration, and 24/7 priority support.",
-      "planActive": "✓ {{planName}} Active",
-      "manageBilling": "Manage Billing",
-      "subscriptionActive": "Your subscription is active and all premium features are unlocked.",
-      "testMode": " (Test mode - you won't be charged)"
-    },
-    "performance": {
-      "title": "Performance Overview",
-      "totalConversations": "Total Conversations",
-      "allTime": "All time",
-      "growthFromLastMonth": "↑ 12% from last month",
-      "activeToday": "Active Today",
-      "live": "Live",
-      "conversationsStarted": "Conversations started",
-      "responseTime": "Response Time",
-      "avg": "Avg",
-      "aiProcessingSpeed": "AI processing speed",
-      "satisfactionScore": "Satisfaction Score",
-      "excellent": "⭐ Excellent",
-      "outOf5": "/ 5.0",
-      "basedOnFeedback": "Based on customer feedback"
-    },
-    "systemStatus": {
-      "title": "System Status",
-      "subtitle": "Monitor your AI assistant components",
-      "aiAssistant": "AI Assistant",
-      "coreEngine": "Core chatbot engine",
-      "active": "● Active",
-      "themeIntegration": "Theme Integration",
-      "widgetEmbedded": "Widget embedded in storefront",
-      "enabled": "● Enabled",
-      "n8nWebhook": "N8N Webhook",
-      "advancedWorkflow": "Advanced workflow automation",
-      "fallback": "○ Fallback",
-      "analyticsTracking": "Analytics Tracking",
-      "dataCollection": "Data collection & insights",
-      "running": "● Running",
-      "configureSettings": "Configure Settings"
-    },
-    "topQuestions": {
-      "title": "Top Customer Questions",
-      "subtitle": "Most asked questions this week",
-      "last7Days": "Last 7 days",
-      "new": "New",
-      "viewFullAnalytics": "View Full Analytics"
-    },
-    "setupProgress": {
-      "title": "Setup Progress",
-      "completed": "{{count}} of {{total}} completed",
-      "subtitle": "Complete these steps to get the most out of your AI assistant",
-      "appInstalled": "App Installed & Configured",
-      "appInstalledDesc": "Your AI Sales Assistant is ready to use with default settings",
-      "widgetAdded": "Widget Added to Theme",
-      "widgetAddedDesc": "The chat widget is live and visible on your storefront",
-      "analyticsEnabled": "Analytics Enabled",
-      "analyticsEnabledDesc": "Tracking customer interactions and generating insights",
-      "connectN8N": "Connect N8N Workflow",
-      "connectN8NDesc": "Enable advanced AI processing, custom workflows, and third-party integrations",
-      "optional": "Optional",
-      "connectNow": "Connect Now",
-      "customizeWidget": "Customize Widget",
-      "testChat": "Test Chat Interface"
-    },
-    "quickActions": {
-      "title": "Quick Actions",
-      "viewAnalytics": "📊 View Analytics",
-      "viewAnalyticsDesc": "Dive deep into conversation insights, customer behavior, and AI performance metrics",
-      "openAnalytics": "Open Analytics",
-      "widgetSettings": "⚙️ Widget Settings",
-      "widgetSettingsDesc": "Customize appearance, behavior, and configure N8N webhook integration",
-      "configure": "Configure",
-      "upgradePlan": "💎 Upgrade Plan",
-      "upgradePlanDesc": "Unlock unlimited conversations, advanced features, and priority support",
-      "viewPlans": "View Plans"
-=======
     "subtitle": "Benvenuto nel tuo Assistente Vendite IA",
     "billing": {
       "unlockPotential": "🚀 Sblocca il Pieno Potenziale",
@@ -159,7 +79,6 @@
       "upgradePlan": "💎 Aggiorna Piano",
       "upgradePlanDesc": "Sblocca conversazioni illimitate, funzionalità avanzate e supporto prioritario",
       "viewPlans": "Vedi Piani"
->>>>>>> origin/claude/shopify-app-readiness-report-01MBwkY2tuZb4wBQBjkaopGX
     }
   }
 }

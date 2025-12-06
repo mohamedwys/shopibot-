@@ -1,60 +1,5 @@
 {
   "analytics": {
-<<<<<<< HEAD
-    "title": "Analytics Dashboard",
-    "subtitle": "Track chatbot performance and customer interactions",
-    "exportCsv": "Export CSV",
-    "timePeriod": {
-      "title": "Time Period",
-      "today": "Today",
-      "week": "Last 7 days",
-      "month": "Last 30 days",
-      "quarter": "Last 90 days"
-    },
-    "overview": {
-      "totalMessages": "Total Messages",
-      "activeUsers": "Active Users",
-      "uniqueUsers": "unique users",
-      "aiConfidence": "AI Confidence",
-      "averageAccuracy": "average accuracy",
-      "vsPrevious": "vs. previous period"
-    },
-    "engagement": {
-      "title": "Engagement Metrics",
-      "messagesPerSession": "Messages per Session",
-      "avgSessionDuration": "Avg Session Duration",
-      "avgResponseTime": "Avg Response Time",
-      "totalSessions": "Total Sessions"
-    },
-    "intent": {
-      "title": "Customer Intent Distribution",
-      "noData": "No intent data available for this period"
-    },
-    "sentiment": {
-      "title": "Sentiment Analysis",
-      "positive": "Positive",
-      "neutral": "Neutral",
-      "negative": "Negative",
-      "messages": "messages",
-      "noData": "No sentiment data available for this period"
-    },
-    "products": {
-      "title": "Most Clicked Products",
-      "clicks": "clicks",
-      "noData": "No product click data available for this period"
-    },
-    "trends": {
-      "title": "Daily Message Trends",
-      "noData": "No trend data available for this period"
-    },
-    "insights": {
-      "title": "💡 Insights & Recommendations",
-      "lowConfidence": "• AI confidence is below 70%. Consider reviewing product descriptions and generating embeddings.",
-      "highNegative": "• More than 20% negative sentiment detected. Review customer interactions and improve responses.",
-      "lowEngagement": "• Low engagement (<2 messages per session). Consider improving welcome message and suggestions.",
-      "highOther": "• Many queries classified as \"OTHER\". Review unhandled intents and add more training data.",
-      "noData": "• No data yet! Install the widget on your storefront and start getting insights."
-=======
     "title": "Panel de Analíticas",
     "subtitle": "Rastree el rendimiento del chatbot y las interacciones con los clientes",
     "exportCsv": "Exportar CSV",
@@ -108,7 +53,6 @@
       "lowEngagement": "• Baja participación (<2 mensajes por sesión). Considere mejorar el mensaje de bienvenida y las sugerencias.",
       "highOther": "• Muchas consultas clasificadas como \"OTRAS\". Revise las intenciones no manejadas y agregue más datos de entrenamiento.",
       "noData": "• ¡Aún no hay datos! Instale el widget en su tienda y comience a obtener insights."
->>>>>>> origin/claude/shopify-app-readiness-report-01MBwkY2tuZb4wBQBjkaopGX
     }
   }
 }

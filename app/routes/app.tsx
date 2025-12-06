@@ -58,19 +58,6 @@ export default function App() {
     { label: "中文", value: "zh" },
   ];
 
-<<<<<<< HEAD
-  const handleLanguageChange = useCallback((value: string) => {
-    // Submit to server to set cookie
-    const formData = new FormData();
-    formData.append("locale", value);
-    submit(formData, { method: "post" });
-
-    // Reload the page to apply the new language from cookie
-    setTimeout(() => {
-      window.location.reload();
-    }, 100);
-  }, [submit]);
-=======
   const handleLanguageChange = useCallback(async (value: string) => {
     try {
       // Change language in i18next client using the global instance
@@ -87,7 +74,6 @@ export default function App() {
       console.error("Language change failed:", error);
     }
   }, [submit, navigate]);
->>>>>>> origin/claude/shopify-app-readiness-report-01MBwkY2tuZb4wBQBjkaopGX
 
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey}>
