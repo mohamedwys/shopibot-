@@ -5,6 +5,12 @@ export default new RemixI18Next({
   detection: {
     supportedLanguages: i18n.supportedLngs,
     fallbackLanguage: i18n.fallbackLng,
+    // Read locale from cookie
+    cookie: {
+      name: "locale",
+      maxAge: 31536000, // 1 year
+      sameSite: "lax",
+    },
   },
   // The i18next configuration will be loaded from ./i18n.ts
   i18next: {

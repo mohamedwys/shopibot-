@@ -28,11 +28,15 @@ export const action = async ({ request }: LoaderFunctionArgs) => {
   const formData = await request.formData();
   const locale = formData.get("locale") as string;
 
-  return json({ locale }, {
-    headers: {
-      "Set-Cookie": `locale=${locale}; Path=/; Max-Age=31536000`,
-    },
-  });
+  // Set the locale cookie and redirect to reload the page with new language
+  return json(
+    { locale },
+    {
+      headers: {
+        "Set-Cookie": `locale=${locale}; Path=/; Max-Age=31536000; SameSite=Lax`,
+      },
+    }
+  );
 };
 
 export const handle = {
@@ -58,7 +62,13 @@ export default function App() {
   const handleLanguageChange = useCallback((value: string) => {
     const formData = new FormData();
     formData.append("locale", value);
-    submit(formData, { method: "post" });
+    // Submit form and navigate to current route to reload with new language
+    submit(formData, { method: "post", navigate: true });
+
+    // Force page reload after a short delay to ensure cookie is set
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   }, [submit]);
 
   return (
