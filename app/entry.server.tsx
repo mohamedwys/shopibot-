@@ -11,8 +11,14 @@ import { initSentry, captureException } from "./lib/sentry.server";
 import { createInstance } from "i18next";
 import i18nServer from "./i18n.server";
 import { I18nextProvider, initReactI18next } from "react-i18next";
-import Backend from "i18next-fs-backend";
-import { resolve } from "node:path";
+import * as enCommon from "../public/locales/en/common.json";
+import * as esCommon from "../public/locales/es/common.json";
+import * as frCommon from "../public/locales/fr/common.json";
+import * as deCommon from "../public/locales/de/common.json";
+import * as jaCommon from "../public/locales/ja/common.json";
+import * as itCommon from "../public/locales/it/common.json";
+import * as ptCommon from "../public/locales/pt/common.json";
+import * as zhCommon from "../public/locales/zh/common.json";
 
 // Initialize Sentry for server-side error tracking
 initSentry();
@@ -38,16 +44,25 @@ export default async function handleRequest(
   const instance = createInstance();
   const ns = i18nServer.getRouteNamespaces(remixContext);
 
+  // Bundle translations directly for serverless compatibility
+  const resources = {
+    en: { common: enCommon },
+    es: { common: esCommon },
+    fr: { common: frCommon },
+    de: { common: deCommon },
+    ja: { common: jaCommon },
+    it: { common: itCommon },
+    pt: { common: ptCommon },
+    zh: { common: zhCommon },
+  };
+
   await instance
     .use(initReactI18next)
-    .use(Backend)
     .init({
       ...i18nServer.options,
       lng: locale,
       ns,
-      backend: {
-        loadPath: resolve("./public/locales/{{lng}}/{{ns}}.json"),
-      },
+      resources,
     });
 
   return new Promise((resolve, reject) => {
