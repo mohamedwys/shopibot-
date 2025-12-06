@@ -22,6 +22,11 @@ import { AnalyticsService } from "../services/analytics.service";
 import i18n from "../i18n.server";
 import db from "../db.server";
 
+// Specify which i18n namespaces this route needs
+export const handle = {
+  i18n: ["dashboard", "common"],
+};
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { billing, session } = await authenticate.admin(request);
 

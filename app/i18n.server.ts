@@ -7,6 +7,10 @@ export default new RemixI18Next({
   detection: {
     supportedLanguages: i18n.supportedLngs,
     fallbackLanguage: i18n.fallbackLng,
+    // Configure cookie detection - order matters!
+    order: ["cookie", "header"],
+    // Cookie name must match what the client uses (i18next-browser-languagedetector default)
+    cookie: "i18next",
   },
   i18next: {
     ...i18n,

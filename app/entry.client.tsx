@@ -24,8 +24,13 @@ async function hydrate() {
         loadPath: "/locales/{{lng}}/{{ns}}.json",
       },
       detection: {
-        order: ["htmlTag"],
-        caches: [],
+        // Read language from cookie, localStorage, or HTML tag
+        order: ["cookie", "localStorage", "htmlTag"],
+        // Store language preference in cookie and localStorage
+        caches: ["cookie", "localStorage"],
+        // Use the same cookie name as the server
+        cookieMinutes: 525600, // 1 year
+        cookieDomain: window.location.hostname,
       },
     });
 

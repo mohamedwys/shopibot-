@@ -30,7 +30,8 @@ export const action = async ({ request }: LoaderFunctionArgs) => {
 
   return json({ locale }, {
     headers: {
-      "Set-Cookie": `locale=${locale}; Path=/; Max-Age=31536000`,
+      // Use "i18next" cookie name to match what i18next-browser-languagedetector expects
+      "Set-Cookie": `i18next=${locale}; Path=/; Max-Age=31536000; SameSite=Lax`,
     },
   });
 };
@@ -41,7 +42,7 @@ export const handle = {
 
 export default function App() {
   const { apiKey, locale } = useLoaderData<typeof loader>();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const submit = useSubmit();
 
   const languageOptions = [
@@ -55,11 +56,18 @@ export default function App() {
     { label: "中文", value: "zh" },
   ];
 
-  const handleLanguageChange = useCallback((value: string) => {
+  const handleLanguageChange = useCallback(async (value: string) => {
+    // Change language in i18next client
+    await i18n.changeLanguage(value);
+
+    // Also submit to server to set cookie
     const formData = new FormData();
     formData.append("locale", value);
     submit(formData, { method: "post" });
-  }, [submit]);
+
+    // Reload the current page to ensure all translations are loaded
+    window.location.reload();
+  }, [i18n, submit]);
 
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey}>

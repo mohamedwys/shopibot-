@@ -20,6 +20,11 @@ import {
 import { authenticate } from "../shopify.server";
 import i18n from "../i18n.server";
 
+// Specify which i18n namespaces this route needs
+export const handle = {
+  i18n: ["billing", "common"],
+};
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { billing, session } = await authenticate.admin(request);
   const t = await i18n.getFixedT(request, "billing");

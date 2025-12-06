@@ -104,6 +104,11 @@ function hsbToHex(hsb: { hue: number; saturation: number; brightness: number }) 
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
 
+// Specify which i18n namespaces this route needs
+export const handle = {
+  i18n: ["settings", "common"],
+};
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const t = await i18n.getFixedT(request, "settings");
