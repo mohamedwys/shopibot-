@@ -1,5 +1,5 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "@remix-run/node";
-import { Link, Outlet, useLoaderData, useRouteError, useSubmit } from "@remix-run/react";
+import { Link, Outlet, useLoaderData, useRouteError, useSubmit, useNavigate } from "@remix-run/react";
 import { boundary } from "@shopify/shopify-app-remix/server";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
 import { NavMenu } from "@shopify/app-bridge-react";
@@ -9,6 +9,7 @@ import { json } from "@remix-run/node";
 import i18nServer from "../i18n.server";
 import { Select, Box, InlineStack } from "@shopify/polaris";
 import { useCallback } from "react";
+import i18next from "i18next";
 
 import { authenticate } from "../shopify.server";
 
@@ -42,8 +43,9 @@ export const handle = {
 
 export default function App() {
   const { apiKey, locale } = useLoaderData<typeof loader>();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const submit = useSubmit();
+  const navigate = useNavigate();
 
   const languageOptions = [
     { label: "English", value: "en" },
@@ -56,6 +58,7 @@ export default function App() {
     { label: "中文", value: "zh" },
   ];
 
+<<<<<<< HEAD
   const handleLanguageChange = useCallback((value: string) => {
     // Submit to server to set cookie
     const formData = new FormData();
@@ -67,6 +70,24 @@ export default function App() {
       window.location.reload();
     }, 100);
   }, [submit]);
+=======
+  const handleLanguageChange = useCallback(async (value: string) => {
+    try {
+      // Change language in i18next client using the global instance
+      await i18next.changeLanguage(value);
+
+      // Submit to server to set cookie
+      const formData = new FormData();
+      formData.append("locale", value);
+      submit(formData, { method: "post", replace: true });
+
+      // Navigate to current page to trigger re-render with new language
+      navigate(".", { replace: true });
+    } catch (error) {
+      console.error("Language change failed:", error);
+    }
+  }, [submit, navigate]);
+>>>>>>> origin/claude/shopify-app-readiness-report-01MBwkY2tuZb4wBQBjkaopGX
 
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey}>
