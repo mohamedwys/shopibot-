@@ -12,7 +12,7 @@ import { createInstance } from "i18next";
 import i18nServer from "./i18n.server";
 import { I18nextProvider, initReactI18next } from "react-i18next";
 import Backend from "i18next-fs-backend";
-import { resolve } from "node:path";
+import { resolve, join } from "node:path";
 
 // Initialize Sentry for server-side error tracking
 initSentry();
@@ -38,6 +38,11 @@ export default async function handleRequest(
   const instance = createInstance();
   const ns = i18nServer.getRouteNamespaces(remixContext);
 
+  // Get the correct path for locales in both dev and production
+  const localesPath = process.env.NODE_ENV === "production"
+    ? join(process.cwd(), "public/locales/{{lng}}/{{ns}}.json")
+    : resolve("./public/locales/{{lng}}/{{ns}}.json");
+
   await instance
     .use(initReactI18next)
     .use(Backend)
@@ -46,7 +51,7 @@ export default async function handleRequest(
       lng: locale,
       ns,
       backend: {
-        loadPath: resolve("./public/locales/{{lng}}/{{ns}}.json"),
+        loadPath: localesPath,
       },
       // Fallback configuration - use English for missing namespaces
       fallbackLng: {
