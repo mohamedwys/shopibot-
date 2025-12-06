@@ -1,0 +1,58 @@
+{
+  "analytics": {
+    "title": "Dashboard Analitico",
+    "subtitle": "Monitora le prestazioni del chatbot e le interazioni con i clienti",
+    "exportCsv": "Esporta CSV",
+    "timePeriod": {
+      "title": "Periodo di Tempo",
+      "today": "Oggi",
+      "week": "Ultimi 7 giorni",
+      "month": "Ultimi 30 giorni",
+      "quarter": "Ultimi 90 giorni"
+    },
+    "overview": {
+      "totalMessages": "Messaggi Totali",
+      "activeUsers": "Utenti Attivi",
+      "uniqueUsers": "utenti unici",
+      "aiConfidence": "Affidabilità IA",
+      "averageAccuracy": "precisione media",
+      "vsPrevious": "vs. periodo precedente"
+    },
+    "engagement": {
+      "title": "Metriche di Coinvolgimento",
+      "messagesPerSession": "Messaggi per Sessione",
+      "avgSessionDuration": "Durata Media Sessione",
+      "avgResponseTime": "Tempo di Risposta Medio",
+      "totalSessions": "Sessioni Totali"
+    },
+    "intent": {
+      "title": "Distribuzione Intenzioni Cliente",
+      "noData": "Nessun dato sulle intenzioni disponibile per questo periodo"
+    },
+    "sentiment": {
+      "title": "Analisi del Sentiment",
+      "positive": "Positivo",
+      "neutral": "Neutrale",
+      "negative": "Negativo",
+      "messages": "messaggi",
+      "noData": "Nessun dato sul sentiment disponibile per questo periodo"
+    },
+    "products": {
+      "title": "Prodotti Più Cliccati",
+      "clicks": "clic",
+      "noData": "Nessun dato sui clic dei prodotti disponibile per questo periodo"
+    },
+    "trends": {
+      "title": "Tendenze Giornaliere dei Messaggi",
+      "noData": "Nessun dato sulle tendenze disponibile per questo periodo"
+    },
+    "insights": {
+      "title": "💡 Approfondimenti e Raccomandazioni",
+      "lowConfidence": "• L'affidabilità dell'IA è inferiore al 70%. Considera di rivedere le descrizioni dei prodotti e generare embeddings.",
+      "highNegative": "• Più del 20% di sentiment negativo rilevato. Rivedi le interazioni con i clienti e migliora le risposte.",
+      "lowEngagement": "• Coinvolgimento basso (<2 messaggi per sessione). Considera di migliorare il messaggio di benvenuto e i suggerimenti.",
+      "highOther": "• Molte richieste classificate come \"ALTRO\". Rivedi le intenzioni non gestite e aggiungi più dati di addestramento.",
+      "noData": "• Nessun dato ancora! Installa il widget sul tuo negozio e inizia a ottenere approfondimenti."
+    }
+  }
+}

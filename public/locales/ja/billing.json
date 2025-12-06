@@ -1,0 +1,105 @@
+{
+  "billing": {
+    "title": "料金プラン",
+    "hero": {
+      "title": "ストアに最適なプランを選択",
+      "subtitle": "AI駆動の会話の力を解き放ちましょう。7日間の無料トライアルから始めましょう。"
+    },
+    "status": {
+      "testMode": "テストモード有効",
+      "testModeDesc": "開発中は課金されません。本番環境で請求が有効になります。",
+      "activeSubscription": "アクティブなサブスクリプション:",
+      "trialDays": "🎉 無料トライアル残り{{days}}日"
+    },
+    "plans": {
+      "starter": {
+        "title": "スターター",
+        "badge": "最も人気",
+        "description": "始めたばかりの小規模ストアに最適",
+        "price": "$25",
+        "period": "/月",
+        "trialBadge": "7日間無料トライアル付き",
+        "included": "含まれるもの:",
+        "features": {
+          "conversations": "月間最大1,000会話",
+          "recommendations": "AI搭載の製品推奨",
+          "analytics": "基本分析ダッシュボード",
+          "support": "メールサポート",
+          "customization": "ウィジェットのカスタマイズ"
+        },
+        "currentPlan": "✓ 現在のプラン",
+        "startTrial": "無料トライアルを開始"
+      },
+      "professional": {
+        "title": "プロフェッショナル",
+        "badge": "最高の価値",
+        "description": "より多くの機能が必要な成長企業向け",
+        "price": "$79",
+        "period": "/月",
+        "trialBadge": "7日間無料トライアル付き",
+        "included": "スターターのすべて、さらに:",
+        "features": {
+          "unlimited": "無制限の会話",
+          "advancedAnalytics": "高度な分析とインサイト",
+          "n8nIntegration": "カスタムN8Nウェブフック統合",
+          "prioritySupport": "優先サポート（24/7）",
+          "sentimentAnalysis": "感情分析とインテント追跡",
+          "userProfiling": "ユーザープロファイリングとパーソナライゼーション",
+          "productTracking": "製品クリック追跡"
+        },
+        "currentPlan": "✓ 現在のプラン",
+        "startTrial": "無料トライアルを開始"
+      }
+    },
+    "comparison": {
+      "title": "プランを比較",
+      "features": {
+        "conversations": "月間会話数",
+        "conversationsStarter": "1,000",
+        "conversationsPro": "無制限",
+        "recommendations": "AI推奨",
+        "analytics": "分析ダッシュボード",
+        "analyticsStarter": "基本",
+        "analyticsPro": "高度",
+        "n8n": "N8Nウェブフック統合",
+        "support": "サポート",
+        "supportStarter": "メール",
+        "supportPro": "優先24/7"
+      }
+    },
+    "faq": {
+      "title": "よくある質問",
+      "changePlans": {
+        "question": "後でプランを変更できますか？",
+        "answer": "もちろんです！いつでもダッシュボードからプランをアップグレードまたはダウングレードできます。変更はすぐに有効になり、差額は按分します。"
+      },
+      "afterTrial": {
+        "question": "7日間のトライアル後はどうなりますか？",
+        "answer": "トライアルが終了すると、選択したプランに基づいて月額料金が請求されます。トライアル期間中またはその後、いつでもペナルティなしでキャンセルできます。"
+      },
+      "refunds": {
+        "question": "返金はありますか？",
+        "answer": "はい！30日間の返金保証を提供しています。サービスに完全に満足できない場合は、サポートチームに連絡して全額返金を受けてください。"
+      },
+      "conversationDefinition": {
+        "question": "会話とは何ですか？",
+        "answer": "会話とは、交換されたメッセージの数に関係なく、顧客との完全なインタラクションセッションです。セッションは30分間の非アクティブ後にタイムアウトします。"
+      }
+    },
+    "trust": {
+      "title": "世界中の1,000以上のShopifyストアから信頼されています",
+      "satisfaction": {
+        "value": "98%",
+        "label": "顧客満足度"
+      },
+      "support": {
+        "value": "24/7",
+        "label": "優先サポート"
+      },
+      "guarantee": {
+        "value": "30日間",
+        "label": "返金保証"
+      }
+    }
+  }
+}

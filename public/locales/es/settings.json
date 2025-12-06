@@ -1,0 +1,66 @@
+{
+  "settings": {
+    "title": "Configuración del Asistente de Ventas AI",
+    "subtitle": "Configure su widget de asistente de ventas con AI",
+    "saveSettings": "Guardar Configuración",
+    "saveSuccess": "¡Configuración guardada exitosamente!",
+    "widgetConfiguration": {
+      "title": "Configuración del Widget",
+      "enableWidget": "Habilitar Widget del Asistente de Ventas AI",
+      "enableWidgetHelp": "Activar/desactivar el widget del asistente AI en toda la tienda",
+      "widgetPosition": "Posición del Widget",
+      "widgetPositionHelp": "Elija dónde aparece el widget en las páginas de su tienda",
+      "positions": {
+        "bottomRight": "Inferior Derecha",
+        "bottomLeft": "Inferior Izquierda",
+        "topRight": "Superior Derecha",
+        "topLeft": "Superior Izquierda",
+        "centerRight": "Centro Derecha",
+        "centerLeft": "Centro Izquierda"
+      },
+      "buttonText": "Texto del Botón",
+      "buttonTextHelp": "Texto mostrado en el botón de chat",
+      "chatTitle": "Título del Chat",
+      "chatTitleHelp": "Título mostrado en el encabezado de la ventana de chat",
+      "welcomeMessage": "Mensaje de Bienvenida",
+      "welcomeMessageHelp": "Primer mensaje que los clientes ven al abrir el chat",
+      "inputPlaceholder": "Marcador de Posición de Entrada",
+      "inputPlaceholderHelp": "Texto de marcador de posición en el campo de entrada de mensajes",
+      "primaryColor": "Color Primario",
+      "currentColor": "Color actual: {{color}}"
+    },
+    "aiWorkflow": {
+      "title": "Configuración del Flujo de Trabajo AI",
+      "subtitle": "Elija qué flujo de trabajo de AI usar para procesar mensajes de clientes. Puede usar el flujo de trabajo predeterminado del desarrollador o configurar su propio flujo de trabajo N8N.",
+      "workflowType": "Tipo de Flujo de Trabajo",
+      "workflowTypeHelp": "Seleccione si desea usar el flujo de trabajo AI integrado o su propia configuración personalizada",
+      "types": {
+        "default": "Usar Flujo de Trabajo Predeterminado del Desarrollador",
+        "custom": "Usar Mi Flujo de Trabajo N8N Personalizado"
+      },
+      "webhookUrl": "URL del Webhook N8N Personalizado",
+      "webhookUrlPlaceholder": "https://tu-instancia-n8n.com/webhook/tu-flujo-de-trabajo",
+      "webhookUrlValid": "✅ URL de webhook válida configurada. Los mensajes se enviarán a su flujo de trabajo N8N.",
+      "webhookUrlEnter": "Ingrese su URL completa de webhook N8N (debe comenzar con https://)",
+      "webhookUrlEmpty": "Ingrese su URL de webhook N8N para usar un flujo de trabajo personalizado. Déjelo vacío para el flujo de trabajo predeterminado.",
+      "defaultWorkflow": "Flujo de Trabajo Predeterminado:",
+      "defaultWorkflowDesc": "Usa el asistente AI preconfigurado del desarrollador con recomendaciones de productos y contexto de la tienda.",
+      "customWorkflow": "Flujo de Trabajo Personalizado:",
+      "customWorkflowDesc": "Reenvíe mensajes a su propio flujo de trabajo N8N para procesamiento y respuestas AI personalizadas."
+    },
+    "preview": {
+      "title": "Vista Previa del Widget",
+      "subtitle": "Vista Previa del Widget",
+      "position": "Posición: {{position}}"
+    },
+    "integration": {
+      "title": "Instrucciones de Integración",
+      "step1": "1. Vaya a <strong>Tienda Online → Temas</strong>",
+      "step2": "2. Haga clic en <strong>Personalizar</strong> en su tema activo",
+      "step3": "3. Desplácese hacia abajo hasta <strong>Integraciones de aplicaciones</strong> en el editor de temas",
+      "step4": "4. Busque <strong>Asistente de Ventas AI</strong> y actívelo",
+      "step5": "5. Guarde los cambios del tema",
+      "footer": "El widget aparecerá en todas las páginas de su tienda una vez habilitado en el editor de temas. La configuración aquí se aplicará automáticamente al widget."
+    }
+  }
+}

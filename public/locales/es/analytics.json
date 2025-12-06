@@ -1,0 +1,58 @@
+{
+  "analytics": {
+    "title": "Panel de Analíticas",
+    "subtitle": "Rastree el rendimiento del chatbot y las interacciones con los clientes",
+    "exportCsv": "Exportar CSV",
+    "timePeriod": {
+      "title": "Período de Tiempo",
+      "today": "Hoy",
+      "week": "Últimos 7 días",
+      "month": "Últimos 30 días",
+      "quarter": "Últimos 90 días"
+    },
+    "overview": {
+      "totalMessages": "Mensajes Totales",
+      "activeUsers": "Usuarios Activos",
+      "uniqueUsers": "usuarios únicos",
+      "aiConfidence": "Confianza AI",
+      "averageAccuracy": "precisión promedio",
+      "vsPrevious": "vs. período anterior"
+    },
+    "engagement": {
+      "title": "Métricas de Participación",
+      "messagesPerSession": "Mensajes por Sesión",
+      "avgSessionDuration": "Duración Promedio de Sesión",
+      "avgResponseTime": "Tiempo de Respuesta Promedio",
+      "totalSessions": "Sesiones Totales"
+    },
+    "intent": {
+      "title": "Distribución de Intención del Cliente",
+      "noData": "No hay datos de intención disponibles para este período"
+    },
+    "sentiment": {
+      "title": "Análisis de Sentimiento",
+      "positive": "Positivo",
+      "neutral": "Neutral",
+      "negative": "Negativo",
+      "messages": "mensajes",
+      "noData": "No hay datos de sentimiento disponibles para este período"
+    },
+    "products": {
+      "title": "Productos Más Clicados",
+      "clicks": "clics",
+      "noData": "No hay datos de clics en productos disponibles para este período"
+    },
+    "trends": {
+      "title": "Tendencias Diarias de Mensajes",
+      "noData": "No hay datos de tendencias disponibles para este período"
+    },
+    "insights": {
+      "title": "💡 Insights y Recomendaciones",
+      "lowConfidence": "• La confianza de AI está por debajo del 70%. Considere revisar las descripciones de productos y generar embeddings.",
+      "highNegative": "• Se detectó más del 20% de sentimiento negativo. Revise las interacciones con los clientes y mejore las respuestas.",
+      "lowEngagement": "• Baja participación (<2 mensajes por sesión). Considere mejorar el mensaje de bienvenida y las sugerencias.",
+      "highOther": "• Muchas consultas clasificadas como \"OTRAS\". Revise las intenciones no manejadas y agregue más datos de entrenamiento.",
+      "noData": "• ¡Aún no hay datos! Instale el widget en su tienda y comience a obtener insights."
+    }
+  }
+}

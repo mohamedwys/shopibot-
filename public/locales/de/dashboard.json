@@ -1,0 +1,84 @@
+{
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Willkommen bei Ihrem KI-Verkaufsassistenten",
+    "billing": {
+      "unlockPotential": "🚀 Volles Potenzial Freischalten",
+      "viewPlans": "Pläne Anzeigen",
+      "freeTierMessage": "Sie befinden sich derzeit im kostenlosen Tarif. Upgraden Sie, um unbegrenzte Gespräche, erweiterte Analysen, N8N-Integration und 24/7-Prioritätssupport freizuschalten.",
+      "planActive": "✓ {{planName}} Aktiv",
+      "manageBilling": "Abrechnung Verwalten",
+      "subscriptionActive": "Ihr Abonnement ist aktiv und alle Premium-Funktionen sind freigeschaltet.",
+      "testMode": " (Testmodus - Sie werden nicht belastet)"
+    },
+    "performance": {
+      "title": "Leistungsübersicht",
+      "totalConversations": "Gesamtgespräche",
+      "allTime": "Gesamtzeit",
+      "growthFromLastMonth": "↑ 12% seit letztem Monat",
+      "activeToday": "Heute Aktiv",
+      "live": "Live",
+      "conversationsStarted": "Gespräche gestartet",
+      "responseTime": "Antwortzeit",
+      "avg": "Durchschn.",
+      "aiProcessingSpeed": "KI-Verarbeitungsgeschwindigkeit",
+      "satisfactionScore": "Zufriedenheitswert",
+      "excellent": "⭐ Ausgezeichnet",
+      "outOf5": "/ 5.0",
+      "basedOnFeedback": "Basierend auf Kundenfeedback"
+    },
+    "systemStatus": {
+      "title": "Systemstatus",
+      "subtitle": "Überwachen Sie Ihre KI-Assistentenkomponenten",
+      "aiAssistant": "KI-Assistent",
+      "coreEngine": "Kern-Chatbot-Engine",
+      "active": "● Aktiv",
+      "themeIntegration": "Theme-Integration",
+      "widgetEmbedded": "Widget in Storefront eingebettet",
+      "enabled": "● Aktiviert",
+      "n8nWebhook": "N8N-Webhook",
+      "advancedWorkflow": "Erweiterte Workflow-Automatisierung",
+      "fallback": "○ Fallback",
+      "analyticsTracking": "Analyse-Tracking",
+      "dataCollection": "Datenerfassung & Erkenntnisse",
+      "running": "● Läuft",
+      "configureSettings": "Einstellungen Konfigurieren"
+    },
+    "topQuestions": {
+      "title": "Top-Kundenfragen",
+      "subtitle": "Meistgestellte Fragen diese Woche",
+      "last7Days": "Letzte 7 Tage",
+      "new": "Neu",
+      "viewFullAnalytics": "Vollständige Analysen Anzeigen"
+    },
+    "setupProgress": {
+      "title": "Einrichtungsfortschritt",
+      "completed": "{{count}} von {{total}} abgeschlossen",
+      "subtitle": "Schließen Sie diese Schritte ab, um das Beste aus Ihrem KI-Assistenten herauszuholen",
+      "appInstalled": "App Installiert & Konfiguriert",
+      "appInstalledDesc": "Ihr KI-Verkaufsassistent ist mit Standardeinstellungen einsatzbereit",
+      "widgetAdded": "Widget zum Theme Hinzugefügt",
+      "widgetAddedDesc": "Das Chat-Widget ist live und in Ihrem Storefront sichtbar",
+      "analyticsEnabled": "Analysen Aktiviert",
+      "analyticsEnabledDesc": "Verfolgung von Kundeninteraktionen und Generierung von Erkenntnissen",
+      "connectN8N": "N8N-Workflow Verbinden",
+      "connectN8NDesc": "Erweiterte KI-Verarbeitung, benutzerdefinierte Workflows und Drittanbieter-Integrationen aktivieren",
+      "optional": "Optional",
+      "connectNow": "Jetzt Verbinden",
+      "customizeWidget": "Widget Anpassen",
+      "testChat": "Chat-Schnittstelle Testen"
+    },
+    "quickActions": {
+      "title": "Schnellaktionen",
+      "viewAnalytics": "📊 Analysen Anzeigen",
+      "viewAnalyticsDesc": "Tauchen Sie ein in Gesprächseinblicke, Kundenverhalten und KI-Leistungsmetriken",
+      "openAnalytics": "Analysen Öffnen",
+      "widgetSettings": "⚙️ Widget-Einstellungen",
+      "widgetSettingsDesc": "Passen Sie Aussehen, Verhalten an und konfigurieren Sie die N8N-Webhook-Integration",
+      "configure": "Konfigurieren",
+      "upgradePlan": "💎 Plan Upgraden",
+      "upgradePlanDesc": "Schalten Sie unbegrenzte Gespräche, erweiterte Funktionen und Prioritätssupport frei",
+      "viewPlans": "Pläne Anzeigen"
+    }
+  }
+}

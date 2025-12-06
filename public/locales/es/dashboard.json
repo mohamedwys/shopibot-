@@ -1,0 +1,84 @@
+{
+  "dashboard": {
+    "title": "Panel de Control",
+    "subtitle": "Bienvenido a su Asistente de Ventas AI",
+    "billing": {
+      "unlockPotential": "🚀 Desbloquear Todo el Potencial",
+      "viewPlans": "Ver Planes",
+      "freeTierMessage": "Actualmente está en el nivel gratuito. Actualice para desbloquear conversaciones ilimitadas, análisis avanzados, integración N8N y soporte prioritario 24/7.",
+      "planActive": "✓ {{planName}} Activo",
+      "manageBilling": "Gestionar Facturación",
+      "subscriptionActive": "Su suscripción está activa y todas las funciones premium están desbloqueadas.",
+      "testMode": " (Modo de prueba - no se le cobrará)"
+    },
+    "performance": {
+      "title": "Resumen de Rendimiento",
+      "totalConversations": "Conversaciones Totales",
+      "allTime": "Todo el tiempo",
+      "growthFromLastMonth": "↑ 12% desde el mes pasado",
+      "activeToday": "Activos Hoy",
+      "live": "En vivo",
+      "conversationsStarted": "Conversaciones iniciadas",
+      "responseTime": "Tiempo de Respuesta",
+      "avg": "Promedio",
+      "aiProcessingSpeed": "Velocidad de procesamiento AI",
+      "satisfactionScore": "Puntuación de Satisfacción",
+      "excellent": "⭐ Excelente",
+      "outOf5": "/ 5.0",
+      "basedOnFeedback": "Basado en comentarios de clientes"
+    },
+    "systemStatus": {
+      "title": "Estado del Sistema",
+      "subtitle": "Monitoree los componentes de su asistente AI",
+      "aiAssistant": "Asistente AI",
+      "coreEngine": "Motor central del chatbot",
+      "active": "● Activo",
+      "themeIntegration": "Integración de Tema",
+      "widgetEmbedded": "Widget integrado en tienda",
+      "enabled": "● Habilitado",
+      "n8nWebhook": "Webhook N8N",
+      "advancedWorkflow": "Automatización de flujo de trabajo avanzada",
+      "fallback": "○ Alternativo",
+      "analyticsTracking": "Seguimiento de Analíticas",
+      "dataCollection": "Recopilación de datos e insights",
+      "running": "● En ejecución",
+      "configureSettings": "Configurar Ajustes"
+    },
+    "topQuestions": {
+      "title": "Preguntas Principales de Clientes",
+      "subtitle": "Preguntas más frecuentes esta semana",
+      "last7Days": "Últimos 7 días",
+      "new": "Nuevo",
+      "viewFullAnalytics": "Ver Analíticas Completas"
+    },
+    "setupProgress": {
+      "title": "Progreso de Configuración",
+      "completed": "{{count}} de {{total}} completado",
+      "subtitle": "Complete estos pasos para aprovechar al máximo su asistente AI",
+      "appInstalled": "Aplicación Instalada y Configurada",
+      "appInstalledDesc": "Su Asistente de Ventas AI está listo para usar con la configuración predeterminada",
+      "widgetAdded": "Widget Agregado al Tema",
+      "widgetAddedDesc": "El widget de chat está activo y visible en su tienda",
+      "analyticsEnabled": "Analíticas Habilitadas",
+      "analyticsEnabledDesc": "Seguimiento de interacciones de clientes y generación de insights",
+      "connectN8N": "Conectar Flujo de Trabajo N8N",
+      "connectN8NDesc": "Habilitar procesamiento AI avanzado, flujos de trabajo personalizados e integraciones de terceros",
+      "optional": "Opcional",
+      "connectNow": "Conectar Ahora",
+      "customizeWidget": "Personalizar Widget",
+      "testChat": "Probar Interfaz de Chat"
+    },
+    "quickActions": {
+      "title": "Acciones Rápidas",
+      "viewAnalytics": "📊 Ver Analíticas",
+      "viewAnalyticsDesc": "Profundice en insights de conversaciones, comportamiento del cliente y métricas de rendimiento AI",
+      "openAnalytics": "Abrir Analíticas",
+      "widgetSettings": "⚙️ Configuración del Widget",
+      "widgetSettingsDesc": "Personalice apariencia, comportamiento y configure integración de webhook N8N",
+      "configure": "Configurar",
+      "upgradePlan": "💎 Actualizar Plan",
+      "upgradePlanDesc": "Desbloquee conversaciones ilimitadas, funciones avanzadas y soporte prioritario",
+      "viewPlans": "Ver Planes"
+    }
+  }
+}

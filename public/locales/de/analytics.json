@@ -1,0 +1,58 @@
+{
+  "analytics": {
+    "title": "Analyse-Dashboard",
+    "subtitle": "Verfolgen Sie Chatbot-Leistung und Kundeninteraktionen",
+    "exportCsv": "CSV Exportieren",
+    "timePeriod": {
+      "title": "Zeitraum",
+      "today": "Heute",
+      "week": "Letzte 7 Tage",
+      "month": "Letzte 30 Tage",
+      "quarter": "Letzte 90 Tage"
+    },
+    "overview": {
+      "totalMessages": "Gesamtnachrichten",
+      "activeUsers": "Aktive Benutzer",
+      "uniqueUsers": "eindeutige Benutzer",
+      "aiConfidence": "KI-Vertrauen",
+      "averageAccuracy": "durchschnittliche Genauigkeit",
+      "vsPrevious": "vs. vorheriger Zeitraum"
+    },
+    "engagement": {
+      "title": "Engagement-Metriken",
+      "messagesPerSession": "Nachrichten pro Sitzung",
+      "avgSessionDuration": "Durchschn. Sitzungsdauer",
+      "avgResponseTime": "Durchschn. Antwortzeit",
+      "totalSessions": "Gesamtsitzungen"
+    },
+    "intent": {
+      "title": "Kundenabsichtsverteilung",
+      "noData": "Keine Absichtsdaten für diesen Zeitraum verfügbar"
+    },
+    "sentiment": {
+      "title": "Stimmungsanalyse",
+      "positive": "Positiv",
+      "neutral": "Neutral",
+      "negative": "Negativ",
+      "messages": "nachrichten",
+      "noData": "Keine Stimmungsdaten für diesen Zeitraum verfügbar"
+    },
+    "products": {
+      "title": "Meistgeklickte Produkte",
+      "clicks": "Klicks",
+      "noData": "Keine Produktklick-Daten für diesen Zeitraum verfügbar"
+    },
+    "trends": {
+      "title": "Tägliche Nachrichtentrends",
+      "noData": "Keine Trend-Daten für diesen Zeitraum verfügbar"
+    },
+    "insights": {
+      "title": "💡 Erkenntnisse & Empfehlungen",
+      "lowConfidence": "• KI-Vertrauen liegt unter 70%. Erwägen Sie, Produktbeschreibungen zu überprüfen und Embeddings zu generieren.",
+      "highNegative": "• Mehr als 20% negative Stimmung erkannt. Überprüfen Sie Kundeninteraktionen und verbessern Sie Antworten.",
+      "lowEngagement": "• Geringes Engagement (<2 Nachrichten pro Sitzung). Erwägen Sie, Willkommensnachricht und Vorschläge zu verbessern.",
+      "highOther": "• Viele Anfragen als \"ANDERE\" klassifiziert. Überprüfen Sie unbehandelte Absichten und fügen Sie mehr Trainingsdaten hinzu.",
+      "noData": "• Noch keine Daten! Installieren Sie das Widget in Ihrem Shop und beginnen Sie mit Erkenntnissen."
+    }
+  }
+}

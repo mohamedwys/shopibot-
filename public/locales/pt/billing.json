@@ -1,0 +1,105 @@
+{
+  "billing": {
+    "title": "Planos de Preços",
+    "hero": {
+      "title": "Escolha o Plano Perfeito para Sua Loja",
+      "subtitle": "Desbloqueie o poder das conversas impulsionadas por IA. Comece com uma avaliação gratuita de 7 dias."
+    },
+    "status": {
+      "testMode": "Modo de Teste Ativo",
+      "testModeDesc": "Você não será cobrado durante o desenvolvimento. A cobrança será ativada na produção.",
+      "activeSubscription": "Assinatura Ativa:",
+      "trialDays": "🎉 {{days}} dias restantes em sua avaliação gratuita"
+    },
+    "plans": {
+      "starter": {
+        "title": "Inicial",
+        "badge": "Mais Popular",
+        "description": "Perfeito para pequenas lojas que estão começando",
+        "price": "$25",
+        "period": "/mês",
+        "trialBadge": "Avaliação gratuita de 7 dias incluída",
+        "included": "O que está incluído:",
+        "features": {
+          "conversations": "Até 1.000 conversas/mês",
+          "recommendations": "Recomendações de produtos baseadas em IA",
+          "analytics": "Painel analítico básico",
+          "support": "Suporte por email",
+          "customization": "Personalização do widget"
+        },
+        "currentPlan": "✓ Plano Atual",
+        "startTrial": "Iniciar Avaliação Gratuita"
+      },
+      "professional": {
+        "title": "Profissional",
+        "badge": "Melhor Valor",
+        "description": "Para empresas em crescimento que precisam de mais poder",
+        "price": "$79",
+        "period": "/mês",
+        "trialBadge": "Avaliação gratuita de 7 dias incluída",
+        "included": "Tudo no Inicial, mais:",
+        "features": {
+          "unlimited": "Conversas ilimitadas",
+          "advancedAnalytics": "Análises e insights avançados",
+          "n8nIntegration": "Integração webhook N8N personalizada",
+          "prioritySupport": "Suporte prioritário (24/7)",
+          "sentimentAnalysis": "Análise de sentimento e rastreamento de intenção",
+          "userProfiling": "Perfil de usuário e personalização",
+          "productTracking": "Rastreamento de cliques em produtos"
+        },
+        "currentPlan": "✓ Plano Atual",
+        "startTrial": "Iniciar Avaliação Gratuita"
+      }
+    },
+    "comparison": {
+      "title": "Comparar Planos",
+      "features": {
+        "conversations": "Conversas mensais",
+        "conversationsStarter": "1.000",
+        "conversationsPro": "Ilimitado",
+        "recommendations": "Recomendações IA",
+        "analytics": "Painel analítico",
+        "analyticsStarter": "Básico",
+        "analyticsPro": "Avançado",
+        "n8n": "Integração webhook N8N",
+        "support": "Suporte",
+        "supportStarter": "Email",
+        "supportPro": "Prioritário 24/7"
+      }
+    },
+    "faq": {
+      "title": "Perguntas Frequentes",
+      "changePlans": {
+        "question": "Posso mudar de plano mais tarde?",
+        "answer": "Absolutamente! Você pode fazer upgrade ou downgrade do seu plano a qualquer momento do seu painel. As alterações têm efeito imediato e faremos o rateio de quaisquer diferenças."
+      },
+      "afterTrial": {
+        "question": "O que acontece após a avaliação de 7 dias?",
+        "answer": "Após o término da sua avaliação, você será cobrado mensalmente com base no plano selecionado. Você pode cancelar a qualquer momento durante ou após o período de avaliação sem penalidades."
+      },
+      "refunds": {
+        "question": "Vocês oferecem reembolsos?",
+        "answer": "Sim! Oferecemos uma garantia de devolução do dinheiro de 30 dias. Se você não estiver completamente satisfeito com nosso serviço, entre em contato com nossa equipe de suporte para um reembolso completo, sem perguntas."
+      },
+      "conversationDefinition": {
+        "question": "O que conta como uma conversa?",
+        "answer": "Uma conversa é uma sessão de interação completa com um cliente, independentemente do número de mensagens trocadas. As sessões expiram após 30 minutos de inatividade."
+      }
+    },
+    "trust": {
+      "title": "Confiado por mais de 1.000+ lojas Shopify em todo o mundo",
+      "satisfaction": {
+        "value": "98%",
+        "label": "Satisfação do Cliente"
+      },
+      "support": {
+        "value": "24/7",
+        "label": "Suporte Prioritário"
+      },
+      "guarantee": {
+        "value": "30-Dias",
+        "label": "Garantia de Reembolso"
+      }
+    }
+  }
+}

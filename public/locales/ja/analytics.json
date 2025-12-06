@@ -1,0 +1,58 @@
+{
+  "analytics": {
+    "title": "分析ダッシュボード",
+    "subtitle": "チャットボットのパフォーマンスと顧客インタラクションを追跡",
+    "exportCsv": "CSVエクスポート",
+    "timePeriod": {
+      "title": "期間",
+      "today": "今日",
+      "week": "過去7日間",
+      "month": "過去30日間",
+      "quarter": "過去90日間"
+    },
+    "overview": {
+      "totalMessages": "総メッセージ数",
+      "activeUsers": "アクティブユーザー",
+      "uniqueUsers": "ユニークユーザー",
+      "aiConfidence": "AI信頼度",
+      "averageAccuracy": "平均精度",
+      "vsPrevious": "vs. 前期間"
+    },
+    "engagement": {
+      "title": "エンゲージメント指標",
+      "messagesPerSession": "セッションあたりのメッセージ",
+      "avgSessionDuration": "平均セッション時間",
+      "avgResponseTime": "平均応答時間",
+      "totalSessions": "総セッション数"
+    },
+    "intent": {
+      "title": "顧客インテント分布",
+      "noData": "この期間のインテントデータがありません"
+    },
+    "sentiment": {
+      "title": "感情分析",
+      "positive": "ポジティブ",
+      "neutral": "ニュートラル",
+      "negative": "ネガティブ",
+      "messages": "メッセージ",
+      "noData": "この期間の感情データがありません"
+    },
+    "products": {
+      "title": "最もクリックされた製品",
+      "clicks": "クリック",
+      "noData": "この期間の製品クリックデータがありません"
+    },
+    "trends": {
+      "title": "日次メッセージトレンド",
+      "noData": "この期間のトレンドデータがありません"
+    },
+    "insights": {
+      "title": "💡 インサイトと推奨事項",
+      "lowConfidence": "• AIの信頼度が70%未満です。製品説明を見直し、埋め込みを生成することを検討してください。",
+      "highNegative": "• 20%以上のネガティブな感情が検出されました。顧客とのやり取りを確認し、応答を改善してください。",
+      "lowEngagement": "• エンゲージメントが低い（セッションあたり2メッセージ未満）。ウェルカムメッセージと提案を改善することを検討してください。",
+      "highOther": "• 多くのクエリが「その他」に分類されています。処理されていないインテントを確認し、より多くのトレーニングデータを追加してください。",
+      "noData": "• まだデータがありません！ストアフロントにウィジェットをインストールして、インサイトを取得し始めてください。"
+    }
+  }
+}

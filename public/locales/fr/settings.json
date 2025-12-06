@@ -1,0 +1,66 @@
+{
+  "settings": {
+    "title": "Paramètres de l'Assistant Commercial IA",
+    "subtitle": "Configurez votre widget d'assistant commercial alimenté par l'IA",
+    "saveSettings": "Enregistrer les Paramètres",
+    "saveSuccess": "Paramètres enregistrés avec succès!",
+    "widgetConfiguration": {
+      "title": "Configuration du Widget",
+      "enableWidget": "Activer le Widget de l'Assistant Commercial IA",
+      "enableWidgetHelp": "Activer/désactiver le widget de l'assistant IA dans toute votre boutique",
+      "widgetPosition": "Position du Widget",
+      "widgetPositionHelp": "Choisissez où le widget apparaît sur les pages de votre boutique",
+      "positions": {
+        "bottomRight": "En Bas à Droite",
+        "bottomLeft": "En Bas à Gauche",
+        "topRight": "En Haut à Droite",
+        "topLeft": "En Haut à Gauche",
+        "centerRight": "Centre Droite",
+        "centerLeft": "Centre Gauche"
+      },
+      "buttonText": "Texte du Bouton",
+      "buttonTextHelp": "Texte affiché sur le bouton de chat",
+      "chatTitle": "Titre du Chat",
+      "chatTitleHelp": "Titre affiché dans l'en-tête de la fenêtre de chat",
+      "welcomeMessage": "Message de Bienvenue",
+      "welcomeMessageHelp": "Premier message que les clients voient lorsqu'ils ouvrent le chat",
+      "inputPlaceholder": "Espace Réservé d'Entrée",
+      "inputPlaceholderHelp": "Texte de l'espace réservé dans le champ de saisie de message",
+      "primaryColor": "Couleur Principale",
+      "currentColor": "Couleur actuelle: {{color}}"
+    },
+    "aiWorkflow": {
+      "title": "Configuration du Flux de Travail IA",
+      "subtitle": "Choisissez quel flux de travail IA utiliser pour traiter les messages des clients. Vous pouvez utiliser le flux de travail par défaut du développeur ou configurer votre propre flux de travail N8N.",
+      "workflowType": "Type de Flux de Travail",
+      "workflowTypeHelp": "Sélectionnez si vous souhaitez utiliser le flux de travail IA intégré ou votre propre configuration personnalisée",
+      "types": {
+        "default": "Utiliser le Flux de Travail par Défaut du Développeur",
+        "custom": "Utiliser Mon Flux de Travail N8N Personnalisé"
+      },
+      "webhookUrl": "URL du Webhook N8N Personnalisé",
+      "webhookUrlPlaceholder": "https://votre-instance-n8n.com/webhook/votre-flux-de-travail",
+      "webhookUrlValid": "✅ URL de webhook valide configurée. Les messages seront envoyés à votre flux de travail N8N.",
+      "webhookUrlEnter": "Entrez votre URL complète de webhook N8N (doit commencer par https://)",
+      "webhookUrlEmpty": "Entrez votre URL de webhook N8N pour utiliser un flux de travail personnalisé. Laissez vide pour le flux de travail par défaut.",
+      "defaultWorkflow": "Flux de Travail par Défaut:",
+      "defaultWorkflowDesc": "Utilise l'assistant IA préconfiguré du développeur avec des recommandations de produits et le contexte de la boutique.",
+      "customWorkflow": "Flux de Travail Personnalisé:",
+      "customWorkflowDesc": "Transférez les messages vers votre propre flux de travail N8N pour un traitement IA et des réponses personnalisés."
+    },
+    "preview": {
+      "title": "Aperçu du Widget",
+      "subtitle": "Aperçu du Widget",
+      "position": "Position: {{position}}"
+    },
+    "integration": {
+      "title": "Instructions d'Intégration",
+      "step1": "1. Accédez à <strong>Boutique en Ligne → Thèmes</strong>",
+      "step2": "2. Cliquez sur <strong>Personnaliser</strong> sur votre thème actif",
+      "step3": "3. Faites défiler jusqu'aux <strong>Intégrations d'applications</strong> dans l'éditeur de thème",
+      "step4": "4. Trouvez <strong>Assistant Commercial IA</strong> et activez-le",
+      "step5": "5. Enregistrez les modifications du thème",
+      "footer": "Le widget apparaîtra sur toutes les pages de votre boutique une fois activé dans l'éditeur de thème. Les paramètres configurés ici s'appliqueront automatiquement au widget."
+    }
+  }
+}

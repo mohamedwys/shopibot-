@@ -1,0 +1,84 @@
+{
+  "dashboard": {
+    "title": "ダッシュボード",
+    "subtitle": "AIセールスアシスタントへようこそ",
+    "billing": {
+      "unlockPotential": "🚀 フルポテンシャルをアンロック",
+      "viewPlans": "プランを見る",
+      "freeTierMessage": "現在、無料プランをご利用中です。アップグレードして、無制限の会話、高度な分析、N8N統合、24/7優先サポートをアンロックしてください。",
+      "planActive": "✓ {{planName}}アクティブ",
+      "manageBilling": "請求を管理",
+      "subscriptionActive": "サブスクリプションはアクティブで、すべてのプレミアム機能がアンロックされています。",
+      "testMode": " （テストモード - 課金されません）"
+    },
+    "performance": {
+      "title": "パフォーマンス概要",
+      "totalConversations": "総会話数",
+      "allTime": "全期間",
+      "growthFromLastMonth": "↑ 先月から12%",
+      "activeToday": "今日のアクティブ",
+      "live": "ライブ",
+      "conversationsStarted": "開始された会話",
+      "responseTime": "応答時間",
+      "avg": "平均",
+      "aiProcessingSpeed": "AI処理速度",
+      "satisfactionScore": "満足度スコア",
+      "excellent": "⭐ 優秀",
+      "outOf5": "/ 5.0",
+      "basedOnFeedback": "顧客フィードバックに基づく"
+    },
+    "systemStatus": {
+      "title": "システムステータス",
+      "subtitle": "AIアシスタントコンポーネントを監視",
+      "aiAssistant": "AIアシスタント",
+      "coreEngine": "コアチャットボットエンジン",
+      "active": "● アクティブ",
+      "themeIntegration": "テーマ統合",
+      "widgetEmbedded": "ストアフロントに埋め込まれたウィジェット",
+      "enabled": "● 有効",
+      "n8nWebhook": "N8Nウェブフック",
+      "advancedWorkflow": "高度なワークフロー自動化",
+      "fallback": "○ フォールバック",
+      "analyticsTracking": "分析トラッキング",
+      "dataCollection": "データ収集とインサイト",
+      "running": "● 実行中",
+      "configureSettings": "設定を構成"
+    },
+    "topQuestions": {
+      "title": "トップ顧客質問",
+      "subtitle": "今週最も多く寄せられた質問",
+      "last7Days": "過去7日間",
+      "new": "新規",
+      "viewFullAnalytics": "完全な分析を表示"
+    },
+    "setupProgress": {
+      "title": "セットアップ進行状況",
+      "completed": "{{count}} / {{total}} 完了",
+      "subtitle": "これらのステップを完了して、AIアシスタントを最大限に活用してください",
+      "appInstalled": "アプリインストールと構成済み",
+      "appInstalledDesc": "AIセールスアシスタントはデフォルト設定で使用できる状態です",
+      "widgetAdded": "テーマにウィジェットを追加",
+      "widgetAddedDesc": "チャットウィジェットはライブで、ストアフロントに表示されています",
+      "analyticsEnabled": "分析が有効",
+      "analyticsEnabledDesc": "顧客インタラクションの追跡とインサイトの生成",
+      "connectN8N": "N8Nワークフローに接続",
+      "connectN8NDesc": "高度なAI処理、カスタムワークフロー、サードパーティ統合を有効にする",
+      "optional": "オプション",
+      "connectNow": "今すぐ接続",
+      "customizeWidget": "ウィジェットをカスタマイズ",
+      "testChat": "チャットインターフェースをテスト"
+    },
+    "quickActions": {
+      "title": "クイックアクション",
+      "viewAnalytics": "📊 分析を表示",
+      "viewAnalyticsDesc": "会話インサイト、顧客行動、AIパフォーマンス指標に深く潜る",
+      "openAnalytics": "分析を開く",
+      "widgetSettings": "⚙️ ウィジェット設定",
+      "widgetSettingsDesc": "外観、動作をカスタマイズし、N8Nウェブフック統合を構成",
+      "configure": "構成",
+      "upgradePlan": "💎 プランをアップグレード",
+      "upgradePlanDesc": "無制限の会話、高度な機能、優先サポートをアンロック",
+      "viewPlans": "プランを見る"
+    }
+  }
+}
