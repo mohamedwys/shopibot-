@@ -56,18 +56,17 @@ export default function App() {
     { label: "中文", value: "zh" },
   ];
 
-  const handleLanguageChange = useCallback(async (value: string) => {
-    // Change language in i18next client
-    await i18n.changeLanguage(value);
-
-    // Also submit to server to set cookie
+  const handleLanguageChange = useCallback((value: string) => {
+    // Submit to server to set cookie
     const formData = new FormData();
     formData.append("locale", value);
     submit(formData, { method: "post" });
 
-    // Reload the current page to ensure all translations are loaded
-    window.location.reload();
-  }, [i18n, submit]);
+    // Reload the page to apply the new language from cookie
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
+  }, [submit]);
 
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey}>
