@@ -11,14 +11,14 @@ import { initSentry, captureException } from "./lib/sentry.server";
 import { createInstance } from "i18next";
 import i18nServer from "./i18n.server";
 import { I18nextProvider, initReactI18next } from "react-i18next";
-import * as enCommon from "../public/locales/en/common.json";
-import * as esCommon from "../public/locales/es/common.json";
-import * as frCommon from "../public/locales/fr/common.json";
-import * as deCommon from "../public/locales/de/common.json";
-import * as jaCommon from "../public/locales/ja/common.json";
-import * as itCommon from "../public/locales/it/common.json";
-import * as ptCommon from "../public/locales/pt/common.json";
-import * as zhCommon from "../public/locales/zh/common.json";
+import enCommon from "./locales/en/common.json";
+import esCommon from "./locales/es/common.json";
+import frCommon from "./locales/fr/common.json";
+import deCommon from "./locales/de/common.json";
+import jaCommon from "./locales/ja/common.json";
+import itCommon from "./locales/it/common.json";
+import ptCommon from "./locales/pt/common.json";
+import zhCommon from "./locales/zh/common.json";
 
 // Initialize Sentry for server-side error tracking
 initSentry();
