@@ -17,6 +17,11 @@ import {
   List,
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
+import { useTranslation } from "react-i18next";
+
+export const handle = {
+  i18n: "common",
+};
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { billing, session } = await authenticate.admin(request);
@@ -59,6 +64,7 @@ export default function BillingPage() {
   const { hasActivePayment, appSubscriptions, shop, isTestMode } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const submit = useSubmit();
+  const { t } = useTranslation();
 
   const activePlan = appSubscriptions?.[0];
 
@@ -69,17 +75,17 @@ export default function BillingPage() {
   };
 
   return (
-    <Page title="Pricing Plans">
+    <Page title={t("billing.title")}>
       <Layout>
         {/* Hero Section */}
         <Layout.Section>
           <Box paddingBlockEnd="600">
             <BlockStack gap="300" align="center">
               <Text as="h1" variant="heading2xl" alignment="center">
-                Choose the Perfect Plan for Your Store
+                {t("billing.heroTitle")}
               </Text>
               <Text as="p" variant="bodyLg" alignment="center" tone="subdued">
-                Unlock the power of AI-driven conversations. Start with a 7-day free trial.
+                {t("billing.heroSubtitle")}
               </Text>
             </BlockStack>
           </Box>
@@ -91,10 +97,10 @@ export default function BillingPage() {
             <Banner tone="info">
               <BlockStack gap="400">
                 <Text as="p" variant="bodyMd" fontWeight="semibold">
-                  Test Mode Active
+                  {t("billing.testMode")}
                 </Text>
                 <Text as="p" variant="bodyMd">
-                  You won't be charged during development. Billing will be activated in production.
+                  {t("billing.testModeDesc")}
                 </Text>
               </BlockStack>
             </Banner>
