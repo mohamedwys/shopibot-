@@ -8,6 +8,11 @@ import {
 import { isbot } from "isbot";
 import { addDocumentResponseHeaders } from "./shopify.server";
 import { initSentry, captureException } from "./lib/sentry.server";
+import { createInstance } from "i18next";
+import i18nServer from "./i18n.server";
+import { I18nextProvider, initReactI18next } from "react-i18next";
+import Backend from "i18next-fs-backend";
+import { resolve } from "node:path";
 
 // Initialize Sentry for server-side error tracking
 initSentry();
@@ -26,12 +31,33 @@ export default async function handleRequest(
     ? "onAllReady"
     : "onShellReady";
 
+  // Get locale from request
+  const locale = await i18nServer.getLocale(request);
+
+  // Create i18next instance for this request
+  const instance = createInstance();
+  const ns = i18nServer.getRouteNamespaces(remixContext);
+
+  await instance
+    .use(initReactI18next)
+    .use(Backend)
+    .init({
+      ...i18nServer.options,
+      lng: locale,
+      ns,
+      backend: {
+        loadPath: resolve("./public/locales/{{lng}}/{{ns}}.json"),
+      },
+    });
+
   return new Promise((resolve, reject) => {
     const { pipe, abort } = renderToPipeableStream(
-      <RemixServer
-        context={remixContext}
-        url={request.url}
-      />,
+      <I18nextProvider i18n={instance}>
+        <RemixServer
+          context={remixContext}
+          url={request.url}
+        />
+      </I18nextProvider>,
       {
         [callbackName]: () => {
           const body = new PassThrough();

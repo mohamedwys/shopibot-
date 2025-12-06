@@ -13,16 +13,25 @@ import { json } from "@remix-run/node";
 import { useEffect } from "react";
 import { useChangeLanguage } from "remix-i18next/react";
 import { captureException } from "./lib/sentry.client";
+<<<<<<< HEAD
 import { i18n } from "./i18n.server";
+=======
+import { useChangeLanguage } from "remix-i18next/react";
+import i18nServer from "./i18n.server";
+>>>>>>> origin/claude/shopify-app-readiness-report-01RvCwuH1cAAmdnTxHerbfsB
 
 // ADD THIS LINE - Import your Tailwind CSS
 import "./styles/tailwind.css";
 
 /**
- * Loader to expose environment variables to the client
+ * Loader to expose environment variables to the client and handle i18n
  */
 export async function loader({ request }: LoaderFunctionArgs) {
+<<<<<<< HEAD
   const locale = await i18n.getLocale(request);
+=======
+  const locale = await i18nServer.getLocale(request);
+>>>>>>> origin/claude/shopify-app-readiness-report-01RvCwuH1cAAmdnTxHerbfsB
 
   return json({
     locale,
@@ -33,10 +42,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
   });
 }
 
+export const handle = {
+  i18n: "common",
+};
+
 export default function App() {
   const data = useLoaderData<typeof loader>();
   const { locale } = data;
 
+<<<<<<< HEAD
+=======
+  // This hook will change the i18n instance language when locale changes
+>>>>>>> origin/claude/shopify-app-readiness-report-01RvCwuH1cAAmdnTxHerbfsB
   useChangeLanguage(locale);
 
   return (
