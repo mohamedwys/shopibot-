@@ -307,7 +307,7 @@ export default function AnalyticsPage() {
             <InlineGrid columns={4} gap="400">
               <BlockStack gap="200">
                 <Text variant="bodyMd" as="p" tone="subdued">
-                  Messages per Session
+                  {t("analytics.engagement.messagesPerSession")}
                 </Text>
                 <Text variant="headingLg" as="h3">
                   {data.engagement.avgMessagesPerSession.toFixed(1)}
@@ -316,7 +316,7 @@ export default function AnalyticsPage() {
 
               <BlockStack gap="200">
                 <Text variant="bodyMd" as="p" tone="subdued">
-                  Avg Session Duration
+                  {t("analytics.engagement.avgSessionDuration")}
                 </Text>
                 <Text variant="headingLg" as="h3">
                   {Math.round(data.engagement.avgSessionDuration / 60)}m
@@ -325,7 +325,7 @@ export default function AnalyticsPage() {
 
               <BlockStack gap="200">
                 <Text variant="bodyMd" as="p" tone="subdued">
-                  Avg Response Time
+                  {t("analytics.engagement.avgResponseTime")}
                 </Text>
                 <Text variant="headingLg" as="h3">
                   {(data.overview.avgResponseTime / 1000).toFixed(1)}s
@@ -334,7 +334,7 @@ export default function AnalyticsPage() {
 
               <BlockStack gap="200">
                 <Text variant="bodyMd" as="p" tone="subdued">
-                  Total Sessions
+                  {t("analytics.engagement.totalSessions")}
                 </Text>
                 <Text variant="headingLg" as="h3">
                   {formatNumber(data.engagement.totalSessions)}
@@ -385,7 +385,7 @@ export default function AnalyticsPage() {
               </BlockStack>
             ) : (
               <Text variant="bodyMd" as="p" tone="subdued">
-                No intent data available for this period
+                {t("analytics.intent.noData")}
               </Text>
             )}
           </BlockStack>
@@ -405,7 +405,7 @@ export default function AnalyticsPage() {
                     <BlockStack gap="300">
                       <InlineStack align="space-between">
                         <Text variant="headingMd" as="h3">
-                          {sentiment.sentiment}
+                          {t(`analytics.sentiment.${sentiment.sentiment.toLowerCase()}`)}
                         </Text>
                         <div
                           style={{
@@ -420,7 +420,7 @@ export default function AnalyticsPage() {
                         {sentiment.percentage}%
                       </Text>
                       <Text variant="bodySm" as="p" tone="subdued">
-                        {formatNumber(sentiment.count)} messages
+                        {formatNumber(sentiment.count)} {t("analytics.sentiment.messages")}
                       </Text>
                     </BlockStack>
                   </Card>
@@ -428,7 +428,7 @@ export default function AnalyticsPage() {
               </InlineGrid>
             ) : (
               <Text variant="bodyMd" as="p" tone="subdued">
-                No sentiment data available for this period
+                {t("analytics.sentiment.noData")}
               </Text>
             )}
           </BlockStack>
@@ -454,7 +454,7 @@ export default function AnalyticsPage() {
                           {product.productId.split("/").pop()}
                         </Text>
                       </InlineStack>
-                      <Badge tone="info">{`${formatNumber(product.clicks)} clicks`}</Badge>
+                      <Badge tone="info">{`${formatNumber(product.clicks)} ${t("analytics.products.clicks")}`}</Badge>
                     </InlineStack>
                     {index < data.topProducts.length - 1 && (
                       <Box paddingBlockStart="300">
@@ -466,7 +466,7 @@ export default function AnalyticsPage() {
               </BlockStack>
             ) : (
               <Text variant="bodyMd" as="p" tone="subdued">
-                No product click data available for this period
+                {t("analytics.products.noData")}
               </Text>
             )}
           </BlockStack>
@@ -527,7 +527,7 @@ export default function AnalyticsPage() {
               </Box>
             ) : (
               <Text variant="bodyMd" as="p" tone="subdued">
-                No trend data available for this period
+                {t("analytics.trends.noData")}
               </Text>
             )}
           </BlockStack>
@@ -542,34 +542,29 @@ export default function AnalyticsPage() {
             <BlockStack gap="100">
               {data.overview.avgConfidence < 70 && (
                 <Text variant="bodyMd" as="p">
-                  • AI confidence is below 70%. Consider reviewing product descriptions and
-                  generating embeddings.
+                  {t("analytics.insights.lowConfidence")}
                 </Text>
               )}
               {data.sentiments.find((s) => s.sentiment === "Negative")?.percentage || 0 > 20 && (
                 <Text variant="bodyMd" as="p">
-                  • More than 20% negative sentiment detected. Review customer interactions and
-                  improve responses.
+                  {t("analytics.insights.highNegative")}
                 </Text>
               )}
               {data.engagement.avgMessagesPerSession < 2 && (
                 <Text variant="bodyMd" as="p">
-                  • Low engagement ({"<"}2 messages per session). Consider improving welcome
-                  message and suggestions.
+                  {t("analytics.insights.lowEngagement")}
                 </Text>
               )}
               {data.intents.length > 0 &&
                 data.intents[0].intent === "OTHER" &&
                 data.intents[0].percentage > 30 && (
                   <Text variant="bodyMd" as="p">
-                    • Many queries classified as "OTHER". Review unhandled intents and add more
-                    training data.
+                    {t("analytics.insights.highOther")}
                   </Text>
                 )}
               {data.overview.totalMessages === 0 && (
                 <Text variant="bodyMd" as="p">
-                  • No data yet! Install the widget on your storefront and start getting
-                  insights.
+                  {t("analytics.insights.noData")}
                 </Text>
               )}
             </BlockStack>

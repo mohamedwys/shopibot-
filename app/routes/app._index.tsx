@@ -429,12 +429,12 @@ export default function Index() {
               <BlockStack gap="200">
                 <InlineStack align="space-between" blockAlign="center">
                   <Text variant="headingLg" as="h3" fontWeight="bold">
-                    Setup Progress
+                    {t("dashboard.setupProgress.title")}
                   </Text>
-                  <Badge tone="success">3 of 4 completed</Badge>
+                  <Badge tone="success">{t("dashboard.setupProgress.completed", { count: 3, total: 4 })}</Badge>
                 </InlineStack>
                 <Text variant="bodyMd" as="p" tone="subdued">
-                  Complete these steps to get the most out of your AI assistant
+                  {t("dashboard.setupProgress.subtitle")}
                 </Text>
               </BlockStack>
 
@@ -451,10 +451,10 @@ export default function Index() {
                     </Box>
                     <BlockStack gap="200">
                       <Text variant="bodyLg" as="p" fontWeight="semibold">
-                        App Installed & Configured
+                        {t("dashboard.setupProgress.appInstalled")}
                       </Text>
                       <Text variant="bodyMd" as="p" tone="subdued">
-                        Your AI Sales Assistant is ready to use with default settings
+                        {t("dashboard.setupProgress.appInstalledDesc")}
                       </Text>
                     </BlockStack>
                   </InlineStack>
@@ -468,10 +468,10 @@ export default function Index() {
                     </Box>
                     <BlockStack gap="200">
                       <Text variant="bodyLg" as="p" fontWeight="semibold">
-                        Widget Added to Theme
+                        {t("dashboard.setupProgress.widgetAdded")}
                       </Text>
                       <Text variant="bodyMd" as="p" tone="subdued">
-                        The chat widget is live and visible on your storefront
+                        {t("dashboard.setupProgress.widgetAddedDesc")}
                       </Text>
                     </BlockStack>
                   </InlineStack>
@@ -485,10 +485,10 @@ export default function Index() {
                     </Box>
                     <BlockStack gap="200">
                       <Text variant="bodyLg" as="p" fontWeight="semibold">
-                        Analytics Enabled
+                        {t("dashboard.setupProgress.analyticsEnabled")}
                       </Text>
                       <Text variant="bodyMd" as="p" tone="subdued">
-                        Tracking customer interactions and generating insights
+                        {t("dashboard.setupProgress.analyticsEnabledDesc")}
                       </Text>
                     </BlockStack>
                   </InlineStack>
@@ -505,16 +505,16 @@ export default function Index() {
                         <BlockStack gap="200">
                           <InlineStack gap="200" blockAlign="center">
                             <Text variant="bodyLg" as="p" fontWeight="semibold">
-                              Connect N8N Workflow
+                              {t("dashboard.setupProgress.connectN8N")}
                             </Text>
-                            <Badge tone="info">Optional</Badge>
+                            <Badge tone="info">{t("dashboard.setupProgress.optional")}</Badge>
                           </InlineStack>
                           <Text variant="bodyMd" as="p" tone="subdued">
-                            Enable advanced AI processing, custom workflows, and third-party integrations
+                            {t("dashboard.setupProgress.connectN8NDesc")}
                           </Text>
                         </BlockStack>
                         <Button url="/app/settings">
-                          Connect Now
+                          {t("dashboard.setupProgress.connectNow")}
                         </Button>
                       </InlineStack>
                     </Box>
@@ -526,10 +526,10 @@ export default function Index() {
 
               <InlineStack gap="300">
                 <Button variant="primary" url="/app/settings">
-                  Customize Widget
+                  {t("dashboard.setupProgress.customizeWidget")}
                 </Button>
                 <Button url="/app/sales-assistant">
-                  Test Chat Interface
+                  {t("dashboard.setupProgress.testChat")}
                 </Button>
               </InlineStack>
             </BlockStack>
