@@ -37,6 +37,7 @@
     "@remix-run/fs-routes": "^2.16.1",
     "@remix-run/node": "^2.16.1",
     "@remix-run/react": "^2.16.1",
+    "@remix-run/route-config": "^2.16.1",
     "@remix-run/serve": "^2.16.1",
     "@sentry/node": "^10.29.0",
     "@sentry/react": "^10.29.0",
