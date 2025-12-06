@@ -62,13 +62,13 @@ export default function App() {
   const handleLanguageChange = useCallback((value: string) => {
     const formData = new FormData();
     formData.append("locale", value);
-    // Submit form and navigate to current route to reload with new language
-    submit(formData, { method: "post", navigate: true });
+    // Submit form to set the cookie
+    submit(formData, { method: "post" });
 
-    // Force page reload after a short delay to ensure cookie is set
+    // Reload the page after cookie is set (works in embedded apps)
     setTimeout(() => {
-      window.location.reload();
-    }, 100);
+      window.location.href = window.location.href;
+    }, 200);
   }, [submit]);
 
   return (
