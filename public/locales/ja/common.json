@@ -179,7 +179,12 @@
     "cancel": "キャンセル",
     "delete": "削除",
     "edit": "編集",
+    "view": "表示",
+    "export": "エクスポート",
+    "import": "インポート",
     "close": "閉じる",
+    "back": "戻る",
+    "next": "次へ",
     "confirm": "確認",
     "language": "言語"
   }

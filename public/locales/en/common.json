@@ -1,20 +1,4 @@
 {
-<<<<<<< HEAD
-  "common": {
-    "save": "Save",
-    "cancel": "Cancel",
-    "edit": "Edit",
-    "delete": "Delete",
-    "view": "View",
-    "export": "Export",
-    "import": "Import",
-    "close": "Close",
-    "back": "Back",
-    "next": "Next",
-    "loading": "Loading...",
-    "error": "Error",
-    "success": "Success"
-=======
   "nav": {
     "home": "Home",
     "settings": "Settings",
@@ -195,9 +179,13 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "edit": "Edit",
+    "view": "View",
+    "export": "Export",
+    "import": "Import",
     "close": "Close",
+    "back": "Back",
+    "next": "Next",
     "confirm": "Confirm",
     "language": "Language"
->>>>>>> origin/claude/shopify-app-readiness-report-01RvCwuH1cAAmdnTxHerbfsB
   }
 }

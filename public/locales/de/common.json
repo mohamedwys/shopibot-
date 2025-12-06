@@ -179,7 +179,12 @@
     "cancel": "Abbrechen",
     "delete": "Löschen",
     "edit": "Bearbeiten",
+    "view": "Ansehen",
+    "export": "Exportieren",
+    "import": "Importieren",
     "close": "Schließen",
+    "back": "Zurück",
+    "next": "Weiter",
     "confirm": "Bestätigen",
     "language": "Sprache"
   }

@@ -19,7 +19,7 @@ import {
 import { authenticate } from "../shopify.server";
 import { checkBillingStatus } from "../lib/billing.server";
 import { AnalyticsService } from "../services/analytics.service";
-import { i18n } from "../i18n.server";
+import i18n from "../i18n.server";
 import db from "../db.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {

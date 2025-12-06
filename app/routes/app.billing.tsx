@@ -18,7 +18,7 @@ import {
   List,
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
-import { i18n } from "../i18n.server";
+import i18n from "../i18n.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { billing, session } = await authenticate.admin(request);
