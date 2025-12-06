@@ -1,5 +1,5 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "@remix-run/node";
-import { Link, Outlet, useLoaderData, useRouteError, useSubmit } from "@remix-run/react";
+import { Link, Outlet, useLoaderData, useRouteError, useSubmit, useNavigate } from "@remix-run/react";
 import { boundary } from "@shopify/shopify-app-remix/server";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
 import { NavMenu } from "@shopify/app-bridge-react";
@@ -9,6 +9,7 @@ import { json } from "@remix-run/node";
 import i18nServer from "../i18n.server";
 import { Select, Box, InlineStack } from "@shopify/polaris";
 import { useCallback } from "react";
+import i18next from "i18next";
 
 import { authenticate } from "../shopify.server";
 
@@ -42,8 +43,9 @@ export const handle = {
 
 export default function App() {
   const { apiKey, locale } = useLoaderData<typeof loader>();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const submit = useSubmit();
+  const navigate = useNavigate();
 
   const languageOptions = [
     { label: "English", value: "en" },
@@ -57,17 +59,21 @@ export default function App() {
   ];
 
   const handleLanguageChange = useCallback(async (value: string) => {
-    // Change language in i18next client
-    await i18n.changeLanguage(value);
+    try {
+      // Change language in i18next client using the global instance
+      await i18next.changeLanguage(value);
 
-    // Also submit to server to set cookie
-    const formData = new FormData();
-    formData.append("locale", value);
-    submit(formData, { method: "post" });
+      // Submit to server to set cookie
+      const formData = new FormData();
+      formData.append("locale", value);
+      submit(formData, { method: "post", replace: true });
 
-    // Reload the current page to ensure all translations are loaded
-    window.location.reload();
-  }, [i18n, submit]);
+      // Navigate to current page to trigger re-render with new language
+      navigate(".", { replace: true });
+    } catch (error) {
+      console.error("Language change failed:", error);
+    }
+  }, [submit, navigate]);
 
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey}>
