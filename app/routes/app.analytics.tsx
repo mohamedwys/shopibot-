@@ -28,7 +28,7 @@ import {
 } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
 import { analyticsService, AnalyticsService } from "../services/analytics.service";
-import { i18n } from "../i18n.server";
+import i18n from "../i18n.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
