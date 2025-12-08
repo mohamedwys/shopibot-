@@ -3,13 +3,16 @@ import i18nConfig from "./index";
 import { resources } from "./resources";
 import { createCookie } from "@remix-run/node";
 
+// --- Cookie to persist locale ---
 export const localeCookie = createCookie("locale", {
   maxAge: 60 * 60 * 24 * 365, // 1 year
 });
+
 /**
  * Get locale from request
- * 1️⃣ Cookie first
- * 2️⃣ URL param fallback
+ * Priority:
+ * 1️⃣ Cookie
+ * 2️⃣ URL search param
  * 3️⃣ Default fallback
  */
 export async function getLocaleFromRequest(request: Request): Promise<string> {
@@ -48,13 +51,12 @@ export async function getLocaleFromRequest(request: Request): Promise<string> {
   }
 }
 
-// --- RemixI18Next instance ---
+// --- RemixI18Next server instance ---
 const i18nServer = new RemixI18Next({
   detection: {
     supportedLanguages: i18nConfig.supportedLngs,
     fallbackLanguage: i18nConfig.fallbackLng,
-    // Disable default cookie detection, we handle manually
-    order: ["searchParams"],
+    order: ["searchParams"], // cookies are handled manually
   },
   i18next: {
     ...i18nConfig,

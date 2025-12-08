@@ -8,18 +8,21 @@ import {
   useRouteError,
   isRouteErrorResponse,
 } from "@remix-run/react";
-import type { LoaderFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
+
+import { json, redirect } from "@remix-run/server-runtime";
+
 import { useEffect } from "react";
 import { captureException } from "./lib/sentry.client";
 import { useChangeLanguage } from "remix-i18next/react";
 
-import { LanguageSwitcher } from "./components/LanguageSwitcher"; // ✅ import switcher
+import { localeCookie } from "./i18n/i18next.server"; // ✅ properly exported cookie
+import { LanguageSwitcher } from "./components/LanguageSwitcher"; // ✅ switcher component
 
 // Tailwind
 import "./styles/tailwind.css";
 
-export async function loader({ request }: LoaderFunctionArgs) {
+// ---------------------- LOADER ----------------------
+export async function loader({ request }: { request: Request }) {
   const { getLocaleFromRequest } = await import("./i18n/i18next.server");
   const locale = await getLocaleFromRequest(request);
 
@@ -32,10 +35,26 @@ export async function loader({ request }: LoaderFunctionArgs) {
   });
 }
 
+// ACTION
+export async function action({ request }: { request: Request }) {
+  const formData = await request.formData();
+  const newLocale = formData.get("locale")?.toString();
+
+  if (!newLocale) return redirect("/"); // fallback
+
+  return redirect(request.url, {
+    headers: {
+      "Set-Cookie": await localeCookie.serialize(newLocale),
+    },
+  });
+}
+
+// ---------------------- HANDLE ----------------------
 export const handle = {
   i18n: "common",
 };
 
+// ---------------------- APP COMPONENT ----------------------
 export default function App() {
   const data = useLoaderData<typeof loader>();
   const { locale } = data;
@@ -61,7 +80,7 @@ export default function App() {
         />
       </head>
       <body className="relative">
-        {/* ✅ Language switcher at top right corner */}
+        {/* Language switcher at top-right */}
         <div className="fixed top-4 right-4 z-50">
           <LanguageSwitcher locale={locale} />
         </div>
@@ -74,6 +93,7 @@ export default function App() {
   );
 }
 
+// ---------------------- ERROR BOUNDARY ----------------------
 export function ErrorBoundary() {
   const error = useRouteError();
 
@@ -92,13 +112,19 @@ export function ErrorBoundary() {
         <head>
           <meta charSet="utf-8" />
           <meta name="viewport" content="width=device-width,initial-scale=1" />
-          <title>{error.status} {error.statusText}</title>
+          <title>
+            {error.status} {error.statusText}
+          </title>
           <Links />
         </head>
         <body style={{ fontFamily: "system-ui, sans-serif", padding: "2rem" }}>
-          <h1>{error.status} {error.statusText}</h1>
+          <h1>
+            {error.status} {error.statusText}
+          </h1>
           <p>{error.data}</p>
-          <a href="/" style={{ color: "#007bff" }}>Go home</a>
+          <a href="/" style={{ color: "#007bff" }}>
+            Go home
+          </a>
         </body>
       </html>
     );
@@ -121,18 +147,23 @@ export function ErrorBoundary() {
         {process.env.NODE_ENV === "development" && (
           <details style={{ marginTop: "2rem" }}>
             <summary>Error details (development only)</summary>
-            <pre style={{
-              background: "#f5f5f5",
-              padding: "1rem",
-              borderRadius: "4px",
-              overflow: "auto"
-            }}>
+            <pre
+              style={{
+                background: "#f5f5f5",
+                padding: "1rem",
+                borderRadius: "4px",
+                overflow: "auto",
+              }}
+            >
               {errorMessage}
               {errorStack && "\n\n" + errorStack}
             </pre>
           </details>
         )}
-        <a href="/" style={{ color: "#007bff", marginTop: "2rem", display: "inline-block" }}>
+        <a
+          href="/"
+          style={{ color: "#007bff", marginTop: "2rem", display: "inline-block" }}
+        >
           Go home
         </a>
       </body>
