@@ -1,3 +1,4 @@
+// app/components/LanguageSwitcher.tsx
 import { Select } from "@shopify/polaris";
 import { useSubmit } from "@remix-run/react";
 import { useTranslation } from "react-i18next";
@@ -12,10 +13,15 @@ export function LanguageSwitcher({ locale }: { locale: string }) {
       const formData = new FormData();
       formData.append("locale", value);
 
-      // 🔥 FIX: force POST to root action (root.tsx)
+      // IMPORTANT: include where the user should be returned after changing language
+      // Use pathname + search so we stay on the same route inside the app.
+      const returnTo = window.location.pathname + window.location.search;
+      formData.append("returnTo", returnTo);
+
+      // Submit to root action explicitly
       submit(formData, { method: "post", action: "/" });
 
-      // Optional: instant UI update
+      // Update client-side i18n immediately for smoother UX
       i18n.changeLanguage(value);
     },
     [i18n, submit]

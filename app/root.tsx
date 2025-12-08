@@ -36,23 +36,44 @@ export async function loader({ request }: { request: Request }) {
 }
 
 // ACTION
+
 export async function action({ request }: { request: Request }) {
   const formData = await request.formData();
   const newLocale = formData.get("locale")?.toString();
 
-  if (!newLocale) return redirect("/"); // fallback
+  // read returnTo (optional)
+  const rawReturnTo = formData.get("returnTo")?.toString();
 
-  return redirect(request.url, {
+  // Validate locale
+  if (!newLocale) {
+    // nothing to do, redirect back to returnTo or root
+    const fallback = rawReturnTo && isSafeReturnTo(rawReturnTo) ? rawReturnTo : "/";
+    return redirect(fallback);
+  }
+
+  // Determine where to go after setting cookie
+  const returnTo = rawReturnTo && isSafeReturnTo(rawReturnTo) ? rawReturnTo : "/";
+
+  // Set cookie and redirect back to returnTo
+  return redirect(returnTo, {
     headers: {
       "Set-Cookie": await localeCookie.serialize(newLocale),
     },
   });
 }
 
-// ---------------------- HANDLE ----------------------
-export const handle = {
-  i18n: "common",
-};
+/**
+ * Very simple validation: allow only paths starting with '/'
+ * and disallow '//' which could be protocol-relative.
+ * Extend as needed for your app.
+ */
+function isSafeReturnTo(path: string): boolean {
+  if (!path) return false;
+  if (!path.startsWith("/")) return false;
+  if (path.startsWith("//")) return false;
+  // optionally disallow certain paths, or whitelist known prefixes
+  return true;
+}
 
 // ---------------------- APP COMPONENT ----------------------
 export default function App() {
