@@ -21,17 +21,20 @@ import { AnalyticsService } from "../services/analytics.service";
 import db from "../db.server";
 import { useTranslation } from "react-i18next";
 import i18next from "../i18n/i18next.server";
+import { LanguageSwitcher } from "../components/LanguageSwitcher";
 
 
 export const handle = {
   i18n: "common",
 };
-
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { billing, session } = await authenticate.admin(request);
 
-  const locale = await i18next.getLocale(request); // <-- IMPORTANT!
-  const t = await i18next.getFixedT(request, "common"); // <-- LOAD NAMESPACE
+  // Get locale from request (cookie or header)
+  const locale = await i18next.getLocale(request);
+
+  // Load translation function for "common" namespace
+  const t = await i18next.getFixedT(request, "common");
 
   const billingStatus = await checkBillingStatus(billing);
   const analyticsService = new AnalyticsService();
@@ -40,6 +43,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const now = new Date();
 
   try {
+    // Fetch analytics
     const overview = await analyticsService.getOverview(session.shop, {
       startDate: thirtyDaysAgo,
       endDate: now,
@@ -52,40 +56,44 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const todaySessions = await db.chatSession.count({
       where: {
         shop: session.shop,
-        lastMessageAt: {
-          gte: todayStart,
-        },
+        lastMessageAt: { gte: todayStart },
       },
     });
 
-    // Define the type returned by Prisma
-      type RecentMessage = {
-        content: string | null; // assuming content could be null in DB
-        intent: string | null;  // assuming intent could be null in DB
-      };
+    // Prisma message type
+    type RecentMessage = {
+      content: string | null;
+      intent: string | null;
+    };
 
-      const recentMessages: RecentMessage[] = await db.chatMessage.findMany({
-        where: {
-          session: { shop: session.shop },
-          role: "user",
-          timestamp: { gte: thirtyDaysAgo },
-        },
-        select: { content: true, intent: true },
-        orderBy: { timestamp: "desc" },
-        take: 100,
-      });
+    const recentMessages: RecentMessage[] = await db.chatMessage.findMany({
+      where: {
+        session: { shop: session.shop },
+        role: "user",
+        timestamp: { gte: thirtyDaysAgo },
+      },
+      select: { content: true, intent: true },
+      orderBy: { timestamp: "desc" },
+      take: 100,
+    });
 
-      const intentCounts: Record<string, { count: number; example: string }> = {};
+    const intentCounts: Record<string, { count: number; example: string }> = {};
 
+    // Count top intents safely
         recentMessages.forEach((msg) => {
-          if (msg.intent && msg.content) {
-            if (!intentCounts[msg.intent]) {
-              intentCounts[msg.intent] = { count: 0, example: msg.content };
-            }
-            // Non-null assertion: we know it's initialized above
-            intentCounts[msg.intent]!.count++;
-          }
-        });
+      if (msg.intent && msg.content) {
+        // Ensure the key exists
+        if (!intentCounts[msg.intent]) {
+          intentCounts[msg.intent] = { count: 0, example: msg.content };
+        }
+
+        // Use a local variable for TypeScript safety
+        const intentEntry = intentCounts[msg.intent];
+        if (intentEntry) {
+          intentEntry.count++;
+        }
+      }
+    });
 
     const topQuestions = Object.entries(intentCounts)
       .sort((a, b) => b[1].count - a[1].count)
@@ -115,15 +123,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
     return json({ stats, billingStatus, locale });
   } catch (error) {
+    // Fallback if analytics fail
     return json({
       stats: {
         totalConversations: 0,
         activeToday: 0,
         avgResponseTime: "0.0s",
         customerSatisfaction: 0,
-        topQuestions: [
-          { question: t("dashboard.noDataAvailable"), count: 0 },
-        ],
+        topQuestions: [{ question: t("dashboard.noDataAvailable"), count: 0 }],
       },
       billingStatus,
       locale,
@@ -132,7 +139,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function Index() {
-  const { stats, billingStatus } = useLoaderData<typeof loader>();
+  const { stats, billingStatus, locale } = useLoaderData<typeof loader>();
   const { t } = useTranslation();
 
   return (
@@ -140,6 +147,8 @@ export default function Index() {
       title={t("dashboard.title")}
       subtitle={t("dashboard.subtitle")}
     >
+      <LanguageSwitcher locale={locale} />
+
       <Layout>
         {/* Billing Status Banner */}
         {!billingStatus.hasActivePayment && (

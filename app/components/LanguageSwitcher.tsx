@@ -1,30 +1,22 @@
-// app/components/LanguageSwitcher.tsx
 import { Select } from "@shopify/polaris";
-import { useSubmit } from "@remix-run/react";
 import { useTranslation } from "react-i18next";
 import { useCallback } from "react";
 
 export function LanguageSwitcher({ locale }: { locale: string }) {
-  const { i18n, t } = useTranslation();
-  const submit = useSubmit();
+  const { t, i18n } = useTranslation();
 
   const handleChange = useCallback(
     (value: string) => {
-      const formData = new FormData();
-      formData.append("locale", value);
-
-      // IMPORTANT: include where the user should be returned after changing language
-      // Use pathname + search so we stay on the same route inside the app.
-      const returnTo = window.location.pathname + window.location.search;
-      formData.append("returnTo", returnTo);
-
-      // Submit to root action explicitly
-      submit(formData, { method: "post", action: "/" });
-
-      // Update client-side i18n immediately for smoother UX
+      // Update i18n immediately on the client
       i18n.changeLanguage(value);
+
+      // Save locale in cookie for server
+      document.cookie = `locale=${value}; path=/; max-age=${60 * 60 * 24 * 365}`;
+
+      // Reload the page so server renders in new locale
+      window.location.reload();
     },
-    [i18n, submit]
+    [i18n]
   );
 
   const languageOptions = [
