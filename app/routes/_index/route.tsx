@@ -1,9 +1,4 @@
-import type { LoaderFunctionArgs } from "@remix-run/node";
-import { redirect, json } from "@remix-run/node";
-import { useLoaderData, Form } from "@remix-run/react";
-
-import { login } from "../../shopify.server";
-
+// app/routes/_index.tsx
 import { Hero } from "../../components/Hero";
 import { Features } from "../../components/Features";
 import { Stats } from "../../components/Stats";
@@ -13,48 +8,20 @@ import { TrustSection } from "../../components/TrustSection";
 import { AIAssistants } from "../../components/AIAssistants";
 import { Footer } from "../../components/Footer";
 import { FloatingCTA } from "../../components/FloatingCTA";
-
-// ✅ Import your i18n config
-import i18nConfig from "../../i18n";
-
-// Language Switcher Component
-function LanguageSwitcher({ currentLocale }: { currentLocale: string }) {
-  return (
-    <Form method="post" action="/set-locale">
-      <select
-        name="locale"
-        defaultValue={currentLocale}
-        onChange={(e) => e.currentTarget.form?.submit()}
-        className="p-2 border rounded"
-      >
-        {i18nConfig.supportedLngs.map((lng) => (
-          <option key={lng} value={lng}>
-            {lng.toUpperCase()}
-          </option>
-        ))}
-      </select>
-    </Form>
-  );
-}
+import { useLoaderData } from "@remix-run/react";
+import { login } from "../../shopify.server";
+import { redirect } from "@remix-run/node";
+import type { LoaderFunctionArgs } from "@remix-run/node";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { getLocaleFromRequest } = await import("../../i18n/i18next.server");
-  const locale = await getLocaleFromRequest(request);
-
   const url = new URL(request.url);
   if (url.searchParams.get("shop")) {
     throw redirect(`/app?${url.searchParams.toString()}`);
   }
-
-  return json({
-    showForm: Boolean(login),
-    locale,
-  });
+  return { showForm: Boolean(login) };
 };
 
-// Dummy testimonials
-const testimonials = [
-{
+const testimonials = [ {
     name: 'Sarah Johnson',
     jobtitle: 'Founder, EcoStyle',
     image: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=200',
@@ -101,18 +68,12 @@ const testimonials = [
     text: 'We scaled our store 5x without hiring more support staff. ShopiBot handles everything from product questions to order tracking seamlessly.',
     rating: 5,
     metric: '5x scale achieved',
-  },];
+  }, ];
 
-export default function App() {
-  const { locale } = useLoaderData<typeof loader>();
-
+export default function LandingPage() {
+  useLoaderData<typeof loader>();
   return (
     <>
-      {/* Language switcher */}
-      <div className="absolute top-4 right-4 z-50">
-        <LanguageSwitcher currentLocale={locale} />
-      </div>
-
       <Hero />
       <Features />
       <AIAssistants />
@@ -135,5 +96,3 @@ export default function App() {
     </>
   );
 }
-
-

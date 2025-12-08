@@ -1,47 +1,33 @@
 // app/components/LanguageSwitcher.tsx
-import { Form } from "@remix-run/react";
+import { Select } from "@shopify/polaris";
+import { useSubmit } from "@remix-run/react";
+import { useTranslation } from "react-i18next";
+import { useCallback } from "react";
 
-const SUPPORTED_LANGUAGES = [
-  { code: "en", label: "English" },
-  { code: "es", label: "Español" },
-  { code: "fr", label: "Français" },
-  { code: "de", label: "Deutsch" },
-];
+export function LanguageSwitcher({ locale }: { locale: string }) {
+  const { i18n, t } = useTranslation();
+  const submit = useSubmit();
 
-interface LanguageSwitcherProps {
-  currentLocale?: string;
-}
-
-export function LanguageSwitcher({ currentLocale = "en" }: LanguageSwitcherProps) {
-  return (
-    <Form method="post" action="/set-locale">
-      <label htmlFor="locale-select" className="sr-only">Select Language</label>
-      <select
-        id="locale-select"
-        name="locale"
-        defaultValue={currentLocale}
-        onChange={(e) => e.currentTarget.form?.submit()}
-        className="
-          bg-white
-          border
-          border-gray-300
-          rounded
-          px-3
-          py-1
-          text-sm
-          focus:outline-none
-          focus:ring-2
-          focus:ring-blue-500
-          focus:border-blue-500
-          shadow-sm
-        "
-      >
-        {SUPPORTED_LANGUAGES.map((lang) => (
-          <option key={lang.code} value={lang.code}>
-            {lang.label}
-          </option>
-        ))}
-      </select>
-    </Form>
+  const handleChange = useCallback(
+    (value: string) => {
+      const formData = new FormData();
+      formData.append("locale", value);
+      submit(formData, { method: "post" });
+      i18n.changeLanguage(value);
+    },
+    [i18n, submit]
   );
+
+  const languageOptions = [
+    { label: "English", value: "en" },
+    { label: "Español", value: "es" },
+    { label: "Français", value: "fr" },
+    { label: "Deutsch", value: "de" },
+    { label: "日本語", value: "ja" },
+    { label: "Italiano", value: "it" },
+    { label: "Português", value: "pt" },
+    { label: "中文", value: "zh" },
+  ];
+
+  return <Select label={t("common.language")} options={languageOptions} value={locale} onChange={handleChange} labelHidden />;
 }

@@ -63,7 +63,7 @@ export default function App() {
       <body className="relative">
         {/* ✅ Language switcher at top right corner */}
         <div className="fixed top-4 right-4 z-50">
-          <LanguageSwitcher currentLocale={locale} />
+          <LanguageSwitcher locale={locale} />
         </div>
 
         <Outlet />

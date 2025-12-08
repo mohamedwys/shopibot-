@@ -1,7 +1,11 @@
 import { RemixI18Next } from "remix-i18next/server";
 import i18nConfig from "./index";
 import { resources } from "./resources";
+import { createCookie } from "@remix-run/node";
 
+export const localeCookie = createCookie("locale", {
+  maxAge: 60 * 60 * 24 * 365, // 1 year
+});
 /**
  * Get locale from request
  * 1️⃣ Cookie first
