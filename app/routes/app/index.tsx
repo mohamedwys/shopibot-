@@ -19,8 +19,9 @@ import { authenticate } from "../../shopify.server";
 import { checkBillingStatus } from "../../lib/billing.server";
 import { AnalyticsService } from "../../services/analytics.service";
 import db from "../../db.server";
-import { useTranslation } from "react-i18next";
-import i18next from "../../i18n/i18next.server";
+import { useTranslation, I18nextProvider } from "react-i18next";
+import { getLocaleFromRequest } from "../../i18n/i18next.server";
+import i18nClient from "../../i18n/i18next.client"; // client-side i18next for React
 import { LanguageSwitcher } from "../../components/LanguageSwitcher";
 
 
@@ -31,11 +32,11 @@ export const handle = {
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { billing, session } = await authenticate.admin(request);
 
-  // Get locale from request (cookie or header)
-  const locale = await i18next.getLocale(request);
+  // Get locale from request (cookie or query param)
+  const locale = await getLocaleFromRequest(request);
 
   // Load translation function for "common" namespace
-  const t = await i18next.getFixedT(request, "common");
+  const t = i18nClient.getFixedT(locale, "common");
 
   const billingStatus = await checkBillingStatus(billing);
   const analyticsService = new AnalyticsService();
@@ -44,7 +45,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const now = new Date();
 
   try {
-    // Fetch analytics
     const overview = await analyticsService.getOverview(session.shop, {
       startDate: thirtyDaysAgo,
       endDate: now,
@@ -61,7 +61,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       },
     });
 
-    // Prisma message type
     type RecentMessage = {
       content: string | null;
       intent: string | null;
@@ -80,19 +79,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
     const intentCounts: Record<string, { count: number; example: string }> = {};
 
-    // Count top intents safely
-        recentMessages.forEach((msg) => {
+    recentMessages.forEach((msg) => {
       if (msg.intent && msg.content) {
-        // Ensure the key exists
+        // Initialize if missing
         if (!intentCounts[msg.intent]) {
           intentCounts[msg.intent] = { count: 0, example: msg.content };
         }
 
-        // Use a local variable for TypeScript safety
-        const intentEntry = intentCounts[msg.intent];
-        if (intentEntry) {
-          intentEntry.count++;
-        }
+        // Use non-null assertion because we just initialized it
+        intentCounts[msg.intent]!.count++;
       }
     });
 
@@ -124,7 +119,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
     return json({ stats, billingStatus, locale });
   } catch (error) {
-    // Fallback if analytics fail
     return json({
       stats: {
         totalConversations: 0,
@@ -139,11 +133,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 };
 
+
 export default function Index() {
   const { stats, billingStatus, locale } = useLoaderData<typeof loader>();
   const { t } = useTranslation();
 
   return (
+  <I18nextProvider i18n={i18nClient}>
     <Page
       title={t("dashboard.title")}
       subtitle={t("dashboard.subtitle")}
@@ -614,5 +610,7 @@ export default function Index() {
         </Layout.Section>
       </Layout>
     </Page>
+    </I18nextProvider>
+
   );
 }
