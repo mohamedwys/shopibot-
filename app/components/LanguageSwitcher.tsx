@@ -1,4 +1,3 @@
-// app/components/LanguageSwitcher.tsx
 import { Select } from "@shopify/polaris";
 import { useSubmit } from "@remix-run/react";
 import { useTranslation } from "react-i18next";
@@ -12,7 +11,11 @@ export function LanguageSwitcher({ locale }: { locale: string }) {
     (value: string) => {
       const formData = new FormData();
       formData.append("locale", value);
-      submit(formData, { method: "post" });
+
+      // 🔥 FIX: force POST to root action (root.tsx)
+      submit(formData, { method: "post", action: "/" });
+
+      // Optional: instant UI update
       i18n.changeLanguage(value);
     },
     [i18n, submit]
@@ -29,5 +32,13 @@ export function LanguageSwitcher({ locale }: { locale: string }) {
     { label: "中文", value: "zh" },
   ];
 
-  return <Select label={t("common.language")} options={languageOptions} value={locale} onChange={handleChange} labelHidden />;
+  return (
+    <Select
+      label={t("common.language")}
+      options={languageOptions}
+      value={locale}
+      onChange={handleChange}
+      labelHidden
+    />
+  );
 }
