@@ -15,14 +15,14 @@ import {
   Divider,
   Banner,
 } from "@shopify/polaris";
-import { authenticate } from "../../shopify.server";
-import { checkBillingStatus } from "../../lib/billing.server";
-import { AnalyticsService } from "../../services/analytics.service";
-import db from "../../db.server";
+import { authenticate } from "../shopify.server";
+import { checkBillingStatus } from "../lib/billing.server";
+import { AnalyticsService } from "../services/analytics.service";
+import db from "../db.server";
 import { useTranslation, I18nextProvider } from "react-i18next";
-import { getLocaleFromRequest } from "../../i18n/i18next.server";
-import i18nClient from "../../i18n/i18next.client"; // client-side i18next for React
-import { LanguageSwitcher } from "../../components/LanguageSwitcher";
+import { getLocaleFromRequest } from "../i18n/i18next.server";
+import i18nClient from "../i18n/i18next.client"; // client-side i18next for React
+import { LanguageSwitcher } from "../components/LanguageSwitcher";
 
 
 export const handle = {
