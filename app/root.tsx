@@ -14,12 +14,11 @@ import { useEffect } from "react";
 import { captureException } from "./lib/sentry.client";
 import { useChangeLanguage } from "remix-i18next/react";
 
-// ADD THIS LINE - Import your Tailwind CSS
+import { LanguageSwitcher } from "./components/LanguageSwitcher"; // ✅ import switcher
+
+// Tailwind
 import "./styles/tailwind.css";
 
-/**
- * Loader to expose environment variables to the client and handle i18n
- */
 export async function loader({ request }: LoaderFunctionArgs) {
   const { getLocaleFromRequest } = await import("./i18n/i18next.server");
   const locale = await getLocaleFromRequest(request);
@@ -41,7 +40,6 @@ export default function App() {
   const data = useLoaderData<typeof loader>();
   const { locale } = data;
 
-  // This hook will change the i18n instance language when locale changes
   useChangeLanguage(locale);
 
   return (
@@ -62,7 +60,12 @@ export default function App() {
           }}
         />
       </head>
-      <body>
+      <body className="relative">
+        {/* ✅ Language switcher at top right corner */}
+        <div className="fixed top-4 right-4 z-50">
+          <LanguageSwitcher currentLocale={locale} />
+        </div>
+
         <Outlet />
         <ScrollRestoration />
         <Scripts />
@@ -71,19 +74,14 @@ export default function App() {
   );
 }
 
-/**
- * Remix ErrorBoundary for route-level errors
- * Captures errors and sends them to Sentry
- */
 export function ErrorBoundary() {
   const error = useRouteError();
 
-  // Capture error in Sentry (client-side)
   useEffect(() => {
     if (error instanceof Error) {
       captureException(error, {
-        context: 'Remix ErrorBoundary',
-        errorType: 'route-error',
+        context: "Remix ErrorBoundary",
+        errorType: "route-error",
       });
     }
   }, [error]);
@@ -97,17 +95,17 @@ export function ErrorBoundary() {
           <title>{error.status} {error.statusText}</title>
           <Links />
         </head>
-        <body style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem' }}>
+        <body style={{ fontFamily: "system-ui, sans-serif", padding: "2rem" }}>
           <h1>{error.status} {error.statusText}</h1>
           <p>{error.data}</p>
-          <a href="/" style={{ color: '#007bff' }}>Go home</a>
+          <a href="/" style={{ color: "#007bff" }}>Go home</a>
         </body>
       </html>
     );
   }
 
-  const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-  const errorStack = error instanceof Error ? error.stack : '';
+  const errorMessage = error instanceof Error ? error.message : "Unknown error";
+  const errorStack = error instanceof Error ? error.stack : "";
 
   return (
     <html>
@@ -117,24 +115,24 @@ export function ErrorBoundary() {
         <title>Error</title>
         <Links />
       </head>
-      <body style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem' }}>
+      <body style={{ fontFamily: "system-ui, sans-serif", padding: "2rem" }}>
         <h1>Error</h1>
         <p>Something went wrong.</p>
-        {process.env.NODE_ENV === 'development' && (
-          <details style={{ marginTop: '2rem' }}>
+        {process.env.NODE_ENV === "development" && (
+          <details style={{ marginTop: "2rem" }}>
             <summary>Error details (development only)</summary>
             <pre style={{
-              background: '#f5f5f5',
-              padding: '1rem',
-              borderRadius: '4px',
-              overflow: 'auto'
+              background: "#f5f5f5",
+              padding: "1rem",
+              borderRadius: "4px",
+              overflow: "auto"
             }}>
               {errorMessage}
-              {errorStack && '\n\n' + errorStack}
+              {errorStack && "\n\n" + errorStack}
             </pre>
           </details>
         )}
-        <a href="/" style={{ color: '#007bff', marginTop: '2rem', display: 'inline-block' }}>
+        <a href="/" style={{ color: "#007bff", marginTop: "2rem", display: "inline-block" }}>
           Go home
         </a>
       </body>

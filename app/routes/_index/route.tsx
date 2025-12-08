@@ -3,6 +3,8 @@ import { redirect } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 
 import { login } from "../../shopify.server";
+import { getLocaleFromRequest } from "../../i18n/i18next.server"
+import { LanguageSwitcher } from "../../components/LanguageSwitcher";
 
 import { Hero } from "../../components/Hero";
 import { Features } from "../../components/Features";
@@ -14,9 +16,6 @@ import { AIAssistants } from "../../components/AIAssistants";
 import { Footer } from "../../components/Footer";
 import { FloatingCTA } from "../../components/FloatingCTA";
 
-// ✅ Tailwind CSS is already imported in root.tsx, so we don't need it here
-// ❌ REMOVE: import "./styles.module.css"; - This was causing conflicts!
-
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
 
@@ -24,7 +23,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     throw redirect(`/app?${url.searchParams.toString()}`);
   }
 
-  return { showForm: Boolean(login) };
+  // ✅ detect locale from request
+  const locale = await getLocaleFromRequest(request);
+
+  return { showForm: Boolean(login), locale };
 };
 
 const testimonials = [
@@ -79,10 +81,13 @@ const testimonials = [
 ];
 
 export default function App() {
-  useLoaderData<typeof loader>();
+  const { locale } = useLoaderData<typeof loader>();
 
   return (
     <>
+      {/* ✅ add language switcher at top or wherever you want */}
+      <LanguageSwitcher currentLocale={locale} />
+
       <Hero />
       <Features />
       <AIAssistants />
@@ -91,17 +96,20 @@ export default function App() {
       <Testimonials testimonials={testimonials} />
       <TrustSection />
       <Footer
-          leftLinks={[]}
-          rightLinks={[
-            { href: '/privacy-policy', label: 'Privacy Policy' },
-            { href: '/terms-of-service', label: 'Terms of Service' },
-            { href: '/cookie-policy', label: 'Cookie Policy' },
-            { href: '/gdpr-compliance', label: 'GDPR Compliance' }, 
-            { href: '/ai-compliance', label: 'AI Compliance' },
-          ]}
-          copyrightText="© 2025 ShopiBot by Welcome Middle East FZ-LLC. All rights reserved."
-        />
+        leftLinks={[]}
+        rightLinks={[
+          { href: '/privacy-policy', label: 'Privacy Policy' },
+          { href: '/terms-of-service', label: 'Terms of Service' },
+          { href: '/cookie-policy', label: 'Cookie Policy' },
+          { href: '/gdpr-compliance', label: 'GDPR Compliance' }, 
+          { href: '/ai-compliance', label: 'AI Compliance' },
+        ]}
+        copyrightText="© 2025 ShopiBot by Welcome Middle East FZ-LLC. All rights reserved."
+      />
       <FloatingCTA />
     </>
   );
 }
+
+
+
