@@ -1,25 +1,24 @@
-import { PrismaClient } from "@prisma/client";
+// app/db.server.ts
+import { PrismaClient } from '@prisma/client';
+import { withAccelerate } from '@prisma/extension-accelerate';
 
-declare global {
-  var prismaGlobal: PrismaClient | undefined;
-}
+const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-let prisma: PrismaClient;
+const createPrismaClient = () => {
+  const client = new PrismaClient();
 
-if (process.env.NODE_ENV === "production") {
-  prisma = new PrismaClient();
-} else {
-  if (!global.prismaGlobal) {
-    global.prismaGlobal = new PrismaClient({
-      log: ['query', 'info', 'warn', 'error'],
-    });
+  // Only extend with Accelerate in production
+  if (process.env.NODE_ENV === 'production') {
+    return client.$extends(withAccelerate());
   }
-  prisma = global.prismaGlobal;
+
+  return client;
+};
+
+export const prisma =
+  globalForPrisma.prisma ||
+  createPrismaClient();
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
 }
-
-// Ensure the client is connected
-prisma.$connect().catch((error: unknown) => {
-  console.error("Failed to connect to database:", error);
-});
-
-export default prisma;

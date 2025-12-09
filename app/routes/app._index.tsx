@@ -18,7 +18,7 @@ import {
 import { authenticate } from "../shopify.server";
 import { checkBillingStatus } from "../lib/billing.server";
 import { AnalyticsService } from "../services/analytics.service";
-import db from "../db.server";
+import { prisma as db } from "../db.server";
 import { useTranslation } from "react-i18next";
 import { getLocaleFromRequest, i18nServer } from "../i18n/i18next.server";
 import { LanguageSwitcher } from "../components/LanguageSwitcher";

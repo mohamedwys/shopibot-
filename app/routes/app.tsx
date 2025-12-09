@@ -9,7 +9,6 @@ import { useEffect } from "react";
 import { useTranslation, I18nextProvider } from "react-i18next";
 import { authenticate } from "../shopify.server";
 import { getLocaleFromRequest } from "../i18n/i18next.server";
-import { LanguageSwitcher } from "../components/LanguageSwitcher";
 import { boundary } from "@shopify/shopify-app-remix/server";
 import i18nClient from "../i18n/i18next.client";
 
@@ -51,7 +50,6 @@ export default function App() {
 
       <Box paddingInlineStart="400" paddingInlineEnd="400" paddingBlockStart="400">
         <Outlet />
-        <LanguageSwitcher currentLocale={locale} />
       </Box>
     </I18nextProvider>
     </AppProvider>
