@@ -48,7 +48,7 @@ export async function getLocaleFromRequest(request: Request): Promise<SupportedL
 - `ℹ️ No cookie header found` - No cookie in request
 
 ### 3. JSON-Based Locale Switching (No Redirects)
-**File:** `app/routes/set-locale.tsx`
+**File:** `app/routes/api.set-locale.tsx` (renamed from `set-locale.tsx`)
 
 **Before:** Used `redirect()` → caused iframe reload → session/CSP issues
 **After:** Returns JSON with Set-Cookie header
@@ -61,12 +61,18 @@ export async function action({ request }: ActionFunctionArgs) {
     { headers: { "Set-Cookie": await localeCookie.serialize(locale) } }
   );
 }
+// No default export - this is a resource route
 ```
 
 **Benefits:**
 - No redirect = no iframe reload issues
 - Works with fetch API from client
 - Supports both JSON and FormData for flexibility
+
+**Resource Route Pattern:**
+- Used `api.` prefix (Remix convention for data-only routes)
+- Removed default component export to prevent HTML wrapping
+- Ensures endpoint returns pure JSON (not wrapped in document shell)
 
 ### 4. Client-Side Language Switcher
 **File:** `app/components/LanguageSwitcher.tsx`
@@ -76,7 +82,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 ```typescript
 const handleLocaleChange = async (newLocale: string) => {
-  const response = await fetch("/set-locale", {
+  const response = await fetch("/api/set-locale", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ locale: newLocale }),
@@ -118,13 +124,18 @@ const translations = await loadPolarisTranslations(locale);
 
 ### Modified:
 1. ✏️ `app/i18n/i18next.server.ts` - Cookie attributes + detection logging
-2. ✏️ `app/routes/set-locale.tsx` - JSON response instead of redirect
-3. ✏️ `app/components/LanguageSwitcher.tsx` - Fetch API instead of form
-4. ✏️ `app/routes/app.tsx` - Polaris i18n integration
+2. ✏️ `app/routes/api.set-locale.tsx` - Resource route (renamed from `set-locale.tsx`)
+3. ✏️ `app/components/LanguageSwitcher.tsx` - Fetch API + endpoint update
+4. ✏️ `app/components/PolarisLanguageSwitcher.tsx` - Endpoint update
+5. ✏️ `app/routes/app.tsx` - Polaris i18n integration
 
 ### Created:
 1. ➕ `app/lib/polaris-i18n.ts` - Polaris translation loader
 2. ➕ `app/components/PolarisLanguageSwitcher.tsx` - Polaris Select component
+3. ➕ `I18N_FIX_IMPLEMENTATION.md` - This documentation
+
+### Deleted:
+1. ❌ `app/routes/set-locale.tsx` - Replaced by `api.set-locale.tsx`
 
 ## 🧪 Testing Checklist
 
@@ -182,6 +193,25 @@ If language switching still fails:
 - **Chrome/Edge 114+**: Full CHIPS support ✅
 - **Safari 16.4+**: Full CHIPS support ✅
 - **Firefox**: Limited CHIPS support (may work without `partitioned`)
+
+### Common Issue: "Unexpected token '<'" Error
+
+**Error:**
+```
+[LanguageSwitcher] ❌ Error changing locale: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+```
+
+**Cause:** The endpoint was returning HTML instead of JSON (Remix wrapping response in document shell)
+
+**Solution:** Converted to resource route pattern
+- ✅ Renamed: `set-locale.tsx` → `api.set-locale.tsx`
+- ✅ Removed default component export
+- ✅ Updated endpoints: `/set-locale` → `/api/set-locale`
+
+**Verification:** Check browser Network tab - response should be JSON:
+```json
+{"success":true,"locale":"es"}
+```
 
 ## 📊 Expected Behavior
 
