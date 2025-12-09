@@ -9,7 +9,8 @@ import { initSentry, captureException } from "./lib/sentry.server";
 import { createInstance } from "i18next";
 import { I18nextProvider, initReactI18next } from "react-i18next";
 import { resources } from "./i18n/resources";
-import { getLocaleFromRequest, getRouteNamespaces, i18nextOptions } from "./i18n/i18next.server";
+import { getLocaleFromRequest, getRouteNamespaces } from "./i18n/i18next.server"; // ❌ removed i18nextOptions
+import i18nConfig from "./i18n/index"; // ✅ import shared config
 
 // Initialize Sentry
 initSentry();
@@ -31,15 +32,20 @@ export default async function handleRequest(
     // 1️⃣ Get locale
     const locale = await getLocaleFromRequest(request);
 
-    // 2️⃣ Create i18next instance for SSR
-    const i18nInstance = createInstance();
-    const namespaces = getRouteNamespaces(); // ["common"] by default
+    // 2️⃣ Get namespaces
+    const namespaces = getRouteNamespaces(); // ["common"]
 
+    // 3️⃣ Create i18next instance for SSR
+    const i18nInstance = createInstance();
     await i18nInstance.use(initReactI18next).init({
-      ...i18nextOptions,
+      ...i18nConfig, // ✅ Use shared config instead of i18nextOptions
       lng: locale,
       ns: namespaces,
+      defaultNS: "common",
       resources,
+      interpolation: {
+        escapeValue: false, // React already escapes
+      },
     });
 
     return new Promise<Response>((resolve, reject) => {
@@ -62,18 +68,18 @@ export default async function handleRequest(
             pipe(body);
           },
           onShellError(error) {
-            captureException(error instanceof Error ? error : new Error(String(error)), {
-              context: "SSR Shell error",
-              url: request.url,
-            });
+            captureException(
+              error instanceof Error ? error : new Error(String(error)),
+              { context: "SSR Shell error", url: request.url }
+            );
             reject(error);
           },
           onError(error) {
             responseStatusCode = 500;
-            captureException(error instanceof Error ? error : new Error(String(error)), {
-              context: "SSR render error",
-              url: request.url,
-            });
+            captureException(
+              error instanceof Error ? error : new Error(String(error)),
+              { context: "SSR render error", url: request.url }
+            );
           },
         }
       );
@@ -81,10 +87,10 @@ export default async function handleRequest(
       setTimeout(abort, streamTimeout + 1000);
     });
   } catch (error) {
-    captureException(error instanceof Error ? error : new Error(String(error)), {
-      context: "SSR fatal error",
-      url: request.url,
-    });
+    captureException(
+      error instanceof Error ? error : new Error(String(error)),
+      { context: "SSR fatal error", url: request.url }
+    );
     throw error;
   }
 }

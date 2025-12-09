@@ -1,20 +1,39 @@
-import { Form } from "@remix-run/react";
+import { Form, useLocation } from "@remix-run/react";
 
 interface LanguageSwitcherProps {
-  currentLocale: string; // must match prop name
+  currentLocale: string;
 }
 
 export function LanguageSwitcher({ currentLocale }: LanguageSwitcherProps) {
+  const location = useLocation();
+
+  // Full list matching your supportedLngs
+  const languages = [
+    { code: "en", label: "English" },
+    { code: "fr", label: "Français" },
+    { code: "es", label: "Español" },
+    { code: "de", label: "Deutsch" },
+    { code: "it", label: "Italiano" },
+    { code: "pt", label: "Português" },
+    { code: "ja", label: "日本語" },
+    { code: "zh", label: "中文" },
+  ];
+
   return (
-    <Form method="post" action="/app/change-locale">
+    <Form method="post" action="/">
+      <input type="hidden" name="returnTo" value={location.pathname} />
       <select
         name="locale"
         defaultValue={currentLocale}
         onChange={(e) => e.currentTarget.form?.submit()}
+        // Optional: Add styling via className if needed
+        // className="..."
       >
-        <option value="en">English</option>
-        <option value="fr">Français</option>
-        <option value="es">Español</option>
+        {languages.map(({ code, label }) => (
+          <option key={code} value={code}>
+            {label}
+          </option>
+        ))}
       </select>
     </Form>
   );
