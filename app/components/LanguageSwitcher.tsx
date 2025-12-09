@@ -32,7 +32,7 @@ export function LanguageSwitcher({ currentLocale }: LanguageSwitcherProps) {
     console.log(`[LanguageSwitcher] Changing locale to: ${newLocale}`);
 
     try {
-      const response = await fetch("/set-locale", {
+      const response = await fetch("/api/set-locale", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ locale: newLocale }),

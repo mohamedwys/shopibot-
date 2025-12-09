@@ -1,16 +1,16 @@
-// app/routes/set-locale.tsx
+// app/routes/api.set-locale.tsx
 import type { ActionFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { localeCookie } from "../i18n/i18next.server";
 import i18nConfig from "../i18n";
 
 /**
- * Sets the user's locale preference via cookie.
- * Returns JSON instead of redirect to avoid iframe session issues.
+ * Resource route for setting user's locale preference via cookie.
+ * Returns JSON (no UI rendering) to avoid iframe session issues.
  *
  * Usage from client:
  * ```ts
- * await fetch('/set-locale', {
+ * await fetch('/api/set-locale', {
  *   method: 'POST',
  *   headers: { 'Content-Type': 'application/json' },
  *   body: JSON.stringify({ locale: 'es' })
@@ -63,6 +63,4 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 }
 
-export default function SetLocale() {
-  return null;
-}
+// No default export - this is a resource route that only returns JSON
