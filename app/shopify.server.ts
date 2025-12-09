@@ -7,8 +7,7 @@ import {
 } from "@shopify/shopify-app-remix/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import { MemorySessionStorage } from "@shopify/shopify-app-session-storage-memory";
-import prisma from "./db.server";
-
+import { prisma } from "./db.server"; // ← named import
 // Use PrismaSessionStorage if DATABASE_URL is configured for PostgreSQL, otherwise use Memory
 const isPostgresConfigured = process.env.DATABASE_URL?.startsWith('postgresql://');
 const configuredSessionStorage = isPostgresConfigured
