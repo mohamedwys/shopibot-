@@ -10,15 +10,15 @@ import {
 } from "@remix-run/react";
 
 import { json, redirect } from "@remix-run/node";
-
 import { useEffect } from "react";
 import { captureException } from "./lib/sentry.client";
 import { useChangeLanguage } from "remix-i18next/react";
 import clientI18n from "./i18n/i18next.client";
 import { I18nextProvider } from "react-i18next";
+import { localeCookie } from "./i18n/i18next.server";
 
-import { localeCookie } from "./i18n/i18next.server"; // ✅ properly exported cookie
-// import { LanguageSwitcher } from "./components/LanguageSwitcher"; // ✅ switcher component
+// ✅ Import LanguageSwitcher
+import { LanguageSwitcher } from "./components/LanguageSwitcher";
 
 // Tailwind
 import "./styles/tailwind.css";
@@ -37,26 +37,19 @@ export async function loader({ request }: { request: Request }) {
   });
 }
 
-// ACTION
-
+// ---------------------- ACTION ----------------------
 export async function action({ request }: { request: Request }) {
   const formData = await request.formData();
   const newLocale = formData.get("locale")?.toString();
-
-  // read returnTo (optional)
   const rawReturnTo = formData.get("returnTo")?.toString();
 
-  // Validate locale
   if (!newLocale) {
-    // nothing to do, redirect back to returnTo or root
     const fallback = rawReturnTo && isSafeReturnTo(rawReturnTo) ? rawReturnTo : "/";
     return redirect(fallback);
   }
 
-  // Determine where to go after setting cookie
   const returnTo = rawReturnTo && isSafeReturnTo(rawReturnTo) ? rawReturnTo : "/";
 
-  // Set cookie and redirect back to returnTo
   return redirect(returnTo, {
     headers: {
       "Set-Cookie": await localeCookie.serialize(newLocale),
@@ -64,56 +57,54 @@ export async function action({ request }: { request: Request }) {
   });
 }
 
-/**
- * Very simple validation: allow only paths starting with '/'
- * and disallow '//' which could be protocol-relative.
- * Extend as needed for your app.
- */
 function isSafeReturnTo(path: string): boolean {
   if (!path) return false;
   if (!path.startsWith("/")) return false;
   if (path.startsWith("//")) return false;
-  // optionally disallow certain paths, or whitelist known prefixes
   return true;
 }
 
 // ---------------------- APP COMPONENT ----------------------
 export default function App() {
-  const data = useLoaderData<typeof loader>();
-  const { locale } = data;
-
+  const { locale } = useLoaderData<typeof loader>();
   useChangeLanguage(locale);
 
   return (
     <I18nextProvider i18n={clientI18n}>
-    <html lang={locale}>
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width,initial-scale=1" />
-        <link rel="preconnect" href="https://cdn.shopify.com/" />
-        <link
-          rel="stylesheet"
-          href="https://cdn.shopify.com/static/fonts/inter/v4/styles.css"
-        />
-        <Meta />
-        <Links />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `window.ENV = ${JSON.stringify(data.ENV)}`,
-          }}
-        />
-      </head>
-      <body className="relative">
-        {/* Language switcher at top-right */}
-        <div className="fixed top-4 right-4 z-50">
-          {/* <LanguageSwitcher locale={locale} /> */}
-        </div>
+      <html lang={locale}>
+        <head>
+          <meta charSet="utf-8" />
+          <meta name="viewport" content="width=device-width,initial-scale=1" />
+          <link rel="preconnect" href="https://cdn.shopify.com/" />
+          <link
+            rel="stylesheet"
+            href="https://cdn.shopify.com/static/fonts/inter/v4/styles.css"
+          />
+          <Meta />
+          <Links />
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `window.ENV = ${JSON.stringify({
+                SENTRY_DSN: process.env.SENTRY_DSN,
+                NODE_ENV: process.env.NODE_ENV,
+              })}`,
+            }}
+          />
+        </head>
+        <body className="relative">
+          {/* ✅ Language Switcher – Polaris-aligned */}
+          <div
+            className="fixed top-4 right-4 z-[1001]"
+            style={{ maxWidth: "140px" }}
+          >
+            <LanguageSwitcher currentLocale={locale} />
+          </div>
 
-        <Outlet />
-        <ScrollRestoration />
-        <Scripts />
-      </body>
-    </html>
+          <Outlet />
+          <ScrollRestoration />
+          <Scripts />
+        </body>
+      </html>
     </I18nextProvider>
   );
 }
@@ -187,7 +178,11 @@ export function ErrorBoundary() {
         )}
         <a
           href="/"
-          style={{ color: "#007bff", marginTop: "2rem", display: "inline-block" }}
+          style={{
+            color: "#007bff",
+            marginTop: "2rem",
+            display: "inline-block",
+          }}
         >
           Go home
         </a>

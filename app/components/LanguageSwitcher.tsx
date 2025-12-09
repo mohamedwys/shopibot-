@@ -1,3 +1,4 @@
+// app/components/LanguageSwitcher.tsx
 import { Form, useLocation } from "@remix-run/react";
 
 interface LanguageSwitcherProps {
@@ -7,7 +8,6 @@ interface LanguageSwitcherProps {
 export function LanguageSwitcher({ currentLocale }: LanguageSwitcherProps) {
   const location = useLocation();
 
-  // Full list matching your supportedLngs
   const languages = [
     { code: "en", label: "English" },
     { code: "fr", label: "Français" },
@@ -26,8 +26,7 @@ export function LanguageSwitcher({ currentLocale }: LanguageSwitcherProps) {
         name="locale"
         defaultValue={currentLocale}
         onChange={(e) => e.currentTarget.form?.submit()}
-        // Optional: Add styling via className if needed
-        // className="..."
+        className="text-sm p-1 border rounded bg-white shadow-sm"
       >
         {languages.map(({ code, label }) => (
           <option key={code} value={code}>
