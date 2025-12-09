@@ -1,3 +1,4 @@
+// app/shopify.server.ts
 import "@shopify/shopify-app-remix/adapters/node";
 import {
   ApiVersion,
@@ -5,16 +6,11 @@ import {
   BillingInterval,
   shopifyApp,
 } from "@shopify/shopify-app-remix/server";
-import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
-import { MemorySessionStorage } from "@shopify/shopify-app-session-storage-memory";
-import { prisma } from "./db.server"; // ← named import
-// Use PrismaSessionStorage if DATABASE_URL is configured for PostgreSQL, otherwise use Memory
-const isPostgresConfigured = process.env.DATABASE_URL?.startsWith('postgresql://');
-const configuredSessionStorage = isPostgresConfigured
-  ? new PrismaSessionStorage(prisma)
-  : new MemorySessionStorage();
 
-console.log(`🔧 Session Storage: ${isPostgresConfigured ? 'Prisma (PostgreSQL)' : 'Memory'}`);
+// ✅ REMOVE PrismaSessionStorage — use token-based auth instead
+// import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
+// import { MemorySessionStorage } from "@shopify/shopify-app-session-storage-memory";
+// import { prisma } from "./db.server";
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
@@ -23,7 +19,7 @@ const shopify = shopifyApp({
   scopes: process.env.SCOPES?.split(","),
   appUrl: process.env.SHOPIFY_APP_URL || "",
   authPathPrefix: "/auth",
-  sessionStorage: configuredSessionStorage,
+  // ✅ No sessionStorage needed — App Bridge handles it
   distribution: AppDistribution.AppStore,
   future: {
     unstable_newEmbeddedAuthStrategy: true,
@@ -33,13 +29,13 @@ const shopify = shopifyApp({
     "Starter Plan": {
       amount: 25.0,
       currencyCode: "USD",
-      interval: BillingInterval.Every30Days as any,
+      interval: BillingInterval.Monthly, // ✅ Changed from Every30Days
       trialDays: 7,
     },
     "Professional Plan": {
       amount: 79.0,
       currencyCode: "USD",
-      interval: BillingInterval.Every30Days as any,
+      interval: BillingInterval.Monthly, // ✅ Changed from Every30Days
       trialDays: 7,
     },
   },
