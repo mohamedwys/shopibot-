@@ -29,6 +29,7 @@ export const handle = {
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { billing, session } = await authenticate.admin(request);
+  console.log("✅ Session valid for shop:", session.shop);
   const locale = await getLocaleFromRequest(request);
   const t = i18nServer.getFixedT(locale, "common");
 

@@ -1,14 +1,17 @@
 // app/routes/set-locale.tsx
 import type { ActionFunctionArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
+import { authenticate } from "../shopify.server";
 import { localeCookie } from "../i18n/i18next.server";
 
 export async function action({ request }: ActionFunctionArgs) {
+  // ✅ Authenticate first to validate and extend the session
+  await authenticate.admin(request);
+
   const formData = await request.formData();
   const locale = formData.get("locale")?.toString();
   const returnTo = formData.get("returnTo")?.toString() || "/app";
 
-  // Only allow your supported locales
   const supportedLocales = ["en", "es", "fr", "de", "it", "pt", "ja", "zh"];
   if (locale && supportedLocales.includes(locale)) {
     return redirect(returnTo, {
@@ -18,11 +21,9 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   }
 
-  // Fallback if invalid locale
   return redirect(returnTo);
 }
 
-// No UI needed — this is a background action-only route
 export default function SetLocale() {
   return null;
 }
