@@ -14,6 +14,8 @@ import { json, redirect } from "@remix-run/node";
 import { useEffect } from "react";
 import { captureException } from "./lib/sentry.client";
 import { useChangeLanguage } from "remix-i18next/react";
+import clientI18n from "./i18n/i18next.client";
+import { I18nextProvider } from "react-i18next";
 
 import { localeCookie } from "./i18n/i18next.server"; // ✅ properly exported cookie
 // import { LanguageSwitcher } from "./components/LanguageSwitcher"; // ✅ switcher component
@@ -83,6 +85,7 @@ export default function App() {
   useChangeLanguage(locale);
 
   return (
+    <I18nextProvider i18n={clientI18n}>
     <html lang={locale}>
       <head>
         <meta charSet="utf-8" />
@@ -111,6 +114,7 @@ export default function App() {
         <Scripts />
       </body>
     </html>
+    </I18nextProvider>
   );
 }
 

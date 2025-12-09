@@ -1,7 +1,24 @@
-import { createCookie } from "@remix-run/node";
-import i18nConfig from "./index";
+// app/i18n/i18next.server.ts
 
-// Cookie used to store locale
+import { createCookie } from "@remix-run/node";
+import i18n from "i18next";
+import i18nConfig from "./index";
+import { resources } from "./resources";
+import type { SupportedLocale, DefaultNamespace } from "./resources";
+
+// 👇 Export a server-side i18n instance
+export const i18nServer = i18n.createInstance();
+
+i18nServer.init({
+  ...i18nConfig,
+  resources,
+  fallbackLng: i18nConfig.fallbackLng,
+  lng: i18nConfig.fallbackLng, // will be overridden per request
+  interpolation: { escapeValue: false }, // React-safe
+  // No need for backend or detection on server
+});
+
+// --- Locale cookie logic (unchanged) ---
 export const localeCookie = createCookie("locale", {
   path: "/",
   httpOnly: false,
@@ -9,47 +26,28 @@ export const localeCookie = createCookie("locale", {
   maxAge: 60 * 60 * 24 * 365,
 });
 
-export async function getLocaleFromRequest(request: Request): Promise<string> {
+export async function getLocaleFromRequest(request: Request): Promise<SupportedLocale> {
   try {
-    // 1️⃣ Try cookie
     const cookieHeader = request.headers.get("Cookie");
     if (cookieHeader) {
       const cookieValue = await localeCookie.parse(cookieHeader);
-
-      if (
-        typeof cookieValue === "string" &&
-        i18nConfig.supportedLngs.includes(cookieValue)
-      ) {
-        return cookieValue;
+      if (typeof cookieValue === "string" && i18nConfig.supportedLngs.includes(cookieValue)) {
+        return cookieValue as SupportedLocale;
       }
     }
 
-    // 2️⃣ Try URL parameter ?locale=fr
     const url = new URL(request.url);
     const localeParam = url.searchParams.get("locale");
-
-    if (
-      typeof localeParam === "string" &&
-      i18nConfig.supportedLngs.includes(localeParam)
-    ) {
-      return localeParam;
+    if (localeParam && i18nConfig.supportedLngs.includes(localeParam)) {
+      return localeParam as SupportedLocale;
     }
-  } catch (error) {
-    console.error("[i18next.server] Error reading locale:", error);
+  } catch (err) {
+    console.error("[i18next.server] Error reading locale:", err);
   }
 
-  // 3️⃣ Safe fallback (handles both string & object formats)
-  let fallback = "en";
+  return i18nConfig.fallbackLng as SupportedLocale;
+}
 
-  if (typeof i18nConfig.fallbackLng === "string") {
-    fallback = i18nConfig.fallbackLng;
-  } else if (
-    i18nConfig.fallbackLng &&
-    typeof i18nConfig.fallbackLng === "object" &&
-    "default" in i18nConfig.fallbackLng
-  ) {
-    fallback = (i18nConfig.fallbackLng as { default: string }).default;
-  }
-
-  return fallback;
+export function getRouteNamespaces(): DefaultNamespace[] {
+  return ["common"];
 }

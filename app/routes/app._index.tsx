@@ -19,11 +19,9 @@ import { authenticate } from "../shopify.server";
 import { checkBillingStatus } from "../lib/billing.server";
 import { AnalyticsService } from "../services/analytics.service";
 import db from "../db.server";
-import { useTranslation, I18nextProvider } from "react-i18next";
-import { getLocaleFromRequest } from "../i18n/i18next.server";
-import i18nClient from "../i18n/i18next.client"; // client-side i18next for React
+import { useTranslation } from "react-i18next";
+import { getLocaleFromRequest, i18nServer } from "../i18n/i18next.server";
 import { LanguageSwitcher } from "../components/LanguageSwitcher";
-
 
 export const handle = {
   i18n: "common",
@@ -31,12 +29,8 @@ export const handle = {
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { billing, session } = await authenticate.admin(request);
-
-  // Get locale from request (cookie or query param)
   const locale = await getLocaleFromRequest(request);
-
-  // Load translation function for "common" namespace
-  const t = i18nClient.getFixedT(locale, "common");
+  const t = i18nServer.getFixedT(locale, "common");
 
   const billingStatus = await checkBillingStatus(billing);
   const analyticsService = new AnalyticsService();
@@ -81,12 +75,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
     recentMessages.forEach((msg) => {
       if (msg.intent && msg.content) {
-        // Initialize if missing
         if (!intentCounts[msg.intent]) {
           intentCounts[msg.intent] = { count: 0, example: msg.content };
         }
-
-        // Use non-null assertion because we just initialized it
         intentCounts[msg.intent]!.count++;
       }
     });
@@ -94,7 +85,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const topQuestions = Object.entries(intentCounts)
       .sort((a, b) => b[1].count - a[1].count)
       .slice(0, 5)
-      .map(([_, data]) => ({
+      .map(([, data]) => ({
         question: data.example,
         count: data.count,
       }));
@@ -133,17 +124,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 };
 
-
 export default function Index() {
   const { stats, billingStatus, locale } = useLoaderData<typeof loader>();
-  const { t } = useTranslation();
+  const { t } = useTranslation(); // ✅ Safe: runs only on client
 
   return (
-  <I18nextProvider i18n={i18nClient}>
-    <Page
-      title={t("dashboard.title")}
-      subtitle={t("dashboard.subtitle")}
-    >
+    <Page title={t("dashboard.title")} subtitle={t("dashboard.subtitle")}>
       <Layout>
         {/* Billing Status Banner */}
         {!billingStatus.hasActivePayment && (
@@ -156,9 +142,7 @@ export default function Index() {
                 url: "/app/billing",
               }}
             >
-              <p>
-                {t("dashboard.freeTierMessage")}
-              </p>
+              <p>{t("dashboard.freeTierMessage")}</p>
             </Banner>
           </Layout.Section>
         )}
@@ -175,16 +159,16 @@ export default function Index() {
             >
               <p>
                 {t("dashboard.subscriptionActive")}
-                {billingStatus.appSubscriptions[0]?.test && (
-                  <> {t("dashboard.testModeNote")}</>
-                )}
+                {billingStatus.appSubscriptions[0]?.test && <> {t("dashboard.testModeNote")}</>}
               </p>
             </Banner>
           </Layout.Section>
         )}
-        
-        <LanguageSwitcher currentLocale={locale} />
 
+        {/* Language Switcher */}
+        <Layout.Section>
+          <LanguageSwitcher currentLocale={locale} />
+        </Layout.Section>
 
         {/* Key Metrics Section */}
         <Layout.Section>
@@ -194,94 +178,61 @@ export default function Index() {
             </Text>
 
             <InlineStack gap="400" wrap={false}>
-              <Box width="25%">
-                <Card>
-                  <BlockStack gap="300">
-                    <InlineStack align="space-between" blockAlign="start">
-                      <Text variant="bodyMd" as="p" tone="subdued">
-                        {t("dashboard.totalConversations")}
-                      </Text>
-                      <Badge tone="info">{t("dashboard.allTime")}</Badge>
-                    </InlineStack>
-                    <Text variant="heading2xl" as="p" fontWeight="bold">
-                      {stats.totalConversations.toLocaleString()}
-                    </Text>
-                    <Box>
-                      <Text variant="bodySm" as="p" tone="success">
-                        {t("dashboard.growthLastMonth")}
-                      </Text>
-                    </Box>
-                  </BlockStack>
-                </Card>
-              </Box>
-
-              <Box width="25%">
-                <Card>
-                  <BlockStack gap="300">
-                    <InlineStack align="space-between" blockAlign="start">
-                      <Text variant="bodyMd" as="p" tone="subdued">
-                        {t("dashboard.activeToday")}
-                      </Text>
-                      <Badge tone="success">{t("dashboard.live")}</Badge>
-                    </InlineStack>
-                    <Text variant="heading2xl" as="p" fontWeight="bold">
-                      {stats.activeToday}
-                    </Text>
-                    <Box>
-                      <Text variant="bodySm" as="p" tone="subdued">
-                        {t("dashboard.conversationsStarted")}
-                      </Text>
-                    </Box>
-                  </BlockStack>
-                </Card>
-              </Box>
-
-              <Box width="25%">
-                <Card>
-                  <BlockStack gap="300">
-                    <InlineStack align="space-between" blockAlign="start">
-                      <Text variant="bodyMd" as="p" tone="subdued">
-                        {t("dashboard.responseTime")}
-                      </Text>
-                      <Badge tone="attention">{t("dashboard.avg")}</Badge>
-                    </InlineStack>
-                    <Text variant="heading2xl" as="p" fontWeight="bold">
-                      {stats.avgResponseTime}
-                    </Text>
-                    <Box>
-                      <Text variant="bodySm" as="p" tone="subdued">
-                        {t("dashboard.aiProcessingSpeed")}
-                      </Text>
-                    </Box>
-                  </BlockStack>
-                </Card>
-              </Box>
-
-              <Box width="25%">
-                <Card>
-                  <BlockStack gap="300">
-                    <InlineStack align="space-between" blockAlign="start">
-                      <Text variant="bodyMd" as="p" tone="subdued">
-                        {t("dashboard.satisfactionScore")}
-                      </Text>
-                      <Badge tone="success">{t("dashboard.excellent")}</Badge>
-                    </InlineStack>
-                    <InlineStack gap="200" blockAlign="center">
-                      <Text variant="heading2xl" as="p" fontWeight="bold">
-                        {stats.customerSatisfaction}
-                      </Text>
-                      <Text variant="bodyMd" as="p" tone="subdued">
-                        {t("dashboard.outOf5")}
-                      </Text>
-                    </InlineStack>
-                    <Box>
-                      <Text variant="bodySm" as="p" tone="subdued">
-                        {t("dashboard.basedOnFeedback")}
-                      </Text>
-                    </Box>
-                  </BlockStack>
-                </Card>
-              </Box>
+              {[
+                {
+                  label: t("dashboard.totalConversations"),
+                  value: stats.totalConversations.toLocaleString(),
+                  badge: t("dashboard.allTime"),
+                  note: t("dashboard.growthLastMonth"),
+                },
+                {
+                  label: t("dashboard.activeToday"),
+                  value: stats.activeToday,
+                  badge: t("dashboard.live"),
+                  note: t("dashboard.conversationsStarted"),
+                },
+                {
+                  label: t("dashboard.responseTime"),
+                  value: stats.avgResponseTime,
+                  badge: t("dashboard.avg"),
+                  note: t("dashboard.aiProcessingSpeed"),
+                },
+                {
+                  label: t("dashboard.satisfactionScore"),
+                  value: stats.customerSatisfaction,
+                  badge: t("dashboard.excellent"),
+                  note: t("dashboard.basedOnFeedback"),
+                  suffix: t("dashboard.outOf5"),
+                },
+              ].map((metric, idx) => (
+                <Box width="25%" key={idx}>
+                  <Card>
+                    <BlockStack gap="300">
+                      <InlineStack align="space-between" blockAlign="start">
+                        <Text variant="bodyMd" as="p" tone="subdued">
+                          {metric.label}
+                        </Text>
+                        <Badge tone="info">{metric.badge}</Badge>
+                      </InlineStack>
+                      <InlineStack gap="200" blockAlign="center">
+                        <Text variant="heading2xl" as="p" fontWeight="bold">
+                          {metric.value}
+                        </Text>
+                        {metric.suffix && (
+                          <Text variant="bodyMd" as="p" tone="subdued">
+                            {metric.suffix}
+                          </Text>
+                        )}
+                      </InlineStack>
+                      <Box>
+                        <Text variant="bodySm" as="p" tone="subdued">
+                          {metric.note}
+                        </Text>
+                      </Box>
+                    </BlockStack>
+                  </Card>
+                </Box>
+              ))}
             </InlineStack>
           </BlockStack>
         </Layout.Section>
@@ -289,7 +240,7 @@ export default function Index() {
         {/* Main Content Grid */}
         <Layout.Section>
           <InlineStack gap="400" align="start">
-            {/* Widget Status Card */}
+            {/* System Status Card */}
             <Box width="50%">
               <Card>
                 <BlockStack gap="500">
@@ -303,71 +254,49 @@ export default function Index() {
                   </BlockStack>
 
                   <BlockStack gap="400">
-                    {/* AI Assistant Status */}
-                    <Box>
-                      <InlineStack align="space-between" blockAlign="center">
-                        <BlockStack gap="100">
-                          <Text variant="bodyMd" as="p" fontWeight="semibold">
-                            {t("dashboard.aiAssistant")}
-                          </Text>
-                          <Text variant="bodySm" as="p" tone="subdued">
-                            {t("dashboard.coreChatbot")}
-                          </Text>
-                        </BlockStack>
-                        <Badge tone="success" size="medium">{t("dashboard.active")}</Badge>
-                      </InlineStack>
-                    </Box>
-
-                    <Divider />
-
-                    {/* Theme Integration */}
-                    <Box>
-                      <InlineStack align="space-between" blockAlign="center">
-                        <BlockStack gap="100">
-                          <Text variant="bodyMd" as="p" fontWeight="semibold">
-                            {t("dashboard.themeIntegration")}
-                          </Text>
-                          <Text variant="bodySm" as="p" tone="subdued">
-                            {t("dashboard.widgetEmbedded")}
-                          </Text>
-                        </BlockStack>
-                        <Badge tone="success" size="medium">{t("dashboard.enabled")}</Badge>
-                      </InlineStack>
-                    </Box>
-
-                    <Divider />
-
-                    {/* N8N Connection */}
-                    <Box>
-                      <InlineStack align="space-between" blockAlign="center">
-                        <BlockStack gap="100">
-                          <Text variant="bodyMd" as="p" fontWeight="semibold">
-                            {t("dashboard.n8nWebhook")}
-                          </Text>
-                          <Text variant="bodySm" as="p" tone="subdued">
-                            {t("dashboard.advancedWorkflow")}
-                          </Text>
-                        </BlockStack>
-                        <Badge tone="warning" size="medium">{t("dashboard.fallback")}</Badge>
-                      </InlineStack>
-                    </Box>
-
-                    <Divider />
-
-                    {/* Analytics Tracking */}
-                    <Box>
-                      <InlineStack align="space-between" blockAlign="center">
-                        <BlockStack gap="100">
-                          <Text variant="bodyMd" as="p" fontWeight="semibold">
-                            {t("dashboard.analyticsTracking")}
-                          </Text>
-                          <Text variant="bodySm" as="p" tone="subdued">
-                            {t("dashboard.dataCollection")}
-                          </Text>
-                        </BlockStack>
-                        <Badge tone="success" size="medium">{t("dashboard.running")}</Badge>
-                      </InlineStack>
-                    </Box>
+                    {([
+                      {
+                        title: t("dashboard.aiAssistant"),
+                        desc: t("dashboard.coreChatbot"),
+                        badge: t("dashboard.active"),
+                        tone: "success",
+                      },
+                      {
+                        title: t("dashboard.themeIntegration"),
+                        desc: t("dashboard.widgetEmbedded"),
+                        badge: t("dashboard.enabled"),
+                        tone: "success",
+                      },
+                      {
+                        title: t("dashboard.n8nWebhook"),
+                        desc: t("dashboard.advancedWorkflow"),
+                        badge: t("dashboard.fallback"),
+                        tone: "warning",
+                      },
+                      {
+                        title: t("dashboard.analyticsTracking"),
+                        desc: t("dashboard.dataCollection"),
+                        badge: t("dashboard.running"),
+                        tone: "success",
+                      },
+                    ] as const).map((item, i) => (
+                      <Box key={i}>
+                        <InlineStack align="space-between" blockAlign="center">
+                          <BlockStack gap="100">
+                            <Text variant="bodyMd" as="p" fontWeight="semibold">
+                              {item.title}
+                            </Text>
+                            <Text variant="bodySm" as="p" tone="subdued">
+                              {item.desc}
+                            </Text>
+                          </BlockStack>
+                          <Badge tone={item.tone} size="medium">
+                            {item.badge}
+                          </Badge>
+                        </InlineStack>
+                        {i < 3 && <Divider />}
+                      </Box>
+                    ))}
                   </BlockStack>
 
                   <Box paddingBlockStart="200">
@@ -383,24 +312,21 @@ export default function Index() {
             <Box width="50%">
               <Card>
                 <BlockStack gap="500">
-                  <BlockStack gap="200">
-                    <InlineStack align="space-between" blockAlign="start">
-                      <BlockStack gap="100">
-                        <Text variant="headingLg" as="h3" fontWeight="bold">
-                          {t("dashboard.topQuestions")}
-                        </Text>
-                        <Text variant="bodyMd" as="p" tone="subdued">
-                          {t("dashboard.mostAsked")}
-                        </Text>
-                      </BlockStack>
-                      <Badge>{t("dashboard.last7Days")}</Badge>
-                    </InlineStack>
-                  </BlockStack>
+                  <InlineStack align="space-between" blockAlign="start">
+                    <BlockStack gap="100">
+                      <Text variant="headingLg" as="h3" fontWeight="bold">
+                        {t("dashboard.topQuestions")}
+                      </Text>
+                      <Text variant="bodyMd" as="p" tone="subdued">
+                        {t("dashboard.mostAsked")}
+                      </Text>
+                    </BlockStack>
+                    <Badge>{t("dashboard.last7Days")}</Badge>
+                  </InlineStack>
 
                   <BlockStack gap="300">
                     {stats.topQuestions.map((item, index) => {
-                      // Calculate percentage based on the highest count in the list
-                      const maxCount = Math.max(...stats.topQuestions.map(q => q.count), 1);
+                      const maxCount = Math.max(...stats.topQuestions.map((q) => q.count), 1);
                       const percentage = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
 
                       return (
@@ -410,7 +336,11 @@ export default function Index() {
                               <Text variant="bodyMd" as="p">
                                 {index + 1}. {item.question}
                               </Text>
-                              <Badge tone="info">{item.count > 0 ? `${item.count}${t("dashboard.timesAsked")}` : t("dashboard.new")}</Badge>
+                              <Badge tone="info">
+                                {item.count > 0
+                                  ? `${item.count}${t("dashboard.timesAsked")}`
+                                  : t("dashboard.new")}
+                              </Badge>
                             </InlineStack>
                             <ProgressBar progress={percentage} size="small" tone="primary" />
                           </BlockStack>
@@ -434,100 +364,74 @@ export default function Index() {
         <Layout.Section>
           <Card>
             <BlockStack gap="500">
-              <BlockStack gap="200">
-                <InlineStack align="space-between" blockAlign="center">
-                  <Text variant="headingLg" as="h3" fontWeight="bold">
-                    {t("dashboard.setupProgress")}
-                  </Text>
-                  <Badge tone="success">{t("dashboard.stepsCompleted")}</Badge>
-                </InlineStack>
-                <Text variant="bodyMd" as="p" tone="subdued">
-                  {t("dashboard.completeSteps")}
+              <InlineStack align="space-between" blockAlign="center">
+                <Text variant="headingLg" as="h3" fontWeight="bold">
+                  {t("dashboard.setupProgress")}
                 </Text>
-              </BlockStack>
+                <Badge tone="success">{t("dashboard.stepsCompleted")}</Badge>
+              </InlineStack>
+              <Text variant="bodyMd" as="p" tone="subdued">
+                {t("dashboard.completeSteps")}
+              </Text>
 
-              <Box paddingBlockStart="200" paddingBlockEnd="200">
+              <Box paddingBlock="200">
                 <ProgressBar progress={75} size="medium" tone="success" />
               </Box>
 
               <BlockStack gap="400">
-                {/* Step 1 - Completed */}
-                <Card background="bg-surface-secondary">
-                  <InlineStack gap="400" align="start" blockAlign="center">
-                    <Box>
-                      <Badge tone="success" size="large">✓</Badge>
-                    </Box>
-                    <BlockStack gap="200">
-                      <Text variant="bodyLg" as="p" fontWeight="semibold">
-                        {t("dashboard.step1Title")}
-                      </Text>
-                      <Text variant="bodyMd" as="p" tone="subdued">
-                        {t("dashboard.step1Desc")}
-                      </Text>
-                    </BlockStack>
-                  </InlineStack>
-                </Card>
-
-                {/* Step 2 - Completed */}
-                <Card background="bg-surface-secondary">
-                  <InlineStack gap="400" align="start" blockAlign="center">
-                    <Box>
-                      <Badge tone="success" size="large">✓</Badge>
-                    </Box>
-                    <BlockStack gap="200">
-                      <Text variant="bodyLg" as="p" fontWeight="semibold">
-                        {t("dashboard.step2Title")}
-                      </Text>
-                      <Text variant="bodyMd" as="p" tone="subdued">
-                        {t("dashboard.step2Desc")}
-                      </Text>
-                    </BlockStack>
-                  </InlineStack>
-                </Card>
-
-                {/* Step 3 - Completed */}
-                <Card background="bg-surface-secondary">
-                  <InlineStack gap="400" align="start" blockAlign="center">
-                    <Box>
-                      <Badge tone="success" size="large">✓</Badge>
-                    </Box>
-                    <BlockStack gap="200">
-                      <Text variant="bodyLg" as="p" fontWeight="semibold">
-                        {t("dashboard.step3Title")}
-                      </Text>
-                      <Text variant="bodyMd" as="p" tone="subdued">
-                        {t("dashboard.step3Desc")}
-                      </Text>
-                    </BlockStack>
-                  </InlineStack>
-                </Card>
-
-                {/* Step 4 - Optional */}
-                <Card>
-                  <InlineStack gap="400" align="start" blockAlign="center">
-                    <Box>
-                      <Badge tone="attention" size="large">○</Badge>
-                    </Box>
-                    <Box width="100%">
-                      <InlineStack align="space-between" blockAlign="center">
-                        <BlockStack gap="200">
-                          <InlineStack gap="200" blockAlign="center">
-                            <Text variant="bodyLg" as="p" fontWeight="semibold">
-                              {t("dashboard.step4Title")}
+                {[
+                  {
+                    title: t("dashboard.step1Title"),
+                    desc: t("dashboard.step1Desc"),
+                    completed: true,
+                  },
+                  {
+                    title: t("dashboard.step2Title"),
+                    desc: t("dashboard.step2Desc"),
+                    completed: true,
+                  },
+                  {
+                    title: t("dashboard.step3Title"),
+                    desc: t("dashboard.step3Desc"),
+                    completed: true,
+                  },
+                  {
+                    title: t("dashboard.step4Title"),
+                    desc: t("dashboard.step4Desc"),
+                    completed: false,
+                    optional: true,
+                  },
+                ].map((step, i) => (
+                  <Card key={i} background={step.completed ? "bg-surface-secondary" : undefined}>
+                    <InlineStack gap="400" align="start" blockAlign="center">
+                      <Box>
+                        <Badge tone={step.completed ? "success" : "attention"} size="large">
+                          {step.completed ? "✓" : "○"}
+                        </Badge>
+                      </Box>
+                      <Box width="100%">
+                        <InlineStack align="space-between" blockAlign="center">
+                          <BlockStack gap="200">
+                            <InlineStack gap="200" blockAlign="center">
+                              <Text variant="bodyLg" as="p" fontWeight="semibold">
+                                {step.title}
+                              </Text>
+                              {step.optional && (
+                                <Badge tone="info">{t("dashboard.optional")}</Badge>
+                              )}
+                            </InlineStack>
+                            <Text variant="bodyMd" as="p" tone="subdued">
+                              {step.desc}
                             </Text>
-                            <Badge tone="info">{t("dashboard.optional")}</Badge>
-                          </InlineStack>
-                          <Text variant="bodyMd" as="p" tone="subdued">
-                            {t("dashboard.step4Desc")}
-                          </Text>
-                        </BlockStack>
-                        <Button url="/app/settings">
-                          {t("dashboard.connectNow")}
-                        </Button>
-                      </InlineStack>
-                    </Box>
-                  </InlineStack>
-                </Card>
+                          </BlockStack>
+                          {!step.completed && (
+                            <Button url="/app/settings">{t("dashboard.connectNow")}</Button>
+                          )}
+                        </InlineStack>
+                      </Box>
+                    </InlineStack>
+                  </Card>
+                ))}
               </BlockStack>
 
               <Divider />
@@ -536,9 +440,7 @@ export default function Index() {
                 <Button variant="primary" url="/app/settings">
                   {t("dashboard.customizeWidget")}
                 </Button>
-                <Button url="/app/sales-assistant">
-                  {t("dashboard.testChat")}
-                </Button>
+                <Button url="/app/sales-assistant">{t("dashboard.testChat")}</Button>
               </InlineStack>
             </BlockStack>
           </Card>
@@ -552,65 +454,49 @@ export default function Index() {
             </Text>
 
             <InlineStack gap="400" wrap={false}>
-              <Box width="33.33%">
-                <Card>
-                  <BlockStack gap="300">
-                    <Text variant="headingMd" as="h3" fontWeight="semibold">
-                      {t("dashboard.viewAnalyticsTitle")}
-                    </Text>
-                    <Text variant="bodyMd" as="p" tone="subdued">
-                      {t("dashboard.viewAnalyticsDesc")}
-                    </Text>
-                    <Box paddingBlockStart="200">
-                      <Button fullWidth url="/app/sales-assistant">
-                        {t("dashboard.openAnalytics")}
-                      </Button>
-                    </Box>
-                  </BlockStack>
-                </Card>
-              </Box>
-
-              <Box width="33.33%">
-                <Card>
-                  <BlockStack gap="300">
-                    <Text variant="headingMd" as="h3" fontWeight="semibold">
-                      {t("dashboard.widgetSettingsTitle")}
-                    </Text>
-                    <Text variant="bodyMd" as="p" tone="subdued">
-                      {t("dashboard.widgetSettingsDesc")}
-                    </Text>
-                    <Box paddingBlockStart="200">
-                      <Button fullWidth url="/app/settings">
-                        {t("dashboard.configure")}
-                      </Button>
-                    </Box>
-                  </BlockStack>
-                </Card>
-              </Box>
-
-              <Box width="33.33%">
-                <Card>
-                  <BlockStack gap="300">
-                    <Text variant="headingMd" as="h3" fontWeight="semibold">
-                      {t("dashboard.upgradePlanTitle")}
-                    </Text>
-                    <Text variant="bodyMd" as="p" tone="subdued">
-                      {t("dashboard.upgradePlanDesc")}
-                    </Text>
-                    <Box paddingBlockStart="200">
-                      <Button fullWidth tone="success" url="/app/billing">
-                        {t("dashboard.viewPlansAction")}
-                      </Button>
-                    </Box>
-                  </BlockStack>
-                </Card>
-              </Box>
+              {[
+                {
+                  title: t("dashboard.viewAnalyticsTitle"),
+                  desc: t("dashboard.viewAnalyticsDesc"),
+                  url: "/app/sales-assistant",
+                  label: t("dashboard.openAnalytics"),
+                },
+                {
+                  title: t("dashboard.widgetSettingsTitle"),
+                  desc: t("dashboard.widgetSettingsDesc"),
+                  url: "/app/settings",
+                  label: t("dashboard.configure"),
+                },
+                {
+                  title: t("dashboard.upgradePlanTitle"),
+                  desc: t("dashboard.upgradePlanDesc"),
+                  url: "/app/billing",
+                  label: t("dashboard.viewPlansAction"),
+                  tone: "success" as const,
+                },
+              ].map((action, i) => (
+                <Box width="33.33%" key={i}>
+                  <Card>
+                    <BlockStack gap="300">
+                      <Text variant="headingMd" as="h3" fontWeight="semibold">
+                        {action.title}
+                      </Text>
+                      <Text variant="bodyMd" as="p" tone="subdued">
+                        {action.desc}
+                      </Text>
+                      <Box paddingBlockStart="200">
+                        <Button fullWidth tone={action.tone} url={action.url}>
+                          {action.label}
+                        </Button>
+                      </Box>
+                    </BlockStack>
+                  </Card>
+                </Box>
+              ))}
             </InlineStack>
           </BlockStack>
         </Layout.Section>
       </Layout>
     </Page>
-    </I18nextProvider>
-
   );
 }
