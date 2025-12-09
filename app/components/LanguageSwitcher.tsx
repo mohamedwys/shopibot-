@@ -20,13 +20,14 @@ export function LanguageSwitcher({ currentLocale }: LanguageSwitcherProps) {
   ];
 
   return (
-    <Form method="post" action="/">
+    <Form method="post" action="/set-locale">
       <input type="hidden" name="returnTo" value={location.pathname} />
       <select
         name="locale"
         defaultValue={currentLocale}
         onChange={(e) => e.currentTarget.form?.submit()}
         className="text-sm p-1 border rounded bg-white shadow-sm"
+        style={{ maxWidth: "140px" }}
       >
         {languages.map(({ code, label }) => (
           <option key={code} value={code}>

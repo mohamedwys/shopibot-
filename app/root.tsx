@@ -9,13 +9,12 @@ import {
   isRouteErrorResponse,
 } from "@remix-run/react";
 
-import { json, redirect } from "@remix-run/node";
+import { json } from "@remix-run/node";
 import { useEffect } from "react";
 import { captureException } from "./lib/sentry.client";
 import { useChangeLanguage } from "remix-i18next/react";
 import clientI18n from "./i18n/i18next.client";
 import { I18nextProvider } from "react-i18next";
-import { localeCookie } from "./i18n/i18next.server";
 
 // ✅ Import LanguageSwitcher
 import { LanguageSwitcher } from "./components/LanguageSwitcher";
@@ -37,32 +36,7 @@ export async function loader({ request }: { request: Request }) {
   });
 }
 
-// ---------------------- ACTION ----------------------
-export async function action({ request }: { request: Request }) {
-  const formData = await request.formData();
-  const newLocale = formData.get("locale")?.toString();
-  const rawReturnTo = formData.get("returnTo")?.toString();
-
-  if (!newLocale) {
-    const fallback = rawReturnTo && isSafeReturnTo(rawReturnTo) ? rawReturnTo : "/";
-    return redirect(fallback);
-  }
-
-  const returnTo = rawReturnTo && isSafeReturnTo(rawReturnTo) ? rawReturnTo : "/";
-
-  return redirect(returnTo, {
-    headers: {
-      "Set-Cookie": await localeCookie.serialize(newLocale),
-    },
-  });
-}
-
-function isSafeReturnTo(path: string): boolean {
-  if (!path) return false;
-  if (!path.startsWith("/")) return false;
-  if (path.startsWith("//")) return false;
-  return true;
-}
+// ❌ No action — locale switching is handled by /set-locale
 
 // ---------------------- APP COMPONENT ----------------------
 export default function App() {
@@ -93,10 +67,7 @@ export default function App() {
         </head>
         <body className="relative">
           {/* ✅ Language Switcher – Polaris-aligned */}
-          <div
-            className="fixed top-4 right-4 z-[1001]"
-            style={{ maxWidth: "140px" }}
-          >
+          <div className="fixed top-4 right-4 z-[1001]" style={{ maxWidth: "140px" }}>
             <LanguageSwitcher currentLocale={locale} />
           </div>
 
