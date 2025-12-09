@@ -1,5 +1,5 @@
-import db from '../db.server';
-import { logger, logError, createLogger } from '../lib/logger.server';
+import { prisma as db } from "../db.server";
+import { logError, createLogger } from '../lib/logger.server';
 
 export interface AnalyticsOverview {
   totalSessions: number;

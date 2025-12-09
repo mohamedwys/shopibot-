@@ -3,7 +3,7 @@ import { json } from "@remix-run/node";
 import { authenticate, unauthenticated, sessionStorage } from "../shopify.server";
 import { n8nService } from "../services/n8n.service";
 import { personalizationService } from "../services/personalization.service";
-import db from "../db.server";
+import { prisma as db } from "../db.server";
 import { getSecureCorsHeaders, createCorsPreflightResponse, isOriginAllowed, logCorsViolation } from "../lib/cors.server";
 import { rateLimit, RateLimitPresets } from "../lib/rate-limit.server";
 import { chatRequestSchema, validateData, validationErrorResponse } from "../lib/validation.server";

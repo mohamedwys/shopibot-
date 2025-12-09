@@ -1,5 +1,5 @@
 import { OpenAI } from 'openai';
-import db from '../db.server';
+import { prisma as db } from "../db.server";
 import { logger, logError, createLogger } from '../lib/logger.server';
 
 export interface Product {

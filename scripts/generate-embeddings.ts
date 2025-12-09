@@ -15,7 +15,7 @@
 
 import { getEmbeddingService, isEmbeddingServiceAvailable } from '../app/services/embedding.service';
 import { authenticate } from '../app/shopify.server';
-import db from '../app/db.server';
+import { prisma as db } from "../db.server";
 
 interface Product {
   id: string;

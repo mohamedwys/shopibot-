@@ -10,16 +10,14 @@ import {
   TextField,
   Select,
   ColorPicker,
-  Button,
   Banner,
   BlockStack,
-  InlineStack,
   Text,
   Divider,
   Checkbox,
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
-import db from "../db.server";
+import { prisma as db } from "../db.server";
 import { useTranslation } from "react-i18next";
 
 export const handle = {
