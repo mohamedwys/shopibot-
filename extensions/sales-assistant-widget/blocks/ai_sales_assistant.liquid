@@ -1346,52 +1346,10 @@ This creates a floating chat widget that can be added to any page
     try {
       loadConversationHistory();
       widgetSettings = blockSettings;
-      const shopDomain = window.Shopify?.shop || '{{ shop.permanent_domain }}';
-      const shopUrl = '{{ shop.url }}';
-      const possibleSettingsUrls = [
-        shopUrl + '/apps/widget-settings',
-        window.location.protocol + '//' + window.location.host + '/apps/widget-settings'
-      ];
-      let apiSuccess = false;
-      for (const appUrl of possibleSettingsUrls) {
-        try {
-          const timestamp = Date.now();
-          const response = await fetchWithRetry(`${appUrl}?shop=${shopDomain}&t=${timestamp}`, {}, 2);
-          const data = await response.json();
-          const isThemeEditor = !!(
-            window.Shopify?.designMode ||
-            window.location.search.includes('oseid=') ||
-            window.location.pathname.includes('/editor')
-          );
-            'Shopify.designMode': window.Shopify?.designMode,
-            'URL has oseid': window.location.search.includes('oseid='),
-            'Is theme editor': isThemeEditor
-          });
-          if (isThemeEditor) {
-            widgetSettings = { ...data.settings, ...blockSettings };  // Theme editor: block settings override
-          } else {
-            widgetSettings = { ...blockSettings, ...data.settings }; // Storefront: API settings override
-          }
-          apiSuccess = true;
-          if (typeof window.lastSettingsUpdate === 'undefined') {
-            window.lastSettingsUpdate = data.settings.updatedAt;
-          }
-          break;
-        } catch (e) {
-          continue;
-        }
-      }
-      if (!apiSuccess) {
-      }
       if (!widgetSettings.enabled) {
         return;
       }
       createWidget();
-        position: widgetSettings.position,
-        primaryColor: widgetSettings.primaryColor,
-        buttonText: widgetSettings.buttonText,
-        chatTitle: widgetSettings.chatTitle
-      });
     } catch (error) {
       widgetSettings = blockSettings;
       if (widgetSettings.enabled) {
@@ -2882,37 +2840,5 @@ This creates a floating chat widget that can be added to any page
   } else {
     initializeWidget();
   }
-  let workingApiUrl = null; // Cache the working URL to avoid testing all URLs every time
-  settingsCheckInterval = setInterval(async () => {
-    try {
-      const shopDomain = window.Shopify?.shop || '{{ shop.permanent_domain }}';
-      const urlsToTry = workingApiUrl ? [workingApiUrl] : [
-        '{{ shop.url }}' + '/apps/widget-settings',
-        window.location.protocol + '//' + window.location.host + '/apps/widget-settings'
-      ];
-      for (const url of urlsToTry) {
-        try {
-          const response = await fetchWithRetry(`${url}?shop=${shopDomain}&t=${Date.now()}`, {}, 1);
-          const data = await response.json();
-          const currentUpdate = data.settings.updatedAt;
-          if (!workingApiUrl) workingApiUrl = url;
-          if (window.lastSettingsUpdate && currentUpdate !== window.lastSettingsUpdate) {
-              old: window.lastSettingsUpdate,
-              new: currentUpdate,
-              newSettings: data.settings
-            });
-            widgetSettings = { ...blockSettings, ...data.settings };
-            createWidget();
-          }
-          window.lastSettingsUpdate = currentUpdate;
-          break; // Success, stop trying other URLs
-        } catch (e) {
-          if (url === workingApiUrl) workingApiUrl = null;
-          continue;
-        }
-      }
-    } catch (e) {
-    }
-  }, 300000); // 5 minutes (300,000ms) - much more reasonable for production
 })();
 </script> 
