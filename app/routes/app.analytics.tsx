@@ -27,6 +27,7 @@ import {
   PersonIcon,
 } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
+import { requireBilling } from "../lib/billing.server";
 import { analyticsService, AnalyticsService } from "../services/analytics.service";
 import { useTranslation } from "react-i18next";
 
@@ -35,7 +36,10 @@ export const handle = {
 };
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { billing, session } = await authenticate.admin(request);
+
+  // Require active billing subscription to access analytics
+  await requireBilling(billing);
 
   // Get period from query params or default to last 7 days
   const url = new URL(request.url);
@@ -103,7 +107,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { billing, session } = await authenticate.admin(request);
+
+  // Require active billing subscription for analytics actions
+  await requireBilling(billing);
 
   const formData = await request.formData();
   const actionType = formData.get("action");

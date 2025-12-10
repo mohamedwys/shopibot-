@@ -16,7 +16,7 @@ import {
   Banner,
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
-import { checkBillingStatus } from "../lib/billing.server";
+import { checkBillingStatus, requireBilling } from "../lib/billing.server";
 import { AnalyticsService } from "../services/analytics.service";
 import { prisma as db } from "../db.server";
 import { useTranslation } from "react-i18next";
@@ -29,6 +29,10 @@ export const handle = {
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { billing, session } = await authenticate.admin(request);
+
+  // Require active billing subscription to access dashboard
+  await requireBilling(billing);
+
   logger.debug({ shop: session.shop }, 'Session authenticated');
   const locale = await getLocaleFromRequest(request);
   const t = i18nServer.getFixedT(locale, "common");

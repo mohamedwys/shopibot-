@@ -18,6 +18,7 @@ import {
   Checkbox,
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
+import { requireBilling } from "../lib/billing.server";
 import { prisma as db } from "../db.server";
 import { useTranslation } from "react-i18next";
 
@@ -107,8 +108,11 @@ function hsbToHex(hsb: { hue: number; saturation: number; brightness: number }) 
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { admin, session } = await authenticate.admin(request);
-  
+  const { admin, billing, session } = await authenticate.admin(request);
+
+  // Require active billing subscription to access settings
+  await requireBilling(billing);
+
   try {
     // Ensure db is available
     if (!db) {
@@ -143,7 +147,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { admin, session } = await authenticate.admin(request);
+  const { admin, billing, session } = await authenticate.admin(request);
+
+  // Require active billing subscription to update settings
+  await requireBilling(billing);
 
   const formData = await request.formData();
 
