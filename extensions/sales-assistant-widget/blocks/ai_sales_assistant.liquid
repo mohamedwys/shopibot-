@@ -197,7 +197,6 @@ This creates a floating chat widget that can be added to any page
 
     const dangerousProtocols = /^(javascript|data|vbscript|file|about):/i;
     if (dangerousProtocols.test(urlStr)) {
-      console.warn('⚠️ Blocked dangerous URL protocol:', urlStr);
       return '';
     }
 
@@ -209,7 +208,6 @@ This creates a floating chat widget that can be added to any page
       return urlStr;
     }
 
-    console.warn('⚠️ Blocked suspicious URL:', urlStr);
     return '';
   }
 
@@ -252,7 +250,6 @@ This creates a floating chat widget that can be added to any page
         }
       }
     } catch (e) {
-      console.error('Failed to load conversation history:', e);
     }
     return false;
   }
@@ -264,7 +261,6 @@ This creates a floating chat widget that can be added to any page
         timestamp: Date.now()
       }));
     } catch (e) {
-      console.error('Failed to save conversation history:', e);
     }
   }
 
@@ -357,7 +353,6 @@ This creates a floating chat widget that can be added to any page
         messageQueue = JSON.parse(stored);
       }
     } catch (e) {
-      console.error('Failed to load message queue:', e);
     }
   }
 
@@ -365,7 +360,6 @@ This creates a floating chat widget that can be added to any page
     try {
       localStorage.setItem('ai_message_queue', JSON.stringify(messageQueue));
     } catch (e) {
-      console.error('Failed to save message queue:', e);
     }
   }
 
@@ -487,7 +481,6 @@ This creates a floating chat widget that can be added to any page
     const toggleBtn = document.getElementById('ai-chat-toggle-btn');
 
     if (!chatWindow) {
-      console.error('❌ AI Widget: Chat window not found!');
       return;
     }
 
@@ -654,7 +647,6 @@ This creates a floating chat widget that can be added to any page
     })
     .catch(error => {
       showLoading(false);
-      console.error('AI Assistant Error:', error);
 
       trackAnalytics(analyticsEvents.ERROR_OCCURRED, {
         errorMessage: error.message,
@@ -982,7 +974,6 @@ This creates a floating chat widget that can be added to any page
         return true;
       }
     } catch (error) {
-      console.error('Cart error:', error);
       showNotification('Failed to add to cart', 'error');
       return false;
     }
@@ -997,7 +988,6 @@ This creates a floating chat widget that can be added to any page
           el.textContent = cart.item_count;
         });
       })
-      .catch(err => console.error('Failed to update cart count:', err));
   }
 
   function handleSuggestedAction(action) {
@@ -1635,7 +1625,6 @@ This creates a floating chat widget that can be added to any page
       });
       
     } catch (error) {
-      console.error('Failed to load AI Sales Assistant settings:', error);
       widgetSettings = blockSettings;
       if (widgetSettings.enabled) {
         createWidget();
@@ -3240,7 +3229,6 @@ This creates a floating chat widget that can be added to any page
       
       toggleBtn.addEventListener('click', window.aiWidgetHandlers.toggleHandler);
     } else {
-      console.warn('⚠️ AI Widget: Toggle button not found');
     }
     
     const closeBtn = document.getElementById('ai-chat-close-btn');
@@ -3257,7 +3245,6 @@ This creates a floating chat widget that can be added to any page
       
       closeBtn.addEventListener('click', window.aiWidgetHandlers.closeHandler);
     } else {
-      console.warn('⚠️ AI Widget: Close button not found');
     }
     
     const sendBtn = document.getElementById('ai-chat-send-btn');
@@ -3274,7 +3261,6 @@ This creates a floating chat widget that can be added to any page
       
       sendBtn.addEventListener('click', window.aiWidgetHandlers.sendHandler);
     } else {
-      console.warn('⚠️ AI Widget: Send button not found');
     }
     
     const inputField = document.getElementById('ai-chat-input-field');
@@ -3292,7 +3278,6 @@ This creates a floating chat widget that can be added to any page
       
       inputField.addEventListener('keypress', window.aiWidgetHandlers.keyHandler);
     } else {
-      console.warn('⚠️ AI Widget: Input field not found');
     }
 
     window.aiWidgetHandlers.escapeHandler = function(e) {
