@@ -114,6 +114,141 @@ This creates a floating chat widget that can be added to any page
     return '#ee5cee'; // fallback to default if invalid
   }
 
+  // ✅ SECURITY: Sanitize URLs to prevent XSS attacks
+  function sanitizeUrl(url) {
+    if (!url) return '';
+    const urlStr = String(url).trim();
+
+    // Block dangerous protocols
+    const dangerousProtocols = /^(javascript|data|vbscript|file|about):/i;
+    if (dangerousProtocols.test(urlStr)) {
+      console.warn('⚠️ Blocked dangerous URL protocol:', urlStr);
+      return '';
+    }
+
+    // Allow only http, https, or relative URLs
+    if (urlStr.startsWith('http://') || urlStr.startsWith('https://') || urlStr.startsWith('/')) {
+      return urlStr;
+    }
+
+    // If it doesn't start with a protocol, treat as relative
+    if (!urlStr.includes(':')) {
+      return urlStr;
+    }
+
+    console.warn('⚠️ Blocked suspicious URL:', urlStr);
+    return '';
+  }
+
+  // ✅ PERFORMANCE: Retry with exponential backoff
+  async function fetchWithRetry(url, options = {}, maxRetries = 3) {
+    let lastError;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await fetch(url, options);
+        if (response.ok) {
+          return response;
+        }
+
+        // Don't retry on client errors (4xx), only server errors (5xx)
+        if (response.status >= 400 && response.status < 500) {
+          throw new Error(`Request failed with status ${response.status}`);
+        }
+
+        lastError = new Error(`Request failed with status ${response.status}`);
+      } catch (error) {
+        lastError = error;
+
+        // Don't retry on last attempt
+        if (attempt === maxRetries) break;
+
+        // Exponential backoff: 1s, 2s, 4s
+        const delay = Math.pow(2, attempt) * 1000;
+        console.log(`⏳ Retry attempt ${attempt + 1}/${maxRetries} after ${delay}ms`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+
+    throw lastError;
+  }
+
+  // ✅ FEATURE: Load conversation from localStorage
+  function loadConversationHistory() {
+    try {
+      const stored = localStorage.getItem('ai_chat_history');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        // Only load if recent (within 24 hours)
+        if (parsed.timestamp && (Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000)) {
+          conversationHistory = parsed.messages || [];
+          console.log('📥 Loaded conversation history:', conversationHistory.length, 'messages');
+          return true;
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load conversation history:', e);
+    }
+    return false;
+  }
+
+  // ✅ FEATURE: Save conversation to localStorage
+  function saveConversationHistory() {
+    try {
+      localStorage.setItem('ai_chat_history', JSON.stringify({
+        messages: conversationHistory,
+        timestamp: Date.now()
+      }));
+    } catch (e) {
+      console.error('Failed to save conversation history:', e);
+    }
+  }
+
+  // ✅ MEMORY: Cleanup function for widget
+  let settingsCheckInterval = null;
+  function cleanupWidget() {
+    // Clear interval
+    if (settingsCheckInterval) {
+      clearInterval(settingsCheckInterval);
+      settingsCheckInterval = null;
+    }
+
+    // Remove event listeners
+    if (window.aiWidgetHandlers) {
+      const toggleBtn = document.getElementById('ai-chat-toggle-btn');
+      const closeBtn = document.getElementById('ai-chat-close-btn');
+      const sendBtn = document.getElementById('ai-chat-send-btn');
+      const inputField = document.getElementById('ai-chat-input-field');
+
+      if (toggleBtn && window.aiWidgetHandlers.toggleHandler) {
+        toggleBtn.removeEventListener('click', window.aiWidgetHandlers.toggleHandler);
+      }
+      if (closeBtn && window.aiWidgetHandlers.closeHandler) {
+        closeBtn.removeEventListener('click', window.aiWidgetHandlers.closeHandler);
+      }
+      if (sendBtn && window.aiWidgetHandlers.sendHandler) {
+        sendBtn.removeEventListener('click', window.aiWidgetHandlers.sendHandler);
+      }
+      if (inputField && window.aiWidgetHandlers.keyHandler) {
+        inputField.removeEventListener('keypress', window.aiWidgetHandlers.keyHandler);
+      }
+      if (window.aiWidgetHandlers.escapeHandler) {
+        document.removeEventListener('keydown', window.aiWidgetHandlers.escapeHandler);
+      }
+      if (window.aiWidgetHandlers.focusTrapHandler) {
+        document.removeEventListener('keydown', window.aiWidgetHandlers.focusTrapHandler);
+      }
+      if (window.aiWidgetHandlers.outsideClickHandler) {
+        document.removeEventListener('click', window.aiWidgetHandlers.outsideClickHandler);
+      }
+    }
+
+    console.log('🧹 Widget cleanup complete');
+  }
+
+  // Expose cleanup for testing
+  window.cleanupAIWidget = cleanupWidget;
+
   // ✨ NEW: Apply sentiment-based styling to chat widget
   function applySentimentStyling(sentiment) {
     const chatWidget = document.getElementById('ai-chat-widget');
@@ -292,7 +427,7 @@ This creates a floating chat widget that can be added to any page
         // ✨ DEBUG: Log full context being sent
         console.log('📤 Sending context:', JSON.stringify(contextData, null, 2));
 
-        const response = await fetch(`${shopUrl}/apps/widget-settings`, {
+        const response = await fetchWithRetry(`${shopUrl}/apps/widget-settings`, {
            method: 'POST',
            headers: {
              'Content-Type': 'application/json',
@@ -305,14 +440,9 @@ This creates a floating chat widget that can be added to any page
              context: contextData
            })
          });
-         
-         if (response.ok) {
-           console.log('✅ Success! Chat message sent via app proxy');
-           return await response.json();
-         } else {
-           console.log(`❌ App proxy request failed with status: ${response.status}`);
-           throw new Error(`Request failed with status ${response.status}`);
-         }
+
+         console.log('✅ Success! Chat message sent via app proxy');
+         return await response.json();
        } catch (error) {
          console.log('❌ Failed to send chat message via app proxy:', error);
          throw error;
@@ -373,6 +503,9 @@ This creates a floating chat widget that can be added to any page
         if (conversationHistory.length > 10) {
           conversationHistory = conversationHistory.slice(-10);
         }
+
+        // ✅ FEATURE: Save conversation to localStorage
+        saveConversationHistory();
       } else {
         addMessageToChat('assistant', 'Sorry, I encountered an error. Please try again.');
       }
@@ -762,7 +895,10 @@ This creates a floating chat widget that can be added to any page
           const productUrl = action.data.startsWith('http')
             ? action.data
             : `/products/${action.data}`;
-          window.open(productUrl, '_blank');
+          const safeUrl = sanitizeUrl(productUrl);
+          if (safeUrl) {
+            window.open(safeUrl, '_blank', 'noopener,noreferrer');
+          }
         }
         break;
 
@@ -893,7 +1029,10 @@ This creates a floating chat widget that can be added to any page
     connectBtn.onclick = () => {
       // Open contact page or support email
       // You can customize this URL to your shop's contact page
-      window.open('/pages/contact', '_blank');
+      const safeUrl = sanitizeUrl('/pages/contact');
+      if (safeUrl) {
+        window.open(safeUrl, '_blank', 'noopener,noreferrer');
+      }
     };
     buttonsContainer.appendChild(connectBtn);
 
@@ -978,9 +1117,13 @@ This creates a floating chat widget that can be added to any page
         imageDiv.className = 'product-image';
         imageDiv.style.width = '100%';
         imageDiv.style.height = '160px';
-        // Sanitize URL to prevent javascript: protocol
-        const sanitizedImageUrl = String(product.image).replace(/^javascript:/i, '');
-        imageDiv.style.backgroundImage = `url('${sanitizedImageUrl}')`;
+        // Sanitize URL to prevent XSS
+        const sanitizedImageUrl = sanitizeUrl(product.image);
+        if (sanitizedImageUrl) {
+          // CSS.escape for additional safety in CSS context
+          const escapedUrl = sanitizedImageUrl.replace(/'/g, "\\'");
+          imageDiv.style.backgroundImage = `url('${escapedUrl}')`;
+        }
         imageDiv.style.backgroundSize = 'cover';
         imageDiv.style.backgroundPosition = 'center';
         imageDiv.style.backgroundColor = '#f8f9fa';
@@ -1222,11 +1365,14 @@ This creates a floating chat widget that can be added to any page
       productCard.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
-        
+
         // Use full URL if available, otherwise construct relative URL
         const productUrl = product.fullUrl || `/products/${product.handle}`;
-        window.open(productUrl, '_blank');
-        
+        const safeUrl = sanitizeUrl(productUrl);
+        if (safeUrl) {
+          window.open(safeUrl, '_blank', 'noopener,noreferrer');
+        }
+
         // Add visual feedback
         this.style.transform = 'scale(0.98)';
         setTimeout(() => {
@@ -1273,7 +1419,10 @@ This creates a floating chat widget that can be added to any page
       browseButton.textContent = 'Browse All Products';
       
       browseButton.addEventListener('click', function() {
-        window.open('/collections/all', '_blank');
+        const safeUrl = sanitizeUrl('/collections/all');
+        if (safeUrl) {
+          window.open(safeUrl, '_blank', 'noopener,noreferrer');
+        }
       });
       
       browseButton.addEventListener('mouseenter', function() {
@@ -1367,9 +1516,12 @@ This creates a floating chat widget that can be added to any page
   // Load widget settings and initialize
   async function initializeWidget() {
     try {
+      // ✅ FEATURE: Load conversation history from localStorage
+      loadConversationHistory();
+
       // Use block settings or fetch from API as fallback
       widgetSettings = blockSettings;
-      
+
       // Debug current context
       console.log('🏪 Current shop domain:', window.Shopify?.shop || '{{ shop.permanent_domain }}');
       console.log('🌐 Current location:', window.location.href);
@@ -1391,42 +1543,38 @@ This creates a floating chat widget that can be added to any page
         try {
           console.log(`🔄 AI Widget: Trying to fetch settings from ${appUrl}`);
           const timestamp = Date.now();
-          const response = await fetch(`${appUrl}?shop=${shopDomain}&t=${timestamp}`);
-          if (response.ok) {
-            const data = await response.json();
-            console.log(`✅ AI Widget: Successfully fetched settings from ${appUrl}`, data.settings);
+          const response = await fetchWithRetry(`${appUrl}?shop=${shopDomain}&t=${timestamp}`, {}, 2);
+          const data = await response.json();
+          console.log(`✅ AI Widget: Successfully fetched settings from ${appUrl}`, data.settings);
 
-            // Detect if we're in theme editor (multiple ways to check)
-            const isThemeEditor = !!(
-              window.Shopify?.designMode ||
-              window.location.search.includes('oseid=') ||
-              window.location.pathname.includes('/editor')
-            );
+          // Detect if we're in theme editor (multiple ways to check)
+          const isThemeEditor = !!(
+            window.Shopify?.designMode ||
+            window.location.search.includes('oseid=') ||
+            window.location.pathname.includes('/editor')
+          );
 
-            console.log('🎨 Theme Editor Detection:', {
-              'Shopify.designMode': window.Shopify?.designMode,
-              'URL has oseid': window.location.search.includes('oseid='),
-              'Is theme editor': isThemeEditor
-            });
+          console.log('🎨 Theme Editor Detection:', {
+            'Shopify.designMode': window.Shopify?.designMode,
+            'URL has oseid': window.location.search.includes('oseid='),
+            'Is theme editor': isThemeEditor
+          });
 
-            // In theme editor, prioritize block settings; on storefront, prioritize API settings
-            if (isThemeEditor) {
-              widgetSettings = { ...data.settings, ...blockSettings };  // Theme editor: block settings override
-              console.log('🎨 Theme Editor Mode: Using block settings to override API settings');
-            } else {
-              widgetSettings = { ...blockSettings, ...data.settings }; // Storefront: API settings override
-              console.log('🌐 Storefront Mode: Using API settings to override block settings');
-            }
-            apiSuccess = true;
-            
-            // Initialize lastSettingsUpdate with current timestamp for auto-refresh
-            if (typeof window.lastSettingsUpdate === 'undefined') {
-              window.lastSettingsUpdate = data.settings.updatedAt;
-            }
-            break;
+          // In theme editor, prioritize block settings; on storefront, prioritize API settings
+          if (isThemeEditor) {
+            widgetSettings = { ...data.settings, ...blockSettings };  // Theme editor: block settings override
+            console.log('🎨 Theme Editor Mode: Using block settings to override API settings');
           } else {
-            console.log(`❌ AI Widget: Failed to fetch from ${appUrl} - Status: ${response.status}`);
+            widgetSettings = { ...blockSettings, ...data.settings }; // Storefront: API settings override
+            console.log('🌐 Storefront Mode: Using API settings to override block settings');
           }
+          apiSuccess = true;
+
+          // Initialize lastSettingsUpdate with current timestamp for auto-refresh
+          if (typeof window.lastSettingsUpdate === 'undefined') {
+            window.lastSettingsUpdate = data.settings.updatedAt;
+          }
+          break;
         } catch (e) {
           console.log(`❌ AI Widget: Error fetching from ${appUrl}:`, e);
           continue;
@@ -2829,10 +2977,10 @@ This creates a floating chat widget that can be added to any page
     initializeWidget();
   }
   
-  // Check for setting updates every 5 minutes (reduced from 2 seconds to prevent excessive database queries)
+  // ✅ MEMORY: Check for setting updates every 5 minutes with proper cleanup
   let workingApiUrl = null; // Cache the working URL to avoid testing all URLs every time
-  
-  setInterval(async () => {
+
+  settingsCheckInterval = setInterval(async () => {
     try {
       const shopDomain = window.Shopify?.shop || '{{ shop.permanent_domain }}';
       const urlsToTry = workingApiUrl ? [workingApiUrl] : [
@@ -2841,30 +2989,28 @@ This creates a floating chat widget that can be added to any page
         // Fallback to current host
         window.location.protocol + '//' + window.location.host + '/apps/widget-settings'
       ];
-      
+
       for (const url of urlsToTry) {
         try {
-          const response = await fetch(`${url}?shop=${shopDomain}&t=${Date.now()}`);
-          if (response.ok) {
-            const data = await response.json();
-            const currentUpdate = data.settings.updatedAt;
-            
-            // Cache the working URL
-            if (!workingApiUrl) workingApiUrl = url;
-            
-            if (window.lastSettingsUpdate && currentUpdate !== window.lastSettingsUpdate) {
-              console.log('🔄 AI Widget: Settings updated, refreshing widget...', {
-                old: window.lastSettingsUpdate,
-                new: currentUpdate,
-                newSettings: data.settings
-              });
-              widgetSettings = { ...blockSettings, ...data.settings };
-              createWidget();
-              console.log('✅ AI Widget: Widget refreshed with new settings');
-            }
-            window.lastSettingsUpdate = currentUpdate;
-            break; // Success, stop trying other URLs
+          const response = await fetchWithRetry(`${url}?shop=${shopDomain}&t=${Date.now()}`, {}, 1);
+          const data = await response.json();
+          const currentUpdate = data.settings.updatedAt;
+
+          // Cache the working URL
+          if (!workingApiUrl) workingApiUrl = url;
+
+          if (window.lastSettingsUpdate && currentUpdate !== window.lastSettingsUpdate) {
+            console.log('🔄 AI Widget: Settings updated, refreshing widget...', {
+              old: window.lastSettingsUpdate,
+              new: currentUpdate,
+              newSettings: data.settings
+            });
+            widgetSettings = { ...blockSettings, ...data.settings };
+            createWidget();
+            console.log('✅ AI Widget: Widget refreshed with new settings');
           }
+          window.lastSettingsUpdate = currentUpdate;
+          break; // Success, stop trying other URLs
         } catch (e) {
           // If the cached URL fails, reset it to try all URLs next time
           if (url === workingApiUrl) workingApiUrl = null;
