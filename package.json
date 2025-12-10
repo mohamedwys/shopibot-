@@ -25,7 +25,7 @@
     "prisma": "prisma",
     "graphql-codegen": "graphql-codegen",
     "vite": "vite",
-    "vercel-build": "npx prisma generate && npm run build"
+    "vercel-build": "npx prisma generate --no-engine && npm run build"
   },
   "type": "module",
   "engines": {
