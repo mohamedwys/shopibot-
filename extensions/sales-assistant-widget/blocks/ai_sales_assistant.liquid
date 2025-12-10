@@ -1414,7 +1414,7 @@ This creates a floating chat widget that can be added to any page
             <!-- Wavy bottom edge -->
             <div class="header-wave-bottom">
               <svg viewBox="0 0 1200 40" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0,20 C150,0 350,40 600,20 C850,0 1050,40 1200,20 L1200,40 L0,40 Z" fill="white"/>
+                <path d="M0,25 Q600,5 1200,25 L1200,40 L0,40 Z" fill="#fafafa"/>
               </svg>
             </div>
           </div>
@@ -1786,7 +1786,7 @@ This creates a floating chat widget that can be added to any page
   position: relative;
   background: linear-gradient(135deg, var(--ai-primary-color, #ee5cee) 0%, var(--ai-primary-color-dark, #cc00cc) 100%);
   color: white;
-  padding: 20px 20px 0 20px;
+  padding: 18px 12px 0 12px;
   z-index: 10;
   box-sizing: border-box;
   grid-area: header !important;
@@ -2435,11 +2435,6 @@ This creates a floating chat widget that can be added to any page
   box-shadow:
     0 6px 12px rgba(var(--ai-primary-color-rgb, 238, 92, 238), 0.2),
     0 3px 6px rgba(0, 0, 0, 0.1);
-  animation: floatAvatar 3s ease-in-out infinite;
-}
-@keyframes floatAvatar {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-6px) rotate(2deg); }
 }
 .welcome-avatar img {
   width: 28px;
