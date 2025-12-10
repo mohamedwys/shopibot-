@@ -18,6 +18,7 @@ import {
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { useTranslation } from "react-i18next";
+import { logger } from "../lib/logger.server";
 
 export const handle = {
   i18n: "common",
@@ -26,10 +27,18 @@ export const handle = {
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { billing, session } = await authenticate.admin(request);
 
+  logger.debug({ shop: session.shop }, 'Loading billing page');
+
   const { hasActivePayment, appSubscriptions } = await billing.check({
     plans: ["Starter Plan", "Professional Plan"] as any,
     isTest: process.env.NODE_ENV !== "production",
   });
+
+  logger.debug({
+    shop: session.shop,
+    hasActivePayment,
+    activeSubscriptions: appSubscriptions?.length || 0
+  }, 'Billing status checked');
 
   return json({
     hasActivePayment,
@@ -45,19 +54,28 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData();
   const plan = formData.get("plan") as string;
 
+  logger.info({ shop: session.shop, plan }, 'Billing plan selected');
+
   if (!plan || !["Starter Plan", "Professional Plan"].includes(plan)) {
+    logger.warn({ shop: session.shop, plan }, 'Invalid plan selected');
     return json({ error: "Invalid plan selected" }, { status: 400 });
   }
 
-  const billingCheck = await billing.require({
-    plans: [plan] as any,
+  // Create billing request and get confirmation URL
+  const { confirmationUrl } = await billing.request({
+    plan: plan as any,
     isTest: process.env.NODE_ENV !== "production",
-    onFailure: async () => {
-      return redirect("/app/billing");
-    },
+    returnUrl: `${process.env.SHOPIFY_APP_URL}/app`,
   });
 
-  return redirect("/app");
+  logger.info({
+    shop: session.shop,
+    plan,
+    isTestMode: process.env.NODE_ENV !== "production"
+  }, 'Redirecting to Shopify billing confirmation');
+
+  // Redirect to Shopify's billing confirmation page
+  return redirect(confirmationUrl);
 };
 
 export default function BillingPage() {
