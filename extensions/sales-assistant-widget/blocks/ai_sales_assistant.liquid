@@ -642,7 +642,7 @@ This creates a floating chat widget that can be added to any page
         color: ${widgetSettings.primaryColor || '#ee5cee'};
         padding: 8px 16px;
         border-radius: 20px;
-        font-size: 15px;
+        font-size: 16px;
         font-weight: 500;
         cursor: pointer;
         white-space: nowrap;
@@ -718,7 +718,7 @@ This creates a floating chat widget that can be added to any page
         border: none;
         padding: 10px 18px;
         border-radius: 8px;
-        font-size: 15px;
+        font-size: 16px;
         font-weight: 600;
         cursor: pointer;
         display: flex;
@@ -1096,7 +1096,7 @@ This creates a floating chat widget that can be added to any page
       detailsDiv.style.padding = '16px';
       const titleH4 = document.createElement('h4');
       titleH4.style.margin = '0 0 8px 0';
-      titleH4.style.fontSize = '17px';
+      titleH4.style.fontSize = '18px';
       titleH4.style.fontWeight = '600';
       titleH4.style.color = '#1f2937';
       titleH4.style.lineHeight = '1.3';
@@ -1147,7 +1147,7 @@ This creates a floating chat widget that can be added to any page
         priceContainer.appendChild(originalPriceSpan);
       }
       const priceDiv = document.createElement('div');
-      priceDiv.style.fontSize = '21px';
+      priceDiv.style.fontSize = '22px';
       priceDiv.style.fontWeight = '700';
       priceDiv.style.color = product.compareAtPrice ? '#ef4444' : widgetSettings.primaryColor;
       priceDiv.textContent = product.priceFormatted || `$${parseFloat(product.price || '0').toFixed(2)}`;
@@ -1167,7 +1167,7 @@ This creates a floating chat widget that can be added to any page
       detailsDiv.appendChild(priceRow);
       const descP = document.createElement('p');
       descP.style.margin = '0 0 12px 0';
-      descP.style.fontSize = '14px';
+      descP.style.fontSize = '15px';
       descP.style.color = '#6b7280';
       descP.style.lineHeight = '1.4';
       descP.style.display = '-webkit-box';
@@ -1222,7 +1222,7 @@ This creates a floating chat widget that can be added to any page
       actionButton.style.textAlign = 'center';
       actionButton.style.padding = '10px';
       actionButton.style.borderRadius = '8px';
-      actionButton.style.fontSize = '15px';
+      actionButton.style.fontSize = '16px';
       actionButton.style.fontWeight = '600';
       actionButton.style.marginTop = 'auto';
       actionButton.textContent = 'View Product →';
@@ -1272,7 +1272,7 @@ This creates a floating chat widget that can be added to any page
       browseButton.style.color = widgetSettings.primaryColor;
       browseButton.style.padding = '10px 20px';
       browseButton.style.borderRadius = '25px';
-      browseButton.style.fontSize = '15px';
+      browseButton.style.fontSize = '16px';
       browseButton.style.fontWeight = '600';
       browseButton.style.cursor = 'pointer';
       browseButton.style.transition = 'all 0.2s ease';
@@ -1559,13 +1559,13 @@ This creates a floating chat widget that can be added to any page
 }
 .ai-sales-assistant-widget {
   /* Modern Typography Scale - Increased for better readability */
-  --font-size-xs: 0.8125rem;  /* 13px */
-  --font-size-sm: 0.9375rem;  /* 15px */
-  --font-size-base: 1.0625rem; /* 17px */
-  --font-size-md: 1.1875rem;  /* 19px */
-  --font-size-lg: 1.3125rem;  /* 21px */
-  --font-size-xl: 1.5625rem;  /* 25px */
-  --font-size-2xl: 2.125rem;  /* 34px */
+  --font-size-xs: 0.875rem;   /* 14px */
+  --font-size-sm: 1rem;       /* 16px */
+  --font-size-base: 1.125rem; /* 18px */
+  --font-size-md: 1.25rem;    /* 20px */
+  --font-size-lg: 1.375rem;   /* 22px */
+  --font-size-xl: 1.625rem;   /* 26px */
+  --font-size-2xl: 2.25rem;   /* 36px */
 
   /* Refined Spacing System */
   --space-1: 0.25rem;  /* 4px */
@@ -1808,9 +1808,9 @@ This creates a floating chat widget that can be added to any page
   position: relative;
   background: linear-gradient(135deg, var(--ai-primary-color, #3b82f6) 0%, var(--ai-primary-color-dark, #2563eb) 100%);
   color: var(--color-text-inverse);
-  padding: var(--space-5) var(--space-5) 0 var(--space-5);
+  padding: var(--space-4) var(--space-5) 0 var(--space-5);
   overflow: visible;
-  min-height: 90px;
+  min-height: 70px;
   z-index: 1;
   box-sizing: border-box;
   grid-area: header !important;
@@ -2500,7 +2500,7 @@ This creates a floating chat widget that can be added to any page
   margin-bottom: 0;
 }
 .welcome-title {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   font-weight: 700;
   color: var(--color-text-primary);
   margin: 0;
@@ -2512,7 +2512,7 @@ This creates a floating chat widget that can be added to any page
 }
 
 .section-label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--color-text-tertiary);
   text-transform: uppercase;
@@ -2667,19 +2667,19 @@ This creates a floating chat widget that can be added to any page
   }
   .quick-action-btn {
     padding: 6px 8px;
-    font-size: 10px;
+    font-size: 11px;
     min-height: 55px;
   }
   .quick-action-icon {
-    font-size: 16px;
-    width: 20px;
-    height: 20px;
+    font-size: 18px;
+    width: 22px;
+    height: 22px;
   }
   .welcome-title {
-    font-size: 15px;
+    font-size: 16px;
   }
   .section-label {
-    font-size: 10px;
+    font-size: 11px;
     margin-bottom: 10px;
   }
   .ai-chat-input {
