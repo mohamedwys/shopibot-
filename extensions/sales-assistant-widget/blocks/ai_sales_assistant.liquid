@@ -164,6 +164,29 @@ This creates a floating chat widget that can be added to any page
 {% endschema %}
 <!-- AI Sales Assistant Widget will be dynamically loaded -->
 <div id="ai-sales-assistant-container"></div>
+<script id="ai-widget-config" type="application/json">
+{
+  "enabled": {{ block.settings.enabled | default: true | json }},
+  "position": {{ block.settings.position | default: "bottom-right" | json }},
+  "buttonText": {{ block.settings.button_text | default: "Ask AI Assistant" | json }},
+  "chatTitle": {{ block.settings.chat_title | default: "AI Sales Assistant" | json }},
+  "statusText": {{ block.settings.status_text | default: "Online" | json }},
+  "closeButtonLabel": {{ block.settings.close_button_label | default: "Close" | json }},
+  "welcomeMessage": {{ block.settings.welcome_message | default: "Hello! I'm your AI sales assistant. I can help you find products, answer questions, and provide personalized recommendations." | json }},
+  "inputPlaceholder": {{ block.settings.input_placeholder | default: "Ask me anything about our products..." | json }},
+  "primaryColor": {{ block.settings.primary_color | default: "#ee5cee" | json }},
+  "sectionDiscoveryLabel": {{ block.settings.section_discovery_label | default: "Product Discovery" | json }},
+  "bestSellersText": {{ block.settings.best_sellers_text | default: "Best Sellers" | json }},
+  "newArrivalsText": {{ block.settings.new_arrivals_text | default: "New Arrivals" | json }},
+  "onSaleText": {{ block.settings.on_sale_text | default: "On Sale" | json }},
+  "recommendationsText": {{ block.settings.recommendations_text | default: "For You" | json }},
+  "sectionSupportLabel": {{ block.settings.section_support_label | default: "Customer Support" | json }},
+  "shippingText": {{ block.settings.shipping_text | default: "Shipping Info" | json }},
+  "returnsText": {{ block.settings.returns_text | default: "Returns" | json }},
+  "trackOrderText": {{ block.settings.track_order_text | default: "Track Order" | json }},
+  "helpText": {{ block.settings.help_text | default: "Help & FAQ" | json }}
+}
+</script>
 <script>
 (function() {
   let chatOpen = false;
@@ -403,29 +426,62 @@ This creates a floating chat widget that can be added to any page
       (B < 255 ? B < 1 ? 0 : B : 255))
       .toString(16).slice(1);
   }
-  const blockSettings = {
-    enabled: {{ block.settings.enabled | default: true | json }},
-    position: {{ block.settings.position | default: "bottom-right" | json }},
-    buttonText: {{ block.settings.button_text | default: "Ask AI Assistant" | json }},
-    chatTitle: {{ block.settings.chat_title | default: "AI Sales Assistant" | json }},
-    statusText: {{ block.settings.status_text | default: "Online" | json }},
-    closeButtonLabel: {{ block.settings.close_button_label | default: "Close" | json }},
-    welcomeMessage: {{ block.settings.welcome_message | default: "Hello! I'm your AI sales assistant. I can help you find products, answer questions, and provide personalized recommendations." | json }},
-    inputPlaceholder: {{ block.settings.input_placeholder | default: "Ask me anything about our products..." | json }},
-    primaryColor: {{ block.settings.primary_color | default: "#ee5cee" | json }},
-    sectionDiscoveryLabel: {{ block.settings.section_discovery_label | default: "Product Discovery" | json }},
-    bestSellersText: {{ block.settings.best_sellers_text | default: "Best Sellers" | json }},
-    newArrivalsText: {{ block.settings.new_arrivals_text | default: "New Arrivals" | json }},
-    onSaleText: {{ block.settings.on_sale_text | default: "On Sale" | json }},
-    recommendationsText: {{ block.settings.recommendations_text | default: "For You" | json }},
-    sectionSupportLabel: {{ block.settings.section_support_label | default: "Customer Support" | json }},
-    shippingText: {{ block.settings.shipping_text | default: "Shipping Info" | json }},
-    returnsText: {{ block.settings.returns_text | default: "Returns" | json }},
-    trackOrderText: {{ block.settings.track_order_text | default: "Track Order" | json }},
-    helpText: {{ block.settings.help_text | default: "Help & FAQ" | json }}
-  };
-  console.log('AI Widget Block Settings:', blockSettings);
-  console.log('AI Widget Enabled:', blockSettings.enabled);
+  // Read settings from JSON config element (safer than inline Liquid in JS)
+  let blockSettings;
+  try {
+    const configElement = document.getElementById('ai-widget-config');
+    if (configElement && configElement.textContent) {
+      blockSettings = JSON.parse(configElement.textContent);
+      console.log('AI Widget Block Settings loaded from JSON:', blockSettings);
+      console.log('AI Widget Enabled:', blockSettings.enabled);
+    } else {
+      console.error('AI Widget: Config element not found');
+      blockSettings = {
+        enabled: false,
+        position: "bottom-right",
+        buttonText: "Ask AI Assistant",
+        chatTitle: "AI Sales Assistant",
+        statusText: "Online",
+        closeButtonLabel: "Close",
+        welcomeMessage: "Hello! I'm your AI sales assistant.",
+        inputPlaceholder: "Ask me anything...",
+        primaryColor: "#ee5cee",
+        sectionDiscoveryLabel: "Product Discovery",
+        bestSellersText: "Best Sellers",
+        newArrivalsText: "New Arrivals",
+        onSaleText: "On Sale",
+        recommendationsText: "For You",
+        sectionSupportLabel: "Customer Support",
+        shippingText: "Shipping Info",
+        returnsText: "Returns",
+        trackOrderText: "Track Order",
+        helpText: "Help & FAQ"
+      };
+    }
+  } catch (error) {
+    console.error('AI Widget: Failed to parse config:', error);
+    blockSettings = {
+      enabled: false,
+      position: "bottom-right",
+      buttonText: "Ask AI Assistant",
+      chatTitle: "AI Sales Assistant",
+      statusText: "Online",
+      closeButtonLabel: "Close",
+      welcomeMessage: "Hello! I'm your AI sales assistant.",
+      inputPlaceholder: "Ask me anything...",
+      primaryColor: "#ee5cee",
+      sectionDiscoveryLabel: "Product Discovery",
+      bestSellersText: "Best Sellers",
+      newArrivalsText: "New Arrivals",
+      onSaleText: "On Sale",
+      recommendationsText: "For You",
+      sectionSupportLabel: "Customer Support",
+      shippingText: "Shipping Info",
+      returnsText: "Returns",
+      trackOrderText: "Track Order",
+      helpText: "Help & FAQ"
+    };
+  }
   window.toggleAIChat = function() {
     const chatWindow = document.getElementById('ai-chat-window');
     const toggleBtn = document.getElementById('ai-chat-toggle-btn');
