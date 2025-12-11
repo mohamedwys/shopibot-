@@ -1402,9 +1402,9 @@ This creates a floating chat widget that can be added to any page
           <div class="ai-chat-header">
             <!-- Animated Wave Layers -->
             <div class="header-waves">
-              <div class="wave wave-1"></div>
-              <div class="wave wave-2"></div>
-              <div class="wave wave-3"></div>
+              <div class="header-wave-layer wave-1"></div>
+              <div class="header-wave-layer wave-2"></div>
+              <div class="header-wave-layer wave-3"></div>
             </div>
             <div class="chat-header-content">
               <div class="header-info">
@@ -1834,7 +1834,7 @@ This creates a floating chat widget that can be added to any page
 }
 
 /* Individual Wave Layers */
-.wave {
+.header-wave-layer {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -1845,6 +1845,7 @@ This creates a floating chat widget that can be added to any page
   background-size: 50% 40px;
   transform-origin: center bottom;
   will-change: transform;
+  display: block !important;
 }
 
 /* Wave 1 - Background Layer */
@@ -1909,7 +1910,7 @@ This creates a floating chat widget that can be added to any page
 /* Accessibility - Reduce motion */
 @media (prefers-reduced-motion: reduce) {
   .status-dot,
-  .wave {
+  .header-wave-layer {
     animation: none;
   }
 }
