@@ -132,7 +132,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   async function sendMessage(message) {
     const response = await fetch(
-      API_BASE_URL + '/api/widget-settings?shop=' + encodeURIComponent(SHOP_DOMAIN),
+      API_BASE_URL + '/apps/sales-assistant-api?shop=' + encodeURIComponent(SHOP_DOMAIN),
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
