@@ -1,6 +1,6 @@
 -- CreateTable
 CREATE TABLE "WidgetSettings" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "shop" TEXT NOT NULL,
     "enabled" BOOLEAN NOT NULL DEFAULT true,
     "position" TEXT NOT NULL DEFAULT 'bottom-right',
@@ -9,8 +9,10 @@ CREATE TABLE "WidgetSettings" (
     "welcomeMessage" TEXT NOT NULL DEFAULT 'Hello! I''m your AI sales assistant. I can help you find products, answer questions about pricing, shipping, and provide personalized recommendations. How can I assist you today?',
     "inputPlaceholder" TEXT NOT NULL DEFAULT 'Ask me anything about our products...',
     "primaryColor" TEXT NOT NULL DEFAULT '#007cba',
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "WidgetSettings_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
