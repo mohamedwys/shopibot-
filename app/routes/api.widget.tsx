@@ -165,13 +165,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         #ai-toggle-btn.open svg.close { transform: rotate(0) scale(1); }
         #ai-chat-window { position: absolute; bottom: 80px; right: 0; width: 380px; max-width: calc(100vw - 40px); height: 600px; max-height: calc(100vh - 120px); background: white; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); display: flex; flex-direction: column; opacity: 0; transform: scale(0.95) translateY(10px); pointer-events: none; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
         #ai-chat-window.open { opacity: 1; transform: scale(1) translateY(0); pointer-events: auto; }
-        .ai-chat-header { background: linear-gradient(135deg, \${primaryColor}, \${adjustBrightness(primaryColor, -20)}); color: white; padding: 20px 20px 50px 20px; border-radius: 16px 16px 0 0; display: flex; align-items: center; justify-content: space-between; position: relative; overflow: hidden; min-height: 100px; }
-        .ai-header-waves { position: absolute; bottom: 0; left: 0; width: 100%; height: 80px; pointer-events: none; }
+        .ai-chat-header { background: linear-gradient(135deg, \${primaryColor}, \${adjustBrightness(primaryColor, -20)}); color: white; padding: 20px 20px 60px 20px; border-radius: 16px 16px 0 0; display: flex; align-items: center; justify-content: space-between; position: relative; overflow: hidden; min-height: 110px; }
+        .ai-header-waves { position: absolute; bottom: 0; left: 0; width: 100%; height: 100px; pointer-events: none; z-index: 0; }
         .ai-wave { position: absolute; bottom: 0; left: 0; width: 200%; height: 100%; }
-        .ai-wave path { fill: rgba(255, 255, 255, 0.4); }
-        .ai-wave.wave-1 { animation: wave-animation-1 12s cubic-bezier(0.36, 0.45, 0.63, 0.53) infinite; opacity: 0.7; }
-        .ai-wave.wave-2 { animation: wave-animation-2 15s cubic-bezier(0.36, 0.45, 0.63, 0.53) -3s infinite; opacity: 0.5; }
-        .ai-wave.wave-3 { animation: wave-animation-3 18s cubic-bezier(0.36, 0.45, 0.63, 0.53) -6s infinite; opacity: 0.4; }
+        .ai-wave path { fill: rgba(255, 255, 255, 1); }
+        .ai-wave.wave-1 { animation: wave-animation-1 12s cubic-bezier(0.36, 0.45, 0.63, 0.53) infinite; opacity: 0.35; }
+        .ai-wave.wave-2 { animation: wave-animation-2 15s cubic-bezier(0.36, 0.45, 0.63, 0.53) -3s infinite; opacity: 0.25; }
+        .ai-wave.wave-3 { animation: wave-animation-3 18s cubic-bezier(0.36, 0.45, 0.63, 0.53) -6s infinite; opacity: 0.2; }
         @keyframes wave-animation-1 {
           0%, 100% { transform: translateX(0) translateY(0); }
           50% { transform: translateX(-25%) translateY(-8px); }
@@ -232,14 +232,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
             </button>
             <div class="ai-header-waves">
-              <svg class="ai-wave wave-1" viewBox="0 0 1200 80" preserveAspectRatio="none">
-                <path d="M0,40 C150,65 350,15 600,40 C850,65 1050,15 1200,40 L1200,80 L0,80 Z"></path>
+              <svg class="ai-wave wave-1" viewBox="0 0 1200 100" preserveAspectRatio="none">
+                <path d="M0,50 C200,80 400,20 600,50 C800,80 1000,20 1200,50 L1200,100 L0,100 Z"></path>
               </svg>
-              <svg class="ai-wave wave-2" viewBox="0 0 1200 80" preserveAspectRatio="none">
-                <path d="M0,30 C200,55 400,5 600,35 C800,60 1000,10 1200,35 L1200,80 L0,80 Z"></path>
+              <svg class="ai-wave wave-2" viewBox="0 0 1200 100" preserveAspectRatio="none">
+                <path d="M0,40 C250,75 450,10 600,45 C850,75 1050,15 1200,45 L1200,100 L0,100 Z"></path>
               </svg>
-              <svg class="ai-wave wave-3" viewBox="0 0 1200 80" preserveAspectRatio="none">
-                <path d="M0,45 C180,70 420,20 600,45 C780,70 1020,20 1200,45 L1200,80 L0,80 Z"></path>
+              <svg class="ai-wave wave-3" viewBox="0 0 1200 100" preserveAspectRatio="none">
+                <path d="M0,60 C220,85 480,30 600,60 C820,85 1080,35 1200,60 L1200,100 L0,100 Z"></path>
               </svg>
             </div>
           </div>
