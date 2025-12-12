@@ -499,7 +499,7 @@ This creates a floating chat widget that can be added to any page
           locale: navigator.language || navigator.userLanguage || 'en',
           currency: '{{ shop.currency }}' || 'USD'
         };
-        const response = await fetchWithRetry(`${shopUrl}/apps/widget-settings`, {
+        const response = await fetchWithRetry(`https://shopibot.vercel.app/api/widget-settings?shop={{ shop.myshopify_domain }}`, {
            method: 'POST',
            headers: {
              'Content-Type': 'application/json',
