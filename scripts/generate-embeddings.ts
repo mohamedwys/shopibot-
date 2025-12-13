@@ -221,7 +221,8 @@ async function main() {
     process.exit(1);
   }
 
-  await generateEmbeddings(config.shop, config.force);
+  // TypeScript doesn't narrow the type after process.exit, so we assert it's defined
+  await generateEmbeddings(config.shop as string, config.force);
 }
 
 // Run if executed directly
