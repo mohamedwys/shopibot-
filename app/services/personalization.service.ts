@@ -264,7 +264,7 @@ If no preferences are mentioned, return empty object {}.
         response_format: { type: 'json_object' },
       });
 
-      const messageContent = response.choices[0]?.message.content || '{}';
+      const messageContent = response.choices[0]?.message?.content || '{}';
       const extracted = JSON.parse(messageContent);
 
       // Merge with existing preferences
@@ -361,7 +361,7 @@ Respond with just the category name.`,
           temperature: 0,
         });
 
-        const intent = response.choices[0]?.message.content?.trim() || 'OTHER';
+        const intent = response.choices[0]?.message?.content?.trim() || 'OTHER';
         this.logger.debug({ intent }, 'Intent classified by AI');
         return intent;
       }
@@ -402,7 +402,7 @@ Respond with just the category name.`,
           temperature: 0,
         });
 
-        const sentiment = (response.choices[0]?.message.content?.trim().toLowerCase() || 'neutral') as
+        const sentiment = (response.choices[0]?.message?.content?.trim()?.toLowerCase() || 'neutral') as
           | 'positive'
           | 'neutral'
           | 'negative';
