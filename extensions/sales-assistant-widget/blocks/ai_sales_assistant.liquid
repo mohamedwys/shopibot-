@@ -489,34 +489,31 @@ This creates a floating chat widget that can be added to any page
     showLoading(true);
     const shopUrl = '{{ shop.url }}';
     const sendChatMessage = async () => {
-      const detectedLocale = navigator.language || navigator.userLanguage || 'en';
-      try {
-        const contextData = {
-          page: window.location.pathname,
-          productId: getProductIdFromPage(),
-          conversationHistory: conversationHistory,
-          shopDomain: '{{ shop.myshopify_domain }}',
-          locale: navigator.language || navigator.userLanguage || 'en',
-          currency: '{{ shop.currency }}' || 'USD'
-        };
-        const response = await fetchWithRetry(`https://shopibot.vercel.app/api/widget-settings?shop={{ shop.myshopify_domain }}`, {
-           method: 'POST',
-           headers: {
-             'Content-Type': 'application/json',
-             'X-Shopify-Shop-Domain': '{{ shop.myshopify_domain }}',
-             'X-Shopify-Customer-Access-Token': '{{ customer.access_token | default: "" }}',
-           },
-           body: JSON.stringify({
-             userMessage: message,
-             products: [],
-             context: contextData
-           })
-         });
-         return await response.json();
-       } catch (error) {
-         throw error;
-       }
-     };
+        try {
+          const contextData = {
+            page: window.location.pathname,
+            productId: getProductIdFromPage(),
+            conversationHistory: conversationHistory,
+            shopDomain: '{{ shop.permanent_domain }}',
+            locale: navigator.language || navigator.userLanguage || 'en',
+            currency: '{{ shop.currency }}' || 'USD'
+          };
+          const response = await fetchWithRetry(`https://shopibot.vercel.app/api/widget-settings?shop={{ shop.permanent_domain }}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              userMessage: message,
+              products: [],
+              context: contextData
+            })
+          });
+          return await response.json();
+        } catch (error) {
+          throw error;
+        }
+      };
      sendChatMessage()
       .then(data => {
       showLoading(false);
