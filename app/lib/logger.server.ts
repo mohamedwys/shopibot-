@@ -46,7 +46,7 @@ export const logger = pino({
   // Base fields for all logs
   base: {
     env: process.env.NODE_ENV,
-    app: 'iheard-ai',
+    app: 'Shopibot',
   },
 
   // Timestamp format

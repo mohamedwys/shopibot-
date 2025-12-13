@@ -1,6 +1,6 @@
 import { OpenAI } from 'openai';
 import { prisma as db } from "../db.server";
-import { logger, logError, createLogger } from '../lib/logger.server';
+import { logError, createLogger } from '../lib/logger.server';
 
 export interface UserPreferences {
   favoriteColors?: string[];
@@ -216,7 +216,7 @@ export class PersonalizationService {
   async learnPreferences(
     userProfileId: string,
     message: string,
-    productsShown: string[]
+    _productsShown: string[] // Reserved for future use - will help correlate preferences with shown products
   ): Promise<void> {
     try {
       if (!this.openai) {
@@ -264,7 +264,8 @@ If no preferences are mentioned, return empty object {}.
         response_format: { type: 'json_object' },
       });
 
-      const extracted = JSON.parse(response.choices[0].message.content || '{}');
+      const messageContent = response.choices[0]?.message?.content || '{}';
+      const extracted = JSON.parse(messageContent);
 
       // Merge with existing preferences
       const updatedPrefs: UserPreferences = {
@@ -360,7 +361,7 @@ Respond with just the category name.`,
           temperature: 0,
         });
 
-        const intent = response.choices[0].message.content?.trim() || 'OTHER';
+        const intent = response.choices[0]?.message?.content?.trim() || 'OTHER';
         this.logger.debug({ intent }, 'Intent classified by AI');
         return intent;
       }
@@ -401,7 +402,7 @@ Respond with just the category name.`,
           temperature: 0,
         });
 
-        const sentiment = response.choices[0].message.content?.trim().toLowerCase() as
+        const sentiment = (response.choices[0]?.message?.content?.trim()?.toLowerCase() || 'neutral') as
           | 'positive'
           | 'neutral'
           | 'negative';

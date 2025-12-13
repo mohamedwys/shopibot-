@@ -53,7 +53,12 @@ export class EmbeddingService {
         input: cleanText,
       });
 
-      const embedding = response.data[0].embedding;
+      const embeddingData = response.data[0];
+      if (!embeddingData) {
+        throw new Error('No embedding data returned from OpenAI');
+      }
+
+      const embedding = embeddingData.embedding;
       this.logger.debug({ dimensions: embedding.length }, 'Generated embedding');
 
       return embedding;
@@ -147,9 +152,13 @@ export class EmbeddingService {
     let norm2 = 0;
 
     for (let i = 0; i < vec1.length; i++) {
-      dotProduct += vec1[i] * vec2[i];
-      norm1 += vec1[i] * vec1[i];
-      norm2 += vec2[i] * vec2[i];
+      const v1 = vec1[i];
+      const v2 = vec2[i];
+      if (v1 !== undefined && v2 !== undefined) {
+        dotProduct += v1 * v2;
+        norm1 += v1 * v1;
+        norm2 += v2 * v2;
+      }
     }
 
     const magnitude = Math.sqrt(norm1) * Math.sqrt(norm2);
@@ -233,6 +242,13 @@ export class EmbeddingService {
       try {
         const product = products[i];
 
+        // Skip if product is undefined
+        if (!product) {
+          this.logger.warn({ index: i }, 'Skipping undefined product');
+          if (onProgress) onProgress(i + 1, products.length);
+          continue;
+        }
+
         // Check if embedding already exists
         const existing = await this.getProductEmbedding(shop, product.id);
         if (existing) {
@@ -250,7 +266,8 @@ export class EmbeddingService {
         // Rate limiting: wait 100ms between requests
         await new Promise(resolve => setTimeout(resolve, 100));
       } catch (error) {
-        logError(error, 'Error processing product', { productId: products[i].id });
+        const product = products[i];
+        logError(error, 'Error processing product', { productId: product?.id });
         continue;
       }
     }

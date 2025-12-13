@@ -14,8 +14,6 @@
  */
 
 import { getEmbeddingService, isEmbeddingServiceAvailable } from '../app/services/embedding.service';
-import { authenticate } from '../app/shopify.server';
-import { prisma as db } from "../db.server";
 
 interface Product {
   id: string;
@@ -24,6 +22,41 @@ interface Product {
   description?: string;
   price?: string;
   image?: string;
+}
+
+interface GraphQLResponse {
+  json(): Promise<GraphQLData>;
+}
+
+interface GraphQLData {
+  data: {
+    products: {
+      edges: ProductEdge[];
+      pageInfo: {
+        hasNextPage: boolean;
+      };
+    };
+  };
+}
+
+interface ProductEdge {
+  cursor: string;
+  node: {
+    id: string;
+    title: string;
+    handle: string;
+    description: string | null;
+    featuredImage: {
+      url: string;
+    } | null;
+    variants: {
+      edges: Array<{
+        node: {
+          price: string;
+        };
+      }>;
+    };
+  };
 }
 
 async function getAllProducts(admin: any): Promise<Product[]> {
@@ -63,14 +96,14 @@ async function getAllProducts(admin: any): Promise<Product[]> {
       }
     `;
 
-    const response = await admin.graphql(query, {
+    const response: GraphQLResponse = await admin.graphql(query, {
       variables: { first: 50, after: cursor },
     });
 
-    const data = await response.json();
-    const edges = data.data.products.edges;
+    const data: GraphQLData = await response.json();
+    const edges: ProductEdge[] = data.data.products.edges;
 
-    const products = edges.map((edge: any) => ({
+    const products = edges.map((edge) => ({
       id: edge.node.id,
       title: edge.node.title,
       handle: edge.node.handle,
@@ -137,8 +170,12 @@ async function generateEmbeddings(shop: string, force: boolean = false) {
 
     console.log('✅ Script completed successfully');
   } catch (error) {
-    console.error('❌ Error generating embeddings:', error.message);
-    console.error(error.stack);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error('❌ Error generating embeddings:', errorMessage);
+    if (errorStack) {
+      console.error(errorStack);
+    }
     process.exit(1);
   }
 }
@@ -154,11 +191,15 @@ function parseArgs() {
 
   args.forEach(arg => {
     if (arg.startsWith('--shop=')) {
-      config.shop = arg.split('=')[1];
+      const shopValue = arg.split('=')[1];
+      if (shopValue) {
+        config.shop = shopValue;
+      }
     } else if (arg === '--force') {
       config.force = true;
     } else if (arg.startsWith('--batch-size=')) {
-      config.batchSize = parseInt(arg.split('=')[1]) || 10;
+      const batchSizeValue = arg.split('=')[1];
+      config.batchSize = batchSizeValue ? parseInt(batchSizeValue) || 10 : 10;
     }
   });
 
@@ -180,7 +221,8 @@ async function main() {
     process.exit(1);
   }
 
-  await generateEmbeddings(config.shop, config.force);
+  // TypeScript doesn't narrow the type after process.exit, so we assert it's defined
+  await generateEmbeddings(config.shop as string, config.force);
 }
 
 // Run if executed directly
