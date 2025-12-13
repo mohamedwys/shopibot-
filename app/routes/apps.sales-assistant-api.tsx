@@ -8,7 +8,7 @@ import { getSecureCorsHeaders, createCorsPreflightResponse, isOriginAllowed, log
 import { rateLimit, RateLimitPresets } from "../lib/rate-limit.server";
 import { chatRequestSchema, validateData, validationErrorResponse } from "../lib/validation.server";
 import { getAPISecurityHeaders, mergeSecurityHeaders } from "../lib/security-headers.server";
-import { logger, logError } from "../lib/logger.server";
+import { logError } from "../lib/logger.server";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   // Handle preflight CORS request
