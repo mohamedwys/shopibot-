@@ -439,24 +439,21 @@ function createWidget() {
   // Make sure it uses `widgetSettings` from global scope
 }
 
+// ======================
+// Initialize
+// ======================
 function init() {
   if (!window.aiSalesAssistantSettings) {
     console.warn('AI Sales Assistant: settings not found');
     return;
   }
-
   widgetSettings = window.aiSalesAssistantSettings;
-  widgetSettings.shopDomain = widgetSettings.shopDomain || 'unknown.myshopify.com';
-  widgetSettings.currency = widgetSettings.currency || 'USD';
-
   loadConversationHistory();
   loadMessageQueue();
   createWidget();
-  cacheDOMElements();
-  setupEventListeners();
 }
 
-// Run when ready
+// Run when DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);
 } else {

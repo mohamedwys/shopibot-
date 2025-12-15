@@ -1,0 +1,13 @@
+name = "AI Sales Assistant"
+uid = "5a62595f-e2e0-42c5-370d-1ee264e5462a7da03a8d"
+type = "theme"
+
+[[blocks]]
+name = "ai-sales-assistant"
+target = "body"
+
+[[assets]]
+key = "assets/ai-sales-assistant.js"
+
+[[assets]]
+key = "assets/ai-sales-assistant.css"
