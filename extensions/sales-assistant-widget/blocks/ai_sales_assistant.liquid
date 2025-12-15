@@ -1,7 +1,3 @@
-{% comment %}
-AI Sales Assistant Widget Block
-This creates a floating chat widget that can be added to any page
-{% endcomment %}
 {% schema %}
 {
   "name": "AI Sales Assistant",
@@ -162,16 +158,16 @@ This creates a floating chat widget that can be added to any page
   ]
 }
 {% endschema %}
-<!-- AI Sales Assistant Widget will be dynamically loaded -->
+
 <div id="ai-sales-assistant-container"></div>
 <script>
 (function() {
   let chatOpen = false;
   let conversationHistory = [];
   let widgetSettings = null;
-  let currentQuickReplies = []; // ✨ NEW: Track current quick replies
-  let currentSentiment = 'neutral'; // ✨ NEW: Track sentiment for styling
-  let currentSuggestedActions = []; // ✨ NEW: Track suggested actions
+  let currentQuickReplies = []; 
+  let currentSentiment = 'neutral'; 
+  let currentSuggestedActions = []; 
   function escapeHTML(str) {
     if (!str) return '';
     const div = document.createElement('div');
@@ -183,7 +179,7 @@ This creates a floating chat widget that can be added to any page
     if (/^#([0-9A-Fa-f]{3}){1,2}$/.test(color)) {
       return color;
     }
-    return '#ee5cee'; // fallback to default if invalid
+    return '#ee5cee'; 
   }
   function sanitizeUrl(url) {
     if (!url) return '';
@@ -357,15 +353,15 @@ This creates a floating chat widget that can be added to any page
     if (!chatWidget) return;
     const sentimentStyles = {
       positive: {
-        headerGradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', // Bright green
+        headerGradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', 
         headerShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
-        messagesBg: '#f0fdf4', // Light green tint
+        messagesBg: '#f0fdf4', 
         accentColor: '#10b981'
       },
       negative: {
-        headerGradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', // Warm orange
+        headerGradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', 
         headerShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
-        messagesBg: '#fffbeb', // Light warm tint
+        messagesBg: '#fffbeb', 
         accentColor: '#f59e0b'
       },
       neutral: {
@@ -1002,7 +998,6 @@ This creates a floating chat widget that can be added to any page
   function displayProductRecommendations(recommendations) {
   const messagesContainer = document.getElementById('ai-chat-messages');
   
-  // Main container for products
   const productsContainer = document.createElement('div');
   productsContainer.className = 'ai-message assistant-message products-grid-container';
   productsContainer.style.marginBottom = '16px';
@@ -1013,7 +1008,6 @@ This creates a floating chat widget that can be added to any page
   productsContainer.style.boxShadow = 'none';
   productsContainer.style.padding = '0';
 
-  // Horizontal scrolling container
   const gridContent = document.createElement('div');
   gridContent.className = 'products-grid';
   gridContent.style.display = 'flex';
@@ -1026,7 +1020,6 @@ This creates a floating chat widget that can be added to any page
   gridContent.style.scrollbarWidth = 'thin';
   gridContent.style.scrollbarColor = `${widgetSettings.primaryColor} #f3f4f6`;
   
-  // Add scroll hint for mobile
   if (recommendations.length > 1) {
     const scrollHint = document.createElement('div');
     scrollHint.style.textAlign = 'center';
@@ -1051,7 +1044,6 @@ This creates a floating chat widget that can be added to any page
     productCard.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
     productCard.style.position = 'relative';
     
-    // ✅ CRITICAL: Fixed width for horizontal scroll
     productCard.style.minWidth = '280px';
     productCard.style.maxWidth = '280px';
     productCard.style.flexShrink = '0';
@@ -1060,7 +1052,6 @@ This creates a floating chat widget that can be added to any page
     productCard.style.flexDirection = 'column';
     productCard.style.height = 'auto';
 
-    // Product Image Section
     if (product.image) {
       const imageDiv = document.createElement('div');
       imageDiv.className = 'product-image';
@@ -1078,7 +1069,6 @@ This creates a floating chat widget that can be added to any page
       imageDiv.style.backgroundPosition = 'center';
       imageDiv.style.backgroundColor = '#f8f9fa';
       
-      // Gradient overlay for better text readability
       const overlayDiv = document.createElement('div');
       overlayDiv.style.position = 'absolute';
       overlayDiv.style.bottom = '0';
@@ -1089,7 +1079,6 @@ This creates a floating chat widget that can be added to any page
       overlayDiv.style.pointerEvents = 'none';
       imageDiv.appendChild(overlayDiv);
 
-      // Badges container (top-left)
       const badgesContainer = document.createElement('div');
       badgesContainer.style.position = 'absolute';
       badgesContainer.style.top = '10px';
@@ -1099,7 +1088,6 @@ This creates a floating chat widget that can be added to any page
       badgesContainer.style.gap = '6px';
       badgesContainer.style.zIndex = '2';
 
-      // Discount Badge
       if (product.badge || product.discountPercent) {
         const discountBadge = document.createElement('div');
         discountBadge.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
@@ -1114,7 +1102,6 @@ This creates a floating chat widget that can be added to any page
         badgesContainer.appendChild(discountBadge);
       }
 
-      // Low Stock Badge
       if (product.isLowStock && product.inventory) {
         const stockBadge = document.createElement('div');
         stockBadge.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
@@ -1132,7 +1119,6 @@ This creates a floating chat widget that can be added to any page
         imageDiv.appendChild(badgesContainer);
       }
 
-      // Relevance Score Badge (top-right)
       if (product.relevanceScore) {
         const matchBadge = document.createElement('div');
         matchBadge.style.position = 'absolute';
@@ -1155,7 +1141,6 @@ This creates a floating chat widget that can be added to any page
       productCard.appendChild(imageDiv);
     }
 
-    // Product Details Section
     const detailsDiv = document.createElement('div');
     detailsDiv.style.padding = '16px';
     detailsDiv.style.display = 'flex';
@@ -1163,7 +1148,6 @@ This creates a floating chat widget that can be added to any page
     detailsDiv.style.flexGrow = '1';
     detailsDiv.style.gap = '8px';
 
-    // Product Title
     const titleH4 = document.createElement('h4');
     titleH4.style.margin = '0';
     titleH4.style.fontSize = '16px';
@@ -1178,7 +1162,6 @@ This creates a floating chat widget that can be added to any page
     titleH4.textContent = product.title || 'Untitled Product';
     detailsDiv.appendChild(titleH4);
 
-    // Rating (if available)
     if (product.rating || product.reviewCount) {
       const ratingDiv = document.createElement('div');
       ratingDiv.style.display = 'flex';
@@ -1208,7 +1191,6 @@ This creates a floating chat widget that can be added to any page
       detailsDiv.appendChild(ratingDiv);
     }
 
-    // Price Row with Category
     const priceRow = document.createElement('div');
     priceRow.style.display = 'flex';
     priceRow.style.justifyContent = 'space-between';
@@ -1221,7 +1203,6 @@ This creates a floating chat widget that can be added to any page
     priceContainer.style.flexDirection = 'column';
     priceContainer.style.gap = '2px';
 
-    // Compare at price (if on sale)
     if (product.compareAtPrice && parseFloat(product.compareAtPrice) > parseFloat(product.price)) {
       const originalPriceSpan = document.createElement('span');
       originalPriceSpan.style.fontSize = '12px';
@@ -1232,7 +1213,6 @@ This creates a floating chat widget that can be added to any page
       priceContainer.appendChild(originalPriceSpan);
     }
 
-    // Current Price
     const priceDiv = document.createElement('div');
     priceDiv.style.fontSize = '24px';
     priceDiv.style.fontWeight = '800';
@@ -1252,7 +1232,6 @@ This creates a floating chat widget that can be added to any page
 
     priceRow.appendChild(priceContainer);
 
-    // Category Badge
     if (product.category) {
       const categoryDiv = document.createElement('div');
       categoryDiv.style.background = 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)';
@@ -1270,7 +1249,6 @@ This creates a floating chat widget that can be added to any page
 
     detailsDiv.appendChild(priceRow);
 
-    // Product Description
     if (product.description) {
       const descP = document.createElement('p');
       descP.style.margin = '0';
@@ -1285,7 +1263,6 @@ This creates a floating chat widget that can be added to any page
       detailsDiv.appendChild(descP);
     }
 
-    // Urgency Message
     if (product.urgencyMessage) {
       const urgencyDiv = document.createElement('div');
       urgencyDiv.style.display = 'flex';
@@ -1312,7 +1289,6 @@ This creates a floating chat widget that can be added to any page
       detailsDiv.appendChild(urgencyDiv);
     }
 
-    // Product Tags
     if (product.tags && product.tags.length > 0) {
       const tagsDiv = document.createElement('div');
       tagsDiv.style.display = 'flex';
@@ -1338,7 +1314,6 @@ This creates a floating chat widget that can be added to any page
       detailsDiv.appendChild(tagsDiv);
     }
 
-    // View Product Button
     const actionButton = document.createElement('button');
     actionButton.style.background = `linear-gradient(135deg, ${widgetSettings.primaryColor} 0%, ${adjustColor(widgetSettings.primaryColor, -15)} 100%)`;
     actionButton.style.color = 'white';
@@ -1371,7 +1346,6 @@ This creates a floating chat widget that can be added to any page
     detailsDiv.appendChild(actionButton);
     productCard.appendChild(detailsDiv);
 
-    // Click Handler for Entire Card
     productCard.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -1390,14 +1364,12 @@ This creates a floating chat widget that can be added to any page
         window.open(safeUrl, '_blank', 'noopener,noreferrer');
       }
 
-      // Click feedback
       this.style.transform = 'scale(0.98)';
       setTimeout(() => {
         this.style.transform = 'scale(1)';
       }, 150);
     });
 
-    // Hover Effects
     productCard.addEventListener('mouseenter', function() {
       this.style.borderColor = widgetSettings.primaryColor;
       this.style.transform = 'translateY(-6px)';
@@ -1416,7 +1388,6 @@ This creates a floating chat widget that can be added to any page
   productsContainer.appendChild(gridContent);
   messagesContainer.appendChild(productsContainer);
 
-  // Browse All Products Button (if more than 2 products)
   if (recommendations.length > 2) {
     const browseMoreDiv = document.createElement('div');
     browseMoreDiv.className = 'ai-message assistant-message';
@@ -1471,17 +1442,15 @@ This creates a floating chat widget that can be added to any page
   scrollToBottom();
 }
 
-// Helper function to convert hex to RGB (add this if not already present)
 function hexToRgb(hex) {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return result ? {
     r: parseInt(result[1], 16),
     g: parseInt(result[2], 16),
     b: parseInt(result[3], 16)
-  } : { r: 59, g: 130, b: 246 }; // Default blue if parsing fails
+  } : { r: 59, g: 130, b: 246 }; 
 }
 
-// Helper function to adjust color brightness (add this if not already present)
 function adjustColor(color, percent) {
   const num = parseInt(color.replace('#', ''), 16);
   const amt = Math.round(2.55 * percent);
@@ -1556,7 +1525,7 @@ function adjustColor(color, percent) {
     const container = document.getElementById('ai-sales-assistant-container');
     if (!container || !widgetSettings) return;
     container.innerHTML = '';
-    const safePosition = String(widgetSettings.position).replace(/[^a-z-]/gi, ''); // Only allow letters and hyphens
+    const safePosition = String(widgetSettings.position).replace(/[^a-z-]/gi, ''); 
     const safeButtonText = escapeHTML(widgetSettings.buttonText);
     const safeChatTitle = escapeHTML(widgetSettings.chatTitle);
     const safeWelcomeMessage = escapeHTML(widgetSettings.welcomeMessage);
