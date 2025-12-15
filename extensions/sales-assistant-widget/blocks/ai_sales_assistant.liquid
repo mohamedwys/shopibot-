@@ -147,27 +147,27 @@
 <!-- 2. Expose settings -->
 <script>
   window.aiSalesAssistantSettings = {
-    enabled: {{ block.settings.enabled | json }},
-    position: {{ block.settings.position | json }},
-    buttonText: {{ block.settings.button_text | json }},
-    chatTitle: {{ block.settings.chat_title | json }},
-    statusText: {{ block.settings.status_text | json }},
-    closeButtonLabel: {{ block.settings.close_button_label | json }},
-    welcomeMessage: {{ block.settings.welcome_message | json }},
-    inputPlaceholder: {{ block.settings.input_placeholder | json }},
-    primaryColor: {{ block.settings.primary_color | json }},
-    sectionDiscoveryLabel: {{ block.settings.section_discovery_label | json }},
-    bestSellersText: {{ block.settings.best_sellers_text | json }},
-    newArrivalsText: {{ block.settings.new_arrivals_text | json }},
-    onSaleText: {{ block.settings.on_sale_text | json }},
-    recommendationsText: {{ block.settings.recommendations_text | json }},
-    sectionSupportLabel: {{ block.settings.section_support_label | json }},
-    shippingText: {{ block.settings.shipping_text | json }},
-    returnsText: {{ block.settings.returns_text | json }},
-    trackOrderText: {{ block.settings.track_order_text | json }},
-    helpText: {{ block.settings.help_text | json }},
-    shopDomain: '{{ shop.permanent_domain }}',
-    currency: '{{ shop.currency }}'
+    enabled: {{ settings.enabled | json }},
+    position: {{ settings.position | json }},
+    buttonText: {{ settings.button_text | json }},
+    chatTitle: {{ settings.chat_title | json }},
+    statusText: {{ settings.status_text | json }},
+    closeButtonLabel: {{ settings.close_button_label | json }},
+    welcomeMessage: {{ settings.welcome_message | json }},
+    inputPlaceholder: {{ settings.input_placeholder | json }},
+    primaryColor: {{ settings.primary_color | json }},
+    sectionDiscoveryLabel: {{ settings.section_discovery_label | json }},
+    bestSellersText: {{ settings.best_sellers_text | json }},
+    newArrivalsText: {{ settings.new_arrivals_text | json }},
+    onSaleText: {{ settings.on_sale_text | json }},
+    recommendationsText: {{ settings.recommendations_text | json }},
+    sectionSupportLabel: {{ settings.section_support_label | json }},
+    shippingText: {{ settings.shipping_text | json }},
+    returnsText: {{ settings.returns_text | json }},
+    trackOrderText: {{ settings.track_order_text | json }},
+    helpText: {{ settings.help_text | json }},
+    shopDomain: {{ shop.permanent_domain | json }},
+    currency: {{ shop.currency | json }}
   };
 </script>
 
