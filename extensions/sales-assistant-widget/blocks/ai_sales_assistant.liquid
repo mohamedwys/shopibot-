@@ -151,8 +151,8 @@
     chatTitle: {{ block.settings.chat_title | default: "AI Sales Assistant" | json }},
     statusText: {{ block.settings.status_text | default: "Online" | json }},
     closeButtonLabel: {{ block.settings.close_button_label | default: "Close" | json }},
-    welcomeMessage: {{ block.settings.welcome_message | default: "Hello! I'm your AI sales assistant..." | json }},
-    inputPlaceholder: {{ block.settings.input_placeholder | default: "Ask me anything..." | json }},
+    welcomeMessage: {{ block.settings.welcome_message | default: "Hello! I'm your AI sales assistant. I can help you find products, answer questions, and provide personalized recommendations." | json }},
+    inputPlaceholder: {{ block.settings.input_placeholder | default: "Ask me anything about our products..." | json }},
     primaryColor: {{ block.settings.primary_color | default: "#ee5cee" | json }},
     sectionDiscoveryLabel: {{ block.settings.section_discovery_label | default: "Product Discovery" | json }},
     bestSellersText: {{ block.settings.best_sellers_text | default: "Best Sellers" | json }},
@@ -171,15 +171,18 @@
 
   if (typeof window.aiWidgetInitialized === 'undefined') {
     window.aiWidgetInitialized = true;
-    var script = document.createElement('script');
-    script.src = '{{ "ai-sales-assistant.js" | asset_url }}';
-    script.defer = true;
-    script.type = 'module';
-    document.head.appendChild(script);
 
+    // Load CSS from theme app extension assets
     var link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = '{{ "ai-sales-assistant.css" | asset_url }}';
     document.head.appendChild(link);
+
+    // Load JS as module from theme app extension assets
+    var script = document.createElement('script');
+    script.src = '{{ "ai-sales-assistant.js" | asset_url }}';
+    script.type = 'module';
+    script.defer = true;
+    document.head.appendChild(script);
   }
 </script>
