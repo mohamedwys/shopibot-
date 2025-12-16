@@ -141,37 +141,45 @@
 }
 {% endschema %}
 
+<!-- Only render if enabled -->
+{% if block.settings.enabled %}
+
 <!-- 1. Render container -->
 <div id="ai-sales-assistant-container"></div>
 
-<!-- 2. Expose settings with fallback defaults -->
+<!-- 2. Expose settings to JavaScript -->
 <script>
   window.aiSalesAssistantSettings = {
-    // Use block settings if available, otherwise use defaults
-    enabled: {{ settings.enabled | default: true | json }},
-    position: {{ settings.position | default: "bottom-right" | json }},
-    buttonText: {{ settings.button_text | default: "Ask AI Assistant" | json }},
-    chatTitle: {{ settings.chat_title | default: "AI Sales Assistant" | json }},
-    statusText: {{ settings.status_text | default: "Online" | json }},
-    closeButtonLabel: {{ settings.close_button_label | default: "Close" | json }},
-    welcomeMessage: {{ settings.welcome_message | default: "Hello! I'm your AI sales assistant. How can I help you today?" | json }},
-    inputPlaceholder: {{ settings.input_placeholder | default: "Ask me anything about our products..." | json }},
-    primaryColor: {{ settings.primary_color | default: "#ee5cee" | json }},
-    sectionDiscoveryLabel: {{ settings.section_discovery_label | default: "Product Discovery" | json }},
-    bestSellersText: {{ settings.best_sellers_text | default: "Best Sellers" | json }},
-    newArrivalsText: {{ settings.new_arrivals_text | default: "New Arrivals" | json }},
-    onSaleText: {{ settings.on_sale_text | default: "On Sale" | json }},
-    recommendationsText: {{ settings.recommendations_text | default: "For You" | json }},
-    sectionSupportLabel: {{ settings.section_support_label | default: "Customer Support" | json }},
-    shippingText: {{ settings.shipping_text | default: "Shipping Info" | json }},
-    returnsText: {{ settings.returns_text | default: "Returns" | json }},
-    trackOrderText: {{ settings.track_order_text | default: "Track Order" | json }},
-    helpText: {{ settings.help_text | default: "Help & FAQ" | json }},
+    enabled: {{ block.settings.enabled | default: true | json }},
+    position: {{ block.settings.position | default: "bottom-right" | json }},
+    buttonText: {{ block.settings.button_text | default: "Ask AI Assistant" | json }},
+    chatTitle: {{ block.settings.chat_title | default: "AI Sales Assistant" | json }},
+    statusText: {{ block.settings.status_text | default: "Online" | json }},
+    closeButtonLabel: {{ block.settings.close_button_label | default: "Close" | json }},
+    welcomeMessage: {{ block.settings.welcome_message | default: "Hello! I'm your AI sales assistant. How can I help you today?" | json }},
+    inputPlaceholder: {{ block.settings.input_placeholder | default: "Ask me anything about our products..." | json }},
+    primaryColor: {{ block.settings.primary_color | default: "#ee5cee" | json }},
+    
+    // Quick action labels
+    sectionDiscoveryLabel: {{ block.settings.section_discovery_label | default: "Product Discovery" | json }},
+    bestSellersText: {{ block.settings.best_sellers_text | default: "Best Sellers" | json }},
+    newArrivalsText: {{ block.settings.new_arrivals_text | default: "New Arrivals" | json }},
+    onSaleText: {{ block.settings.on_sale_text | default: "On Sale" | json }},
+    recommendationsText: {{ block.settings.recommendations_text | default: "For You" | json }},
+    sectionSupportLabel: {{ block.settings.section_support_label | default: "Customer Support" | json }},
+    shippingText: {{ block.settings.shipping_text | default: "Shipping Info" | json }},
+    returnsText: {{ block.settings.returns_text | default: "Returns" | json }},
+    trackOrderText: {{ block.settings.track_order_text | default: "Track Order" | json }},
+    helpText: {{ block.settings.help_text | default: "Help & FAQ" | json }},
+    
+    // Shop data
     shopDomain: {{ shop.permanent_domain | json }},
     currency: {{ shop.currency | json }}
   };
 </script>
 
-<!-- 3. LOAD JS & CSS FROM THEME APP EXTENSION ASSETS -->
-<script src="{{ 'ai-sales-assistant.js' | asset_url }}" defer></script>
-<link rel="stylesheet" href="{{ 'ai-sales-assistant.css' | asset_url }}">
+<!-- 3. Load widget assets from Vercel -->
+<link rel="stylesheet" href="https://shopibot.vercel.app/widget.css">
+<script src="https://shopibot.vercel.app/widget.js" defer></script>
+
+{% endif %}
