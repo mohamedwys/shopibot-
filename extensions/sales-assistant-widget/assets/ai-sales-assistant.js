@@ -1312,19 +1312,6 @@ function cacheDOMElements() {
   elements.sendBtn = document.getElementById('ai-chat-send-btn');
 }
 
-function setupEventListeners() {
-  if (!elements.toggleBtn || !elements.chatWindow) return;
-
-  elements.toggleBtn.addEventListener('click', toggleAIChat);
-  elements.closeBtn?.addEventListener('click', () => {
-    if (chatOpen) toggleAIChat();
-  });
-  elements.sendBtn?.addEventListener('click', sendMessage);
-  elements.inputField?.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') sendMessage();
-  });
-}
-
 // ======================
 // Initialize
 // ======================
