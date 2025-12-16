@@ -4,6 +4,8 @@ import { useLoaderData } from "@remix-run/react";
 import { login } from "../../shopify.server";
 import { redirect } from "@remix-run/node";
 import type { LoaderFunctionArgs } from "@remix-run/node";
+import { Footer } from "../../components/Footer";
+import { FloatingCTA } from "../../components/FloatingCTA";
 
 // ✅ Lazy load heavy components to reduce initial bundle size
 // Hero contains Spline 3D library (~2MB) - only load when needed
@@ -13,11 +15,9 @@ const Stats = lazy(() => import("../../components/Stats").then(m => ({ default: 
 const Pricing = lazy(() => import("../../components/Pricing").then(m => ({ default: m.Pricing })));
 const Testimonials = lazy(() => import("../../components/Testimonials").then(m => ({ default: m.Testimonials })));
 const TrustSection = lazy(() => import("../../components/TrustSection").then(m => ({ default: m.TrustSection })));
-const AIAssistants = lazy(() => import("../../components/AIAssistants").then(m => ({ default: m.AIAssistants })));
 
 // ⚡ Keep Footer and FloatingCTA eager - they're small and needed immediately
-import { Footer } from "../../components/Footer";
-import { FloatingCTA } from "../../components/FloatingCTA";
+
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
@@ -96,10 +96,6 @@ export default function LandingPage() {
 
       <Suspense fallback={<SectionLoader />}>
         <Features />
-      </Suspense>
-
-      <Suspense fallback={<SectionLoader />}>
-        <AIAssistants />
       </Suspense>
 
       <Suspense fallback={<SectionLoader />}>
