@@ -396,12 +396,13 @@
   width: 100%;
 }
 .ai-chat-messages {
-  padding: 15px;
+  padding: 16px 20px;
   padding-bottom: 15px; /* Consistent padding */
   overflow-y: auto !important; /* Show scrollbar when content overflows */
   overflow-x: hidden !important;
   display: flex;
   flex-direction: column;
+  align-items: center; /* Center content horizontally */
   gap: 0 !important; /* Remove gap to use margin instead for better control */
   scroll-behavior: smooth;
   height: 100% !important; /* Take full available height */
@@ -438,10 +439,12 @@
   box-sizing: border-box !important;
   margin-bottom: 16px !important; /* Increased spacing for better visibility */
   margin-top: 0 !important; /* Reset any top margins */
+  align-self: flex-start; /* Default to left alignment */
 }
 .ai-welcome-message {
   max-width: 100% !important;
   width: 100% !important;
+  align-self: center !important; /* Center the welcome message */
 }
 #ai-chat-messages .ai-message:last-child,
 .ai-chat-messages .ai-message:last-child,
@@ -453,10 +456,10 @@
   margin-top: 0 !important;
 }
 .ai-message.user-message {
-  align-self: flex-end;
+  align-self: flex-end !important; /* Keep user messages on right */
 }
 .ai-message.assistant-message {
-  align-self: flex-start;
+  align-self: flex-start !important; /* Keep assistant messages on left */
 }
 .ai-message.product-recommendation {
   margin-top: 0 !important; /* Use consistent margin pattern */
@@ -750,6 +753,7 @@
 .products-grid-container {
   max-width: 100% !important;
   width: 100% !important;
+  align-self: stretch; /* Take full width within centered messages container */
 }
 .products-grid {
   display: flex !important;
@@ -757,10 +761,11 @@
   overflow-y: hidden !important;
   gap: 12px !important;
   width: 100% !important;
-  padding: 8px 0 !important;
+  padding: 8px 4px !important;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
+  justify-content: flex-start; /* Align products to left for scrolling */
 }
 .products-grid::-webkit-scrollbar {
   height: 8px;
@@ -930,11 +935,15 @@
   max-width: none !important;
 }
 .ai-welcome-screen {
-  padding: 20px 18px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 18px;
   animation: fadeIn 0.4s ease;
+  align-items: center; /* Center welcome content */
+  width: 100%;
+  max-width: 360px; /* Max width for better centering */
+  margin: 0 auto; /* Center the welcome screen */
 }
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
@@ -953,6 +962,7 @@
 }
 .quick-actions-section {
   margin-bottom: var(--space-3);
+  width: 100%;
 }
 .section-label {
   font-size: 12px;
@@ -964,6 +974,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  align-self: flex-start; /* Align label to left within centered container */
 }
 .section-label::before {
   content: '';
