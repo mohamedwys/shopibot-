@@ -434,10 +434,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       };
 
       const responseText = messages[intent.query] || messages["product"];
-      
+
       // Limit to 8 products for display
       recommendations = products.slice(0, 8);
-      
+
       // Try N8N first, but have fallback ready
       try {
         const customN8NService = new N8NService(webhookUrl);
@@ -446,9 +446,38 @@ export const action = async ({ request }: ActionFunctionArgs) => {
           products,
           context: enhancedContext
         });
-        
+
+        // ✅ CRITICAL FIX: Detect when AI incorrectly says it has no products
+        // Check if the response message indicates "no products" but we actually have products
+        const noProductPatterns = [
+          /n'ai pas.*détails.*produits/i,  // "n'ai pas de détails sur les produits"
+          /pas.*informations.*produits/i,  // "pas d'informations sur les produits"
+          /no.*details.*products/i,         // "no details on products"
+          /don't have.*details/i,           // "don't have details"
+          /can't.*access.*products/i,       // "can't access products"
+          /unable.*access.*catalog/i,       // "unable to access catalog"
+          /malheureusement/i,               // "unfortunately" (often precedes error messages)
+        ];
+
+        const messageIndicatesNoProducts = noProductPatterns.some(pattern =>
+          pattern.test(n8nResponse.message)
+        );
+
+        // If AI says "no products" but we have products, override the response
+        if (messageIndicatesNoProducts && products.length > 0) {
+          routeLogger.warn(
+            { aiMessage: n8nResponse.message.substring(0, 100) },
+            '⚠️ AI incorrectly said no products available - overriding with actual products'
+          );
+          n8nResponse = {
+            message: responseText,
+            recommendations: recommendations,
+            confidence: 0.8,
+            messageType: "product_recommendation"
+          };
+        }
         // Use N8N recommendations if available, otherwise use our fallback
-        if (n8nResponse.recommendations && n8nResponse.recommendations.length > 0) {
+        else if (n8nResponse.recommendations && n8nResponse.recommendations.length > 0) {
           recommendations = n8nResponse.recommendations;
           routeLogger.info({ count: recommendations.length }, 'Using N8N recommendations');
         } else {
@@ -475,8 +504,37 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         });
         recommendations = n8nResponse.recommendations || [];
 
-        // ✅ CRITICAL FIX: If N8N doesn't return products but we have products available, show them
-        if ((!recommendations || recommendations.length === 0) && products.length > 0) {
+        // ✅ CRITICAL FIX: Detect when AI incorrectly says it has no products (same as PRODUCT_SEARCH)
+        const noProductPatterns = [
+          /n'ai pas.*détails.*produits/i,  // "n'ai pas de détails sur les produits"
+          /pas.*informations.*produits/i,  // "pas d'informations sur les produits"
+          /no.*details.*products/i,         // "no details on products"
+          /don't have.*details/i,           // "don't have details"
+          /can't.*access.*products/i,       // "can't access products"
+          /unable.*access.*catalog/i,       // "unable to access catalog"
+          /malheureusement/i,               // "unfortunately" (often precedes error messages)
+        ];
+
+        const messageIndicatesNoProducts = noProductPatterns.some(pattern =>
+          pattern.test(n8nResponse.message)
+        );
+
+        // If AI says "no products" but we have products, override the response
+        if (messageIndicatesNoProducts && products.length > 0) {
+          routeLogger.warn(
+            { aiMessage: n8nResponse.message.substring(0, 100) },
+            '⚠️ AI incorrectly said no products available in general chat - overriding'
+          );
+          n8nResponse = {
+            message: "Here are some products you might be interested in:",
+            recommendations: products.slice(0, 6),
+            confidence: 0.7,
+            messageType: "product_recommendation"
+          };
+          recommendations = products.slice(0, 6);
+        }
+        // ✅ If N8N doesn't return products but we have products available, show them
+        else if ((!recommendations || recommendations.length === 0) && products.length > 0) {
           recommendations = products.slice(0, 6);
           routeLogger.info({ count: recommendations.length }, 'Added products to N8N response');
         }
