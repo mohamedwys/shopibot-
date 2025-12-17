@@ -244,14 +244,15 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
     // ✅ IMPROVED: Fetch more products (50 instead of 20)
     let products: any[] = [];
-    
+    let productsFetchFailed = false;
+
     try {
       // Use unauthenticated admin (uses offline token, works in production)
       const { admin: shopAdmin } = await unauthenticated.admin(shopDomain);
-      
+
       // ✅ IMPROVED: Build GraphQL query based on intent
       const variables: { first: number; query?: string } = { first: 50 };
-      
+
       if (intent.type === "PRODUCT_SEARCH") {
         if (intent.query === "bestseller") {
           variables.query = "tag:bestseller";
@@ -267,7 +268,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       } else {
         variables.query = "status:active";
       }
-      
+
       const response = await shopAdmin.graphql(`
         #graphql
         query getProducts($first: Int!, $query: String) {
@@ -301,6 +302,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       routeLogger.info({ count: products.length, shop: shopDomain }, '✅ Fetched products');
     } catch (error) {
       routeLogger.warn({ error: (error as Error).message }, '❌ Failed to fetch products');
+      productsFetchFailed = true;
       products = [];
     }
 
@@ -349,8 +351,35 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     let n8nResponse;
     let recommendations = [];
 
+    // ✅ CRITICAL FIX: Handle shop session/authentication failure
+    if (productsFetchFailed && intent.type === "PRODUCT_SEARCH") {
+      // Shop session not available - provide helpful message
+      const sessionErrorMessages: Record<string, string> = {
+        fr: "Je ne peux pas accéder aux produits actuellement car votre boutique nécessite une reconnexion. Veuillez contacter le support de la boutique ou réessayer plus tard.",
+        en: "I'm unable to access the product catalog at the moment because the shop connection needs to be refreshed. Please contact the shop administrator to reinstall the app, or try again later.",
+        es: "No puedo acceder al catálogo de productos en este momento porque la conexión de la tienda necesita actualizarse. Póngase en contacto con el administrador de la tienda o inténtelo más tarde.",
+        de: "Ich kann derzeit nicht auf den Produktkatalog zugreifen, da die Shop-Verbindung aktualisiert werden muss. Bitte kontaktieren Sie den Shop-Administrator oder versuchen Sie es später erneut.",
+        pt: "Não consigo acessar o catálogo de produtos no momento porque a conexão da loja precisa ser atualizada. Entre em contato com o administrador da loja ou tente novamente mais tarde.",
+        it: "Non riesco ad accedere al catalogo prodotti al momento perché la connessione del negozio deve essere aggiornata. Contatta l'amministratore del negozio o riprova più tardi."
+      };
+
+      const lang = enhancedContext.locale?.toLowerCase().split('-')[0] || 'en';
+      const errorMessage = sessionErrorMessages[lang] || sessionErrorMessages['en'];
+
+      n8nResponse = {
+        message: errorMessage,
+        recommendations: [],
+        confidence: 0.3,
+        messageType: "error",
+        quickReplies: lang === 'fr'
+          ? ["Contacter le support", "Aide"]
+          : ["Contact support", "Help"]
+      };
+
+      routeLogger.error({ shop: shopDomain }, 'Shop session unavailable - cannot fetch products');
+    }
     // ✅ IMPROVED: Handle product search intent directly OR use N8N
-    if (intent.type === "PRODUCT_SEARCH" && products.length > 0) {
+    else if (intent.type === "PRODUCT_SEARCH" && products.length > 0) {
       // Direct product recommendation (fallback if N8N fails)
       const messages: Record<string, string> = {
         "t-shirt": "👕 Here are our available t-shirts:",
