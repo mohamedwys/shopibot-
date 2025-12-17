@@ -270,6 +270,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         variables.query = "status:active";
       }
 
+      routeLogger.info({
+        intentType: intent.type,
+        intentQuery: intent.query,
+        graphqlQuery: variables.query,
+        message: finalMessage
+      }, '🔍 Query being sent to GraphQL');
+
       const response = await shopAdmin.graphql(`
         #graphql
         query getProducts($first: Int!, $query: String) {
@@ -291,18 +298,33 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       `, { variables });
 
       const responseData = (await response.json()) as any;
-      products = responseData?.data?.products?.edges?.map((edge: any) => ({
-        id: edge.node.id,
-        title: edge.node.title,
-        handle: edge.node.handle,
-        description: edge.node.description || '',
-        image: edge.node.featuredImage?.url,
-        price: edge.node.variants.edges[0]?.node.price || '0.00'
-      })) || [];
 
-      routeLogger.info({ count: products.length, shop: shopDomain }, '✅ Fetched products');
+      // ✅ CHECK FOR GRAPHQL ERRORS
+      if (responseData.errors) {
+        routeLogger.error({
+          graphqlErrors: responseData.errors,
+          query: variables.query
+        }, '❌ GraphQL query returned errors');
+        productsFetchFailed = true;
+        products = [];
+      } else {
+        products = responseData?.data?.products?.edges?.map((edge: any) => ({
+          id: edge.node.id,
+          title: edge.node.title,
+          handle: edge.node.handle,
+          description: edge.node.description || '',
+          image: edge.node.featuredImage?.url,
+          price: edge.node.variants.edges[0]?.node.price || '0.00'
+        })) || [];
+
+        routeLogger.info({ count: products.length, shop: shopDomain, query: variables.query }, '✅ Fetched products');
+      }
     } catch (error) {
-      routeLogger.warn({ error: (error as Error).message }, '❌ Failed to fetch products');
+      routeLogger.error({
+        error: (error as Error).message,
+        stack: (error as Error).stack,
+        query: variables.query
+      }, '❌ Failed to fetch products - exception thrown');
       productsFetchFailed = true;
       products = [];
     }
