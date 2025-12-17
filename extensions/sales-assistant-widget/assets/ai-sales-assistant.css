@@ -489,6 +489,7 @@
   overflow: visible !important;
   position: relative;
   animation: messageSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  text-align: left; /* Default text alignment */
 }
 @keyframes messageSlideIn {
   from {
@@ -750,10 +751,16 @@
   transform: translateY(0);
   transition: all var(--transition-fast);
 }
+.ai-message.products-grid-container,
 .products-grid-container {
   max-width: 100% !important;
   width: 100% !important;
-  align-self: stretch; /* Take full width within centered messages container */
+  align-self: stretch !important; /* Take full width within centered messages container */
+}
+.ai-message.assistant-message.products-grid-container {
+  max-width: 100% !important;
+  width: 100% !important;
+  align-self: stretch !important;
 }
 .products-grid {
   display: flex !important;
@@ -942,7 +949,7 @@
   animation: fadeIn 0.4s ease;
   align-items: center; /* Center welcome content */
   width: 100%;
-  max-width: 360px; /* Max width for better centering */
+  max-width: 100%; /* Full width instead of 360px */
   margin: 0 auto; /* Center the welcome screen */
 }
 @keyframes fadeIn {
@@ -952,6 +959,7 @@
 .welcome-header {
   text-align: center;
   margin-bottom: 0;
+  width: 100%;
 }
 .welcome-title {
   font-size: var(--font-size-md);
@@ -959,6 +967,7 @@
   color: var(--color-text-primary);
   margin: 0;
   line-height: 1.4;
+  text-align: center; /* Center the title text */
 }
 .quick-actions-section {
   margin-bottom: var(--space-3);
@@ -973,8 +982,9 @@
   margin-bottom: var(--space-3);
   display: flex;
   align-items: center;
+  justify-content: center; /* Center the section label */
   gap: var(--space-2);
-  align-self: flex-start; /* Align label to left within centered container */
+  width: 100%;
 }
 .section-label::before {
   content: '';
