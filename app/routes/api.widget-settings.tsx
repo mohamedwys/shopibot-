@@ -246,13 +246,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     let products: any[] = [];
     let productsFetchFailed = false;
 
+    // Declare variables outside try block for error logging
+    const variables: { first: number; query?: string } = { first: 50 };
+
     try {
       // Use unauthenticated admin (uses offline token, works in production)
       const { admin: shopAdmin } = await unauthenticated.admin(shopDomain);
 
       // ✅ IMPROVED: Build GraphQL query based on intent
-      const variables: { first: number; query?: string } = { first: 50 };
-
       if (intent.type === "PRODUCT_SEARCH") {
         if (intent.query === "bestseller") {
           variables.query = "tag:bestseller";
