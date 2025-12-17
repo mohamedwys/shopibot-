@@ -220,15 +220,22 @@ export class N8NService {
     const shop = context?.shopDomain || '';
 
     try {
+      // Detect language
+      const lang = this.detectLanguage(userMessage, context);
+      const msgs = this.getFallbackMessages(lang);
+
       // Classify intent and sentiment
       const intent = await personalizationService.classifyIntent(userMessage);
       const sentiment = await personalizationService.analyzeSentiment(userMessage);
 
-      this.logger.debug({ intent, sentiment }, 'Analyzed message');
+      this.logger.debug({ intent, sentiment, language: lang }, 'Analyzed message');
 
       let recommendations: ProductRecommendation[] = [];
       let message = '';
       let confidence = 0.7;
+      let quickReplies: string[] = [];
+
+      const hasProducts = products && products.length > 0;
 
       // Use semantic search if available and it's a product search
       if (
@@ -244,7 +251,7 @@ export class N8NService {
             shop,
             userMessage,
             products,
-            5
+            6
           );
 
           // Convert to recommendations
@@ -280,17 +287,37 @@ export class N8NService {
       }
 
       // If no recommendations yet, use keyword-based search
-      if (recommendations.length === 0) {
+      if (recommendations.length === 0 && hasProducts) {
         const result = await this.keywordBasedSearch(userMessage, products, intent, context?.userPreferences);
         recommendations = result.recommendations;
         message = result.message;
         confidence = result.confidence;
       }
 
+      // If still no recommendations but products are available, show some products
+      if (recommendations.length === 0 && hasProducts) {
+        recommendations = products.slice(0, 6).map((product: any) => ({
+          id: product.id,
+          title: product.title,
+          handle: product.handle,
+          price: product.price || '0.00',
+          image: product.image,
+          description: product.description,
+          relevanceScore: 50
+        }));
+        message = msgs.featuredProducts;
+        confidence = 0.5;
+      }
+
+      // Add quick replies based on language and whether we have products
+      quickReplies = this.getQuickReplies(lang, hasProducts);
+
       return {
-        message,
+        message: message || msgs.welcomeBrowse,
         recommendations,
+        quickReplies,
         confidence,
+        sentiment,
       };
     } catch (error) {
       logError(error, 'Enhanced fallback processing error');
@@ -392,7 +419,7 @@ export class N8NService {
     preferences?: UserPreferences
   ): Promise<{ message: string; recommendations: ProductRecommendation[]; confidence: number }> {
     const lowerMessage = userMessage.toLowerCase();
-    const keywords = lowerMessage.split(/\s+/).filter(word => word.length > 3);
+    const keywords = lowerMessage.split(/\s+/).filter(word => word.length > 2);
 
     // Score products based on keyword matches
     const scoredProducts = products.map(product => {
@@ -401,15 +428,20 @@ export class N8NService {
       const description = (product.description || '').toLowerCase();
 
       keywords.forEach(keyword => {
-        if (title.includes(keyword)) score += 3;
-        if (description.includes(keyword)) score += 1;
+        // Skip common words
+        if (['the', 'and', 'or', 'for', 'with', 'can', 'you', 'show', 'me', 'voir', 'montre', 'des', 'les', 'une', 'un'].includes(keyword)) {
+          return;
+        }
+
+        if (title.includes(keyword)) score += 5;
+        if (description.includes(keyword)) score += 2;
       });
 
       // Apply price preferences if available
       if (preferences?.priceRange && product.price) {
         const price = parseFloat(product.price);
         if (price >= preferences.priceRange.min && price <= preferences.priceRange.max) {
-          score += 2;
+          score += 3;
         }
       }
 
@@ -422,7 +454,7 @@ export class N8NService {
     const topProducts = scoredProducts
       .filter(p => p.score > 0)
       .sort((a, b) => b.score - a.score)
-      .slice(0, 5);
+      .slice(0, 6);
 
     const recommendations = topProducts.map(p => ({
       id: p.id,
@@ -437,7 +469,10 @@ export class N8NService {
     let message = '';
 
     if (recommendations.length > 0) {
-      message = `Here are some products that match your search:`;
+      // Detect language for appropriate message
+      const lang = this.detectLanguage(userMessage);
+      const msgs = this.getFallbackMessages(lang);
+      message = msgs.showingProducts;
     } else {
       message = this.getIntentBasedMessage(intent, lowerMessage);
     }
@@ -445,7 +480,7 @@ export class N8NService {
     return {
       message,
       recommendations,
-      confidence: recommendations.length > 0 ? 0.6 : 0.5,
+      confidence: recommendations.length > 0 ? 0.65 : 0.5,
     };
   }
 
@@ -474,47 +509,333 @@ export class N8NService {
   }
 
   /**
-   * Simple fallback processing without AI enhancements (ultimate fallback)
+   * Detect language from user message and context
+   */
+  private detectLanguage(message: string, context?: N8NRequest['context']): string {
+    // Check context locale first
+    if (context?.locale) {
+      return context.locale.toLowerCase().split('-')[0];
+    }
+
+    const lower = message.toLowerCase();
+
+    // French detection
+    if (/(bonjour|salut|merci|montre|produit|cherche|voudrais|pourrais)/i.test(message)) {
+      return 'fr';
+    }
+
+    // Spanish detection
+    if (/(hola|gracias|producto|busco|quiero|puedo)/i.test(message)) {
+      return 'es';
+    }
+
+    // German detection
+    if (/(hallo|danke|produkt|suche|möchte|kann)/i.test(message)) {
+      return 'de';
+    }
+
+    // Portuguese detection
+    if (/(olá|obrigado|produto|procuro|gostaria|posso)/i.test(message)) {
+      return 'pt';
+    }
+
+    // Italian detection
+    if (/(ciao|grazie|prodotto|cerco|vorrei|posso)/i.test(message)) {
+      return 'it';
+    }
+
+    // Default to English
+    return 'en';
+  }
+
+  /**
+   * Get fallback messages in multiple languages
+   */
+  private getFallbackMessages(lang: string) {
+    const messages: Record<string, any> = {
+      en: {
+        simplifiedMode: "I'm currently working in simplified mode. You can still browse products, search items, and get information.",
+        welcomeBrowse: "Welcome! I can help you explore our products. What are you looking for?",
+        showingProducts: "Here are some products you might like:",
+        browseAll: "Browse all products",
+        searchProducts: "Search for products",
+        categories: "View categories",
+        newArrivals: "New arrivals",
+        bestSellers: "Best sellers",
+        priceInfo: "I can help you find products within your budget. What price range are you looking for?",
+        shippingInfo: "Most of our products offer free shipping on orders over $50.",
+        returnInfo: "Our return policy allows returns within 30 days of purchase.",
+        featuredProducts: "Check out our featured products:",
+        noProducts: "I don't have product information available at the moment. Please contact us for assistance.",
+        helpOptions: "I can help you with:\n• Browse products\n• Search by keyword\n• View categories\n• Check prices and availability\n\nWhat would you like to explore?"
+      },
+      fr: {
+        simplifiedMode: "Je fonctionne actuellement en mode simplifié. Vous pouvez toujours parcourir nos produits, rechercher des articles et obtenir des informations.",
+        welcomeBrowse: "Bienvenue ! Je peux vous aider à explorer nos produits. Que recherchez-vous ?",
+        showingProducts: "Voici quelques produits qui pourraient vous intéresser :",
+        browseAll: "Parcourir tous les produits",
+        searchProducts: "Rechercher des produits",
+        categories: "Voir les catégories",
+        newArrivals: "Nouveautés",
+        bestSellers: "Meilleures ventes",
+        priceInfo: "Je peux vous aider à trouver des produits dans votre budget. Quelle gamme de prix recherchez-vous ?",
+        shippingInfo: "La plupart de nos produits bénéficient de la livraison gratuite pour les commandes de plus de 50 $.",
+        returnInfo: "Notre politique de retour permet les retours dans les 30 jours suivant l'achat.",
+        featuredProducts: "Découvrez nos produits en vedette :",
+        noProducts: "Je n'ai pas d'informations sur les produits disponibles pour le moment. Veuillez nous contacter pour obtenir de l'aide.",
+        helpOptions: "Je peux vous aider avec :\n• Parcourir les produits\n• Rechercher par mot-clé\n• Voir les catégories\n• Vérifier les prix et la disponibilité\n\nQue souhaitez-vous explorer ?"
+      },
+      es: {
+        simplifiedMode: "Actualmente estoy funcionando en modo simplificado. Aún puede explorar productos, buscar artículos y obtener información.",
+        welcomeBrowse: "¡Bienvenido! Puedo ayudarte a explorar nuestros productos. ¿Qué estás buscando?",
+        showingProducts: "Aquí hay algunos productos que podrían interesarte:",
+        browseAll: "Ver todos los productos",
+        searchProducts: "Buscar productos",
+        categories: "Ver categorías",
+        newArrivals: "Novedades",
+        bestSellers: "Más vendidos",
+        priceInfo: "Puedo ayudarte a encontrar productos dentro de tu presupuesto. ¿Qué rango de precio buscas?",
+        shippingInfo: "La mayoría de nuestros productos ofrecen envío gratis en pedidos superiores a $50.",
+        returnInfo: "Nuestra política de devoluciones permite devoluciones dentro de los 30 días posteriores a la compra.",
+        featuredProducts: "Echa un vistazo a nuestros productos destacados:",
+        noProducts: "No tengo información de productos disponible en este momento. Por favor contáctenos para obtener ayuda.",
+        helpOptions: "Puedo ayudarte con:\n• Explorar productos\n• Buscar por palabra clave\n• Ver categorías\n• Consultar precios y disponibilidad\n\n¿Qué te gustaría explorar?"
+      },
+      de: {
+        simplifiedMode: "Ich arbeite derzeit im vereinfachten Modus. Sie können weiterhin Produkte durchsuchen, Artikel suchen und Informationen erhalten.",
+        welcomeBrowse: "Willkommen! Ich kann Ihnen helfen, unsere Produkte zu erkunden. Was suchen Sie?",
+        showingProducts: "Hier sind einige Produkte, die Ihnen gefallen könnten:",
+        browseAll: "Alle Produkte durchsuchen",
+        searchProducts: "Produkte suchen",
+        categories: "Kategorien anzeigen",
+        newArrivals: "Neuankömmlinge",
+        bestSellers: "Bestseller",
+        priceInfo: "Ich kann Ihnen helfen, Produkte in Ihrem Budget zu finden. Welche Preisspanne suchen Sie?",
+        shippingInfo: "Die meisten unserer Produkte bieten kostenlosen Versand bei Bestellungen über 50 $.",
+        returnInfo: "Unsere Rückgaberichtlinie erlaubt Rückgaben innerhalb von 30 Tagen nach dem Kauf.",
+        featuredProducts: "Schauen Sie sich unsere ausgewählten Produkte an:",
+        noProducts: "Ich habe derzeit keine Produktinformationen verfügbar. Bitte kontaktieren Sie uns für Hilfe.",
+        helpOptions: "Ich kann Ihnen helfen mit:\n• Produkte durchsuchen\n• Nach Stichwort suchen\n• Kategorien anzeigen\n• Preise und Verfügbarkeit prüfen\n\nWas möchten Sie erkunden?"
+      },
+      pt: {
+        simplifiedMode: "Estou atualmente funcionando em modo simplificado. Você ainda pode navegar pelos produtos, pesquisar itens e obter informações.",
+        welcomeBrowse: "Bem-vindo! Posso ajudá-lo a explorar nossos produtos. O que você está procurando?",
+        showingProducts: "Aqui estão alguns produtos que você pode gostar:",
+        browseAll: "Ver todos os produtos",
+        searchProducts: "Pesquisar produtos",
+        categories: "Ver categorias",
+        newArrivals: "Novidades",
+        bestSellers: "Mais vendidos",
+        priceInfo: "Posso ajudá-lo a encontrar produtos dentro do seu orçamento. Que faixa de preço você está procurando?",
+        shippingInfo: "A maioria dos nossos produtos oferece frete grátis em pedidos acima de $50.",
+        returnInfo: "Nossa política de devolução permite devoluções dentro de 30 dias após a compra.",
+        featuredProducts: "Confira nossos produtos em destaque:",
+        noProducts: "Não tenho informações de produtos disponíveis no momento. Entre em contato conosco para obter ajuda.",
+        helpOptions: "Posso ajudá-lo com:\n• Navegar produtos\n• Pesquisar por palavra-chave\n• Ver categorias\n• Verificar preços e disponibilidade\n\nO que você gostaria de explorar?"
+      },
+      it: {
+        simplifiedMode: "Sto attualmente funzionando in modalità semplificata. Puoi ancora sfogliare i prodotti, cercare articoli e ottenere informazioni.",
+        welcomeBrowse: "Benvenuto! Posso aiutarti a esplorare i nostri prodotti. Cosa stai cercando?",
+        showingProducts: "Ecco alcuni prodotti che potrebbero piacerti:",
+        browseAll: "Sfoglia tutti i prodotti",
+        searchProducts: "Cerca prodotti",
+        categories: "Visualizza categorie",
+        newArrivals: "Novità",
+        bestSellers: "Bestseller",
+        priceInfo: "Posso aiutarti a trovare prodotti nel tuo budget. Quale fascia di prezzo stai cercando?",
+        shippingInfo: "La maggior parte dei nostri prodotti offre spedizione gratuita per ordini superiori a $50.",
+        returnInfo: "La nostra politica di reso consente resi entro 30 giorni dall'acquisto.",
+        featuredProducts: "Dai un'occhiata ai nostri prodotti in evidenza:",
+        noProducts: "Non ho informazioni sui prodotti disponibili al momento. Contattaci per assistenza.",
+        helpOptions: "Posso aiutarti con:\n• Sfogliare prodotti\n• Cercare per parola chiave\n• Visualizzare categorie\n• Controllare prezzi e disponibilità\n\nCosa vorresti esplorare?"
+      },
+      zh: {
+        simplifiedMode: "我目前正在简化模式下工作。您仍然可以浏览产品、搜索商品和获取信息。",
+        welcomeBrowse: "欢迎！我可以帮助您探索我们的产品。您在寻找什么？",
+        showingProducts: "这里有一些您可能喜欢的产品：",
+        browseAll: "浏览所有产品",
+        searchProducts: "搜索产品",
+        categories: "查看分类",
+        newArrivals: "新品上市",
+        bestSellers: "畅销产品",
+        priceInfo: "我可以帮助您找到符合您预算的产品。您在寻找什么价格范围？",
+        shippingInfo: "我们大多数产品在订单超过50美元时提供免费送货。",
+        returnInfo: "我们的退货政策允许在购买后30天内退货。",
+        featuredProducts: "查看我们的精选产品：",
+        noProducts: "目前没有产品信息可用。请联系我们获取帮助。",
+        helpOptions: "我可以帮助您：\n• 浏览产品\n• 按关键词搜索\n• 查看分类\n• 检查价格和库存\n\n您想探索什么？"
+      },
+      ja: {
+        simplifiedMode: "現在簡易モードで動作しています。製品の閲覧、商品の検索、情報の取得は引き続き可能です。",
+        welcomeBrowse: "ようこそ！製品の探索をお手伝いします。何をお探しですか？",
+        showingProducts: "こちらはあなたが気に入るかもしれない製品です：",
+        browseAll: "すべての製品を閲覧",
+        searchProducts: "製品を検索",
+        categories: "カテゴリを表示",
+        newArrivals: "新着商品",
+        bestSellers: "ベストセラー",
+        priceInfo: "ご予算内で製品を見つけるお手伝いをします。どの価格帯をお探しですか？",
+        shippingInfo: "ほとんどの製品は50ドル以上のご注文で送料無料です。",
+        returnInfo: "当社の返品ポリシーでは、購入後30日以内の返品を受け付けています。",
+        featuredProducts: "おすすめ製品をチェック：",
+        noProducts: "現在、製品情報が利用できません。サポートについてはお問い合わせください。",
+        helpOptions: "お手伝いできること：\n• 製品の閲覧\n• キーワード検索\n• カテゴリ表示\n• 価格と在庫確認\n\n何を探索しますか？"
+      }
+    };
+
+    return messages[lang] || messages['en'];
+  }
+
+  /**
+   * Get quick reply buttons based on language
+   */
+  private getQuickReplies(lang: string, hasProducts: boolean): string[] {
+    const replies: Record<string, string[]> = {
+      en: hasProducts
+        ? ["Show all products", "New arrivals", "Best sellers", "View categories"]
+        : ["Contact support", "View store", "Help"],
+      fr: hasProducts
+        ? ["Voir tous les produits", "Nouveautés", "Meilleures ventes", "Voir les catégories"]
+        : ["Contacter le support", "Voir la boutique", "Aide"],
+      es: hasProducts
+        ? ["Ver todos los productos", "Novedades", "Más vendidos", "Ver categorías"]
+        : ["Contactar soporte", "Ver tienda", "Ayuda"],
+      de: hasProducts
+        ? ["Alle Produkte anzeigen", "Neuankömmlinge", "Bestseller", "Kategorien anzeigen"]
+        : ["Support kontaktieren", "Shop ansehen", "Hilfe"],
+      pt: hasProducts
+        ? ["Ver todos os produtos", "Novidades", "Mais vendidos", "Ver categorias"]
+        : ["Contatar suporte", "Ver loja", "Ajuda"],
+      it: hasProducts
+        ? ["Vedi tutti i prodotti", "Novità", "Bestseller", "Visualizza categorie"]
+        : ["Contatta supporto", "Vedi negozio", "Aiuto"],
+      zh: hasProducts
+        ? ["显示所有产品", "新品上市", "畅销产品", "查看分类"]
+        : ["联系支持", "查看商店", "帮助"],
+      ja: hasProducts
+        ? ["すべての製品を表示", "新着商品", "ベストセラー", "カテゴリを表示"]
+        : ["サポートに連絡", "ストアを表示", "ヘルプ"]
+    };
+
+    return replies[lang] || replies['en'];
+  }
+
+  /**
+   * Enhanced simple fallback processing - ALWAYS shows products when available
+   * This ensures the chatbot provides value even when ALL AI services are down
    */
   private simpleFallbackProcessing(request: N8NRequest): N8NWebhookResponse {
-    const { userMessage, products } = request;
+    const { userMessage, products, context } = request;
     const lowerMessage = userMessage.toLowerCase();
+
+    // Detect language from message and context
+    const lang = this.detectLanguage(userMessage, context);
+    const msgs = this.getFallbackMessages(lang);
 
     let message = "";
     let recommendations: ProductRecommendation[] = [];
+    let quickReplies: string[] = [];
+    let suggestedActions: SuggestedAction[] = [];
 
-    // Simple keyword-based matching as fallback
-    if (lowerMessage.includes("recommend") || lowerMessage.includes("suggest")) {
-      recommendations = products.slice(0, 3).map((product: any) => ({
-        id: product.id,
-        title: product.title,
-        handle: product.handle,
-        price: product.price,
-        image: product.image,
-        description: product.description,
-        relevanceScore: Math.round(Math.random() * 100)
-      }));
-      message = "Here are some products I'd recommend based on your request:";
-    } else if (lowerMessage.includes("price") || lowerMessage.includes("cost") || lowerMessage.includes("budget")) {
-      message = "I can help you find products within your budget. What price range are you looking for?";
-    } else if (lowerMessage.includes("shipping") || lowerMessage.includes("delivery")) {
-      message = "Let me check the shipping options for you. Most of our products offer free shipping on orders over $50.";
-    } else if (lowerMessage.includes("return") || lowerMessage.includes("refund")) {
-      message = "Our return policy allows returns within 30 days of purchase. Would you like me to help you with a specific product return?";
-    } else if (lowerMessage.includes("size") || lowerMessage.includes("sizing")) {
-      message = "I can help you find the right size. What type of product are you looking for, and what are your measurements?";
-    } else if (lowerMessage.includes("color") || lowerMessage.includes("colour")) {
-      message = "I can help you find products in specific colors. What color are you looking for?";
-    } else if (lowerMessage.includes("material") || lowerMessage.includes("fabric")) {
-      message = "I can help you find products made from specific materials. What material preferences do you have?";
+    // CRITICAL FIX: Always try to show products if available
+    const hasProducts = products && products.length > 0;
+
+    // Try to match products based on keywords
+    if (hasProducts) {
+      // Check for specific product type keywords
+      const keywords = lowerMessage.split(/\s+/).filter(word => word.length > 2);
+
+      // Score products based on keyword matches
+      const scoredProducts = products.map((product: any) => {
+        let score = 0;
+        const title = (product.title || '').toLowerCase();
+        const description = (product.description || '').toLowerCase();
+
+        keywords.forEach(keyword => {
+          // Remove common words
+          if (['the', 'and', 'or', 'for', 'with', 'can', 'you', 'show', 'me', 'voir', 'montre', 'des', 'les', 'une', 'un'].includes(keyword)) {
+            return;
+          }
+
+          if (title.includes(keyword)) score += 5;
+          if (description.includes(keyword)) score += 2;
+        });
+
+        return { ...product, score };
+      });
+
+      // Get products with matches, or just return first products if no matches
+      const matchedProducts = scoredProducts.filter((p: any) => p.score > 0);
+
+      if (matchedProducts.length > 0) {
+        // Found keyword matches
+        matchedProducts.sort((a: any, b: any) => b.score - a.score);
+        recommendations = matchedProducts.slice(0, 6).map((p: any) => ({
+          id: p.id,
+          title: p.title,
+          handle: p.handle,
+          price: p.price || '0.00',
+          image: p.image,
+          description: p.description,
+          relevanceScore: Math.min(100, p.score * 10)
+        }));
+        message = msgs.showingProducts;
+      } else {
+        // No keyword matches, show featured/first products
+        recommendations = products.slice(0, 6).map((product: any) => ({
+          id: product.id,
+          title: product.title,
+          handle: product.handle,
+          price: product.price || '0.00',
+          image: product.image,
+          description: product.description,
+          relevanceScore: 50
+        }));
+
+        // Check for specific intents even without product matches
+        if (lowerMessage.match(/(bonjour|hello|hi|hola|salut|ciao)/i)) {
+          message = msgs.welcomeBrowse;
+        } else {
+          message = msgs.featuredProducts;
+        }
+      }
+
+      // Add quick replies for browsing
+      quickReplies = this.getQuickReplies(lang, true);
+
     } else {
-      message = "I'm here to help you find the perfect products! You can ask me about:\n• Product recommendations\n• Pricing and budget options\n• Shipping and delivery\n• Returns and exchanges\n• Product details like size, color, and materials\n\nWhat would you like to know?";
+      // No products available - provide helpful message
+      message = msgs.noProducts;
+      quickReplies = this.getQuickReplies(lang, false);
     }
 
+    // Handle specific queries even without products
+    if (!hasProducts || recommendations.length === 0) {
+      if (lowerMessage.match(/(price|cost|budget|prix|coût|precio|costo|prezzo|preço)/i)) {
+        message = msgs.priceInfo;
+      } else if (lowerMessage.match(/(shipping|delivery|livraison|envío|entrega|spedizione|versand)/i)) {
+        message = msgs.shippingInfo;
+      } else if (lowerMessage.match(/(return|refund|retour|remboursement|devolución|reembolso|reso|rimborso|rückgabe)/i)) {
+        message = msgs.returnInfo;
+      } else if (lowerMessage.match(/(help|aide|ayuda|ajuda|aiuto|hilfe)/i) && !hasProducts) {
+        message = msgs.helpOptions;
+      }
+    }
+
+    this.logger.info({
+      hasProducts,
+      recommendationCount: recommendations.length,
+      language: lang,
+      quickRepliesCount: quickReplies.length
+    }, 'Simple fallback processing completed');
+
     return {
-      message,
+      message: message || msgs.welcomeBrowse,
       recommendations,
-      confidence: 0.5
+      quickReplies,
+      suggestedActions,
+      confidence: hasProducts && recommendations.length > 0 ? 0.6 : 0.4,
+      messageType: 'fallback_mode'
     };
   }
 
