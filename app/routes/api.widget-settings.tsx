@@ -273,7 +273,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       const response = await shopAdmin.graphql(`
         #graphql
         query getProducts($first: Int!, $query: String) {
-          products(first: $first, query: $query, sortKey: CREATED_AT, reverse: true) {
+          products(first: $first, query: $query) {
             edges {
               node {
                 id
