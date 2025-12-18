@@ -396,8 +396,7 @@
   width: 100%;
 }
 .ai-chat-messages {
-  padding: 16px 20px;
-  padding-bottom: 15px; /* Consistent padding */
+  padding: 20px !important; /* Symmetric padding on all sides */
   overflow-y: auto !important; /* Show scrollbar when content overflows */
   overflow-x: hidden !important;
   display: flex !important;
@@ -407,6 +406,7 @@
   gap: 0 !important; /* Remove gap to use margin instead for better control */
   scroll-behavior: smooth;
   height: 100% !important; /* Take full available height */
+  width: 100% !important; /* Full width */
   box-sizing: border-box !important;
   background: white;
   text-align: center !important; /* Force center alignment for all text */
@@ -441,7 +441,7 @@
   box-sizing: border-box !important;
   margin-bottom: 16px !important; /* Increased spacing for better visibility */
   margin-top: 0 !important; /* Reset any top margins */
-  align-self: flex-start; /* Default to left alignment */
+  align-self: center !important; /* CENTER all messages by default */
 }
 .ai-welcome-message {
   max-width: 100% !important;
@@ -461,7 +461,7 @@
   align-self: flex-end !important; /* Keep user messages on right */
 }
 .ai-message.assistant-message {
-  align-self: flex-start !important; /* Keep assistant messages on left */
+  align-self: center !important; /* CENTER assistant messages */
 }
 .ai-message.product-recommendation {
   margin-top: 0 !important; /* Use consistent margin pattern */
@@ -526,7 +526,7 @@
   margin-top: 0 !important;
   max-width: 85% !important;
   width: fit-content;
-  align-self: flex-start;
+  align-self: center !important; /* CENTER loading indicator */
   display: block !important;
   box-sizing: border-box !important;
   box-shadow: var(--shadow-xs);
@@ -757,12 +757,12 @@
 .products-grid-container {
   max-width: 100% !important;
   width: 100% !important;
-  align-self: stretch !important; /* Take full width within centered messages container */
+  align-self: center !important; /* CENTER products container */
 }
 .ai-message.assistant-message.products-grid-container {
   max-width: 100% !important;
   width: 100% !important;
-  align-self: stretch !important;
+  align-self: center !important; /* CENTER products container */
 }
 .products-grid {
   display: flex !important;
@@ -770,11 +770,12 @@
   overflow-y: hidden !important;
   gap: 12px !important;
   width: 100% !important;
-  padding: 8px 4px !important;
+  padding: 12px !important; /* Symmetric padding */
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
-  justify-content: flex-start; /* Align products to left for scrolling */
+  justify-content: flex-start; /* Align products to left for scrolling (necessary for scroll) */
+  box-sizing: border-box !important;
 }
 .products-grid::-webkit-scrollbar {
   height: 8px;
@@ -944,7 +945,7 @@
   max-width: none !important;
 }
 .ai-welcome-screen {
-  padding: 20px;
+  padding: 20px !important; /* Symmetric padding */
   display: flex !important;
   flex-direction: column !important;
   gap: 18px;
@@ -952,9 +953,10 @@
   align-items: center !important; /* Center welcome content */
   justify-content: center !important;
   width: 100% !important;
-  max-width: 100% !important; /* Full width instead of 360px */
-  margin: 0 auto !important; /* Center the welcome screen */
+  max-width: 100% !important; /* Full width */
+  margin: 0 !important; /* No extra margins */
   text-align: center !important; /* Center all text */
+  box-sizing: border-box !important;
 }
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
@@ -994,13 +996,7 @@
   width: 100% !important;
   text-align: center !important;
 }
-.section-label::before {
-  content: '';
-  width: 3px;
-  height: 12px;
-  background: var(--color-accent);
-  border-radius: var(--radius-xs);
-}
+/* REMOVED ::before to eliminate left-bias */
 .quick-actions-grid {
   display: grid !important;
   grid-template-columns: repeat(2, 1fr) !important;
