@@ -5,8 +5,9 @@ import {
   AppDistribution,
   shopifyApp,
 } from "@shopify/shopify-app-remix/server";
-// ✅ Keep MemorySessionStorage (required even for token auth)
-import { MemorySessionStorage } from "@shopify/shopify-app-session-storage-memory";
+// ✅ CRITICAL FIX: Use PrismaSessionStorage for persistent sessions
+import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
+import { prisma } from "./db.server";
 import { BILLING_PLANS } from "./config/billing";
 
 const shopify = shopifyApp({
@@ -16,8 +17,9 @@ const shopify = shopifyApp({
   scopes: process.env.SCOPES?.split(","),
   appUrl: process.env.SHOPIFY_APP_URL || "",
   authPathPrefix: "/auth",
-  // ✅ Use MemorySessionStorage — no DB needed for token auth
-  sessionStorage: new MemorySessionStorage(),
+  // ✅ CRITICAL FIX: Use PrismaSessionStorage for persistent sessions across restarts
+  // This fixes the "Could not find a session" error that required app reinstallation
+  sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.AppStore,
   future: {
     unstable_newEmbeddedAuthStrategy: true, // ✅ enables token-based auth

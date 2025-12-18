@@ -245,6 +245,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     // ✅ IMPROVED: Fetch more products (50 instead of 20)
     let products: any[] = [];
     let productsFetchFailed = false;
+    let sessionError = false;
 
     // Declare variables outside try block for error logging
     const variables: { first: number; query?: string } = { first: 50 };
@@ -337,15 +338,29 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         routeLogger.info({ count: products.length, shop: shopDomain, query: variables.query }, '✅ Fetched products');
       }
     } catch (error) {
+      const errorMessage = (error as Error).message;
       console.error('❌ EXCEPTION in product fetch:', {
-        error: (error as Error).message,
+        error: errorMessage,
         stack: (error as Error).stack
       });
-      routeLogger.error({
-        error: (error as Error).message,
-        stack: (error as Error).stack,
-        query: variables.query
-      }, '❌ Failed to fetch products - exception thrown');
+
+      // ✅ CRITICAL FIX: Detect session errors
+      if (errorMessage.includes('Could not find a session') ||
+          errorMessage.includes('session') ||
+          errorMessage.includes('offline access token')) {
+        sessionError = true;
+        routeLogger.error({
+          error: errorMessage,
+          shop: shopDomain
+        }, '❌ SESSION ERROR: Shop needs to reinstall app or session expired');
+      } else {
+        routeLogger.error({
+          error: errorMessage,
+          stack: (error as Error).stack,
+          query: variables.query
+        }, '❌ Failed to fetch products - exception thrown');
+      }
+
       productsFetchFailed = true;
       products = [];
     }
@@ -398,29 +413,53 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     // ✅ CRITICAL FIX: Handle shop session/authentication failure
     if (productsFetchFailed && intent.type === "PRODUCT_SEARCH") {
       // Shop session not available - provide helpful message
-      const sessionErrorMessages: Record<string, string> = {
-        fr: "Je ne peux pas accéder aux produits actuellement car votre boutique nécessite une reconnexion. Veuillez contacter le support de la boutique ou réessayer plus tard.",
-        en: "I'm unable to access the product catalog at the moment because the shop connection needs to be refreshed. Please contact the shop administrator to reinstall the app, or try again later.",
-        es: "No puedo acceder al catálogo de productos en este momento porque la conexión de la tienda necesita actualizarse. Póngase en contacto con el administrador de la tienda o inténtelo más tarde.",
-        de: "Ich kann derzeit nicht auf den Produktkatalog zugreifen, da die Shop-Verbindung aktualisiert werden muss. Bitte kontaktieren Sie den Shop-Administrator oder versuchen Sie es später erneut.",
-        pt: "Não consigo acessar o catálogo de produtos no momento porque a conexão da loja precisa ser atualizada. Entre em contato com o administrador da loja ou tente novamente mais tarde.",
-        it: "Non riesco ad accedere al catalogo prodotti al momento perché la connessione del negozio deve essere aggiornata. Contatta l'amministratore del negozio o riprova più tardi."
-      };
-
       const lang = enhancedContext.locale?.toLowerCase().split('-')[0] || 'en';
-      const errorMessage = sessionErrorMessages[lang] || sessionErrorMessages['en'];
+
+      // Different messages for session errors vs other errors
+      let errorMessage: string;
+      let quickReplies: string[];
+
+      if (sessionError) {
+        // ✅ SESSION ERROR: Specific message about app reinstallation
+        const sessionErrorMessages: Record<string, string> = {
+          fr: "⚠️ La connexion avec votre boutique a expiré. L'administrateur doit réinstaller l'application pour que je puisse accéder aux produits. En attendant, je peux répondre à vos questions générales sur la boutique.",
+          en: "⚠️ The connection to the shop has expired. The shop administrator needs to reinstall the app so I can access the product catalog. In the meantime, I can help answer general questions about the store.",
+          es: "⚠️ La conexión con la tienda ha caducado. El administrador de la tienda necesita reinstalar la aplicación para que pueda acceder al catálogo de productos. Mientras tanto, puedo ayudar a responder preguntas generales sobre la tienda.",
+          de: "⚠️ Die Verbindung zum Shop ist abgelaufen. Der Shop-Administrator muss die App neu installieren, damit ich auf den Produktkatalog zugreifen kann. In der Zwischenzeit kann ich allgemeine Fragen zum Shop beantworten.",
+          pt: "⚠️ A conexão com a loja expirou. O administrador da loja precisa reinstalar o aplicativo para que eu possa acessar o catálogo de produtos. Enquanto isso, posso ajudar a responder perguntas gerais sobre a loja.",
+          it: "⚠️ La connessione al negozio è scaduta. L'amministratore del negozio deve reinstallare l'app in modo che io possa accedere al catalogo prodotti. Nel frattempo, posso aiutare a rispondere a domande generali sul negozio."
+        };
+        errorMessage = sessionErrorMessages[lang] || sessionErrorMessages['en'];
+        quickReplies = lang === 'fr'
+          ? ["Aide générale", "Informations boutique"]
+          : ["General help", "Store information"];
+
+        routeLogger.error({ shop: shopDomain }, '❌ SESSION ERROR: Shop needs to reinstall app');
+      } else {
+        // ✅ GENERAL ERROR: Other product fetch errors
+        const generalErrorMessages: Record<string, string> = {
+          fr: "Je ne peux pas accéder aux produits actuellement. Un problème temporaire est survenu. Veuillez réessayer dans quelques instants.",
+          en: "I'm unable to access the product catalog right now due to a temporary issue. Please try again in a few moments.",
+          es: "No puedo acceder al catálogo de productos en este momento debido a un problema temporal. Inténtelo de nuevo en unos momentos.",
+          de: "Ich kann derzeit aufgrund eines vorübergehenden Problems nicht auf den Produktkatalog zugreifen. Bitte versuchen Sie es in ein paar Augenblicken erneut.",
+          pt: "Não consigo acessar o catálogo de produtos no momento devido a um problema temporário. Tente novamente em alguns instantes.",
+          it: "Non riesco ad accedere al catalogo prodotti in questo momento a causa di un problema temporaneo. Riprova tra qualche istante."
+        };
+        errorMessage = generalErrorMessages[lang] || generalErrorMessages['en'];
+        quickReplies = lang === 'fr'
+          ? ["Réessayer", "Aide"]
+          : ["Try again", "Help"];
+
+        routeLogger.error({ shop: shopDomain }, '❌ Product fetch failed');
+      }
 
       n8nResponse = {
         message: errorMessage,
         recommendations: [],
         confidence: 0.3,
         messageType: "error",
-        quickReplies: lang === 'fr'
-          ? ["Contacter le support", "Aide"]
-          : ["Contact support", "Help"]
+        quickReplies: quickReplies
       };
-
-      routeLogger.error({ shop: shopDomain }, 'Shop session unavailable - cannot fetch products');
     }
     // ✅ IMPROVED: Handle product search intent directly OR use N8N
     else if (intent.type === "PRODUCT_SEARCH" && products.length > 0) {
