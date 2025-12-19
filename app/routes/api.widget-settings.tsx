@@ -707,15 +707,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     };
 
     // ========================================
-<<<<<<< HEAD
-    // GET WEBHOOK URL (needed for both support and product intents)
-    // ========================================
+=================================
 =======
     // GET WEBHOOK URL (for all intents)
     // ========================================
 
     // Get webhook URL from widget settings
->>>>>>> origin/claude/fix-buttons-ai-support-GxqIv
     let settings = null;
     try {
       settings = await db.widgetSettings.findUnique({
@@ -750,21 +747,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     let n8nResponse;
     let recommendations = [];
 
-<<<<<<< HEAD
-    // ✅ AI-POWERED: Handle support intents with dynamic, shop-specific responses
-    if (isSupportIntent) {
-      // Use AI to generate shop-specific support responses
-      n8nResponse = await handleCustomerSupportWithAI(
-        finalMessage,
-        intent.type,
-        shopDomain,
-        enhancedContext.locale,
-        webhookUrl,
-        routeLogger
-      );
 
-      routeLogger.info({ intent: intent.type, hasProducts: false }, '✅ Support intent handled with AI - NO PRODUCTS');
-=======
     // ✅ AI-POWERED: Send support intents to N8N for shop-specific AI responses
     if (isSupportIntent) {
       routeLogger.info({ intent: intent.type }, '✅ Sending support query to N8N - NO PRODUCTS');
@@ -806,7 +789,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
           messageType: "support"
         };
       }
->>>>>>> origin/claude/fix-buttons-ai-support-GxqIv
     }
     // ========================================
     // PRODUCT INTENT HANDLERS
