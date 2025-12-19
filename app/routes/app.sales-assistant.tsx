@@ -28,7 +28,7 @@ import {
   RefreshIcon
 } from '@shopify/polaris-icons';
 import { authenticate } from "../shopify.server";
-import { n8nService } from "../services/n8n.service";
+import { n8nService } from "../services/n8n.service.server";
 
 // ✅ FIXED: Added productRecommendations back to Message interface
 interface Message {

@@ -16,7 +16,7 @@ import {
 } from "@shopify/polaris";
 import { TitleBar } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
-import { n8nService } from "../services/n8n.service";
+import { n8nService } from "../services/n8n.service.server";
 
 interface Message {
   id: string;

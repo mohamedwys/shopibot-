@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { N8NService } from '../../app/services/n8n.service';
+import { N8NService } from '../../app/services/n8n.service.server';
 import axios from 'axios';
 
 // Mock axios
