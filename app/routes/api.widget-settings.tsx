@@ -1,6 +1,7 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { authenticate, unauthenticated, sessionStorage } from "../shopify.server";
+import { N8NService } from "../services/n8n.service";
 import { prisma as db } from "../db.server";
 import { getSecureCorsHeaders, createCorsPreflightResponse, isOriginAllowed, logCorsViolation } from "../lib/cors.server";
 import { rateLimit, RateLimitPresets } from "../lib/rate-limit.server";
@@ -555,8 +556,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       routeLogger.info({ intent: intent.type }, '✅ Sending support query to N8N - NO PRODUCTS');
 
       try {
-        // Import N8NService dynamically to avoid top-level import issues
-        const { N8NService } = await import("../services/n8n.service.server");
         const customN8NService = new N8NService(webhookUrl);
 
         // Send to N8N with intent context so AI knows it's a support query
@@ -685,7 +684,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
         // Try N8N first, but have fallback ready
         try {
-          const { N8NService } = await import("../services/n8n.service.server");
           const customN8NService = new N8NService(webhookUrl);
           n8nResponse = await customN8NService.processUserMessage({
             userMessage: finalMessage,
@@ -744,7 +742,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       } else {
         // General chat - use N8N
         try {
-          const { N8NService } = await import("../services/n8n.service.server");
           const customN8NService = new N8NService(webhookUrl);
           n8nResponse = await customN8NService.processUserMessage({
             userMessage: finalMessage,
