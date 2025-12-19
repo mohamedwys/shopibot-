@@ -112,18 +112,213 @@ function detectIntent(message: string): Intent {
 // ✅ ADDED: Sentiment analysis helper
 function analyzeSentiment(message: string): string {
   const lower = message.toLowerCase();
-  
+
   // Positive indicators
   if (/(love|great|amazing|excellent|perfect|awesome|thank|thanks|happy|good)/.test(lower)) {
     return "positive";
   }
-  
+
   // Negative indicators
   if (/(hate|bad|terrible|awful|disappointed|angry|problem|issue|wrong)/.test(lower)) {
     return "negative";
   }
-  
+
   return "neutral";
+}
+
+// ========================================
+// AI-POWERED SUPPORT HANDLER FUNCTIONS
+// ========================================
+
+/**
+ * Build contextual message for AI to understand support intent
+ */
+function buildContextualSupportMessage(userMessage: string, intentType: string): string {
+  const contextPrompts: Record<string, string> = {
+    SHIPPING_INFO: `User is asking about shipping/delivery. Their question: "${userMessage}". Please provide accurate, helpful shipping information for this store. Include details about delivery times, costs, and any free shipping thresholds if applicable.`,
+    RETURNS: `User is asking about returns/refunds/exchanges. Their question: "${userMessage}". Please provide the return policy for this store. Include details about the return window, conditions, and process.`,
+    TRACK_ORDER: `User wants to track their order. Their question: "${userMessage}". Please help them understand how to track their order, what information they'll need, and where to find tracking details.`,
+    HELP_FAQ: `User needs general help. Their question: "${userMessage}". Please assist them with general support and guide them to relevant resources.`
+  };
+
+  return contextPrompts[intentType] || userMessage;
+}
+
+/**
+ * Generate appropriate quick replies for support categories
+ */
+function generateSupportQuickReplies(intentType: string, locale?: string): string[] {
+  const lang = locale?.toLowerCase().split('-')[0] || 'en';
+
+  const quickRepliesMap: Record<string, Record<string, string[]>> = {
+    SHIPPING_INFO: {
+      en: ["Return policy", "Track my order", "Browse products"],
+      fr: ["Politique de retour", "Suivre ma commande", "Parcourir les produits"],
+      es: ["Política de devoluciones", "Rastrear mi pedido", "Ver productos"],
+      de: ["Rückgaberichtlinie", "Bestellung verfolgen", "Produkte durchsuchen"]
+    },
+    RETURNS: {
+      en: ["How do I return?", "Shipping info", "Browse products"],
+      fr: ["Comment retourner?", "Informations de livraison", "Parcourir les produits"],
+      es: ["¿Cómo devolver?", "Información de envío", "Ver productos"],
+      de: ["Wie zurücksenden?", "Versandinformationen", "Produkte durchsuchen"]
+    },
+    TRACK_ORDER: {
+      en: ["Contact support", "Shipping info", "Browse products"],
+      fr: ["Contacter le support", "Informations de livraison", "Parcourir les produits"],
+      es: ["Contactar soporte", "Información de envío", "Ver productos"],
+      de: ["Support kontaktieren", "Versandinformationen", "Produkte durchsuchen"]
+    },
+    HELP_FAQ: {
+      en: ["Shipping info", "Return policy", "Browse products"],
+      fr: ["Informations de livraison", "Politique de retour", "Parcourir les produits"],
+      es: ["Información de envío", "Política de devoluciones", "Ver productos"],
+      de: ["Versandinformationen", "Rückgaberichtlinie", "Produkte durchsuchen"]
+    }
+  };
+
+  const replies = quickRepliesMap[intentType];
+  return replies?.[lang] || replies?.['en'] || ["Browse products", "Help & Support"];
+}
+
+/**
+ * Get fallback support message when AI is unavailable
+ */
+function getFallbackSupportMessage(intentType: string, locale?: string): string {
+  const lang = locale?.toLowerCase().split('-')[0] || 'en';
+
+  const fallbackMessages: Record<string, Record<string, string>> = {
+    SHIPPING_INFO: {
+      en: "I'd love to help with shipping information! Please ask me your specific question and I'll do my best to assist you. 😊",
+      fr: "Je serais ravi de vous aider avec les informations de livraison! Posez-moi votre question spécifique et je ferai de mon mieux pour vous aider. 😊",
+      es: "¡Me encantaría ayudarte con la información de envío! Hazme tu pregunta específica y haré todo lo posible para ayudarte. 😊",
+      de: "Ich helfe Ihnen gerne mit Versandinformationen! Stellen Sie mir Ihre spezifische Frage und ich werde mein Bestes tun, um Ihnen zu helfen. 😊"
+    },
+    RETURNS: {
+      en: "I can help with returns and exchanges! What would you like to know?",
+      fr: "Je peux vous aider avec les retours et les échanges! Que voulez-vous savoir?",
+      es: "¡Puedo ayudarte con devoluciones y cambios! ¿Qué te gustaría saber?",
+      de: "Ich kann Ihnen bei Rücksendungen und Umtausch helfen! Was möchten Sie wissen?"
+    },
+    TRACK_ORDER: {
+      en: "To help you track your order, I'll need some information. What's your order number or email?",
+      fr: "Pour vous aider à suivre votre commande, j'ai besoin de quelques informations. Quel est votre numéro de commande ou votre email?",
+      es: "Para ayudarte a rastrear tu pedido, necesito información. ¿Cuál es tu número de pedido o correo electrónico?",
+      de: "Um Ihnen bei der Nachverfolgung Ihrer Bestellung zu helfen, benötige ich einige Informationen. Was ist Ihre Bestellnummer oder E-Mail?"
+    },
+    HELP_FAQ: {
+      en: "I'm here to help! What can I assist you with today?",
+      fr: "Je suis là pour vous aider! Comment puis-je vous assister aujourd'hui?",
+      es: "¡Estoy aquí para ayudar! ¿En qué puedo asistirte hoy?",
+      de: "Ich bin hier um zu helfen! Womit kann ich Ihnen heute helfen?"
+    }
+  };
+
+  const messages = fallbackMessages[intentType];
+  return messages?.[lang] || messages?.['en'] || "How can I help you today?";
+}
+
+/**
+ * Handle customer support intents with AI-powered responses
+ */
+async function handleCustomerSupportWithAI(
+  userMessage: string,
+  intentType: string,
+  shop: string,
+  locale: string | undefined,
+  webhookUrl: string | undefined,
+  logger: any
+): Promise<any> {
+  try {
+    // Build contextual message to help AI understand the support category
+    const contextualMessage = buildContextualSupportMessage(userMessage, intentType);
+
+    logger.info({ intentType, shop }, 'Handling customer support with AI');
+
+    // Send to N8N workflow for AI processing
+    const n8nService = new N8NService(webhookUrl);
+    const aiResponse = await n8nService.processUserMessage({
+      userMessage: contextualMessage,
+      products: [], // NO PRODUCTS for support queries
+      context: {
+        shop,
+        intentType: "customer_support",
+        supportCategory: intentType,
+        locale
+      }
+    });
+
+    return {
+      message: String(aiResponse.message || getFallbackSupportMessage(intentType, locale)),
+      recommendations: [], // NO PRODUCTS for support queries
+      quickReplies: aiResponse.quickReplies || generateSupportQuickReplies(intentType, locale),
+      confidence: aiResponse.confidence || 0.8,
+      messageType: "support"
+    };
+  } catch (error) {
+    logger.error({ error: String(error), intentType }, 'AI support handler error - using fallback');
+
+    // Use fallback message when AI is unavailable
+    return {
+      message: getFallbackSupportMessage(intentType, locale),
+      recommendations: [], // NO PRODUCTS for support queries
+      quickReplies: generateSupportQuickReplies(intentType, locale),
+      confidence: 0.5,
+      messageType: "support"
+    };
+  }
+}
+
+/**
+ * Handle general chat with AI
+ */
+async function handleGeneralChatWithAI(
+  userMessage: string,
+  shop: string,
+  locale: string | undefined,
+  webhookUrl: string | undefined,
+  logger: any
+): Promise<any> {
+  try {
+    logger.info({ shop }, 'Handling general chat with AI');
+
+    const n8nService = new N8NService(webhookUrl);
+    const aiResponse = await n8nService.processUserMessage({
+      userMessage,
+      products: [],
+      context: {
+        shop,
+        intentType: "general_chat",
+        locale
+      }
+    });
+
+    return {
+      message: String(aiResponse.message || "I'm here to help! What would you like to know?"),
+      recommendations: [],
+      quickReplies: aiResponse.quickReplies || ["Show bestsellers", "What's on sale?", "New arrivals", "Help & Support"],
+      confidence: aiResponse.confidence || 0.7,
+      messageType: "general"
+    };
+  } catch (error) {
+    logger.error({ error: String(error) }, 'AI general chat error - using fallback');
+
+    const lang = locale?.toLowerCase().split('-')[0] || 'en';
+    const fallbackMessages: Record<string, string> = {
+      en: "I'm here to help! You can ask me about products, shipping, returns, or anything else! 😊",
+      fr: "Je suis là pour vous aider! Vous pouvez me poser des questions sur les produits, la livraison, les retours ou autre chose! 😊",
+      es: "¡Estoy aquí para ayudar! ¡Puedes preguntarme sobre productos, envíos, devoluciones o cualquier otra cosa! 😊",
+      de: "Ich bin hier um zu helfen! Sie können mich nach Produkten, Versand, Rücksendungen oder etwas anderem fragen! 😊"
+    };
+
+    return {
+      message: fallbackMessages[lang] || fallbackMessages['en'],
+      recommendations: [],
+      quickReplies: ["Show bestsellers", "Shipping info", "Return policy"],
+      confidence: 0.6,
+      messageType: "general"
+    };
+  }
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -513,124 +708,60 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     };
 
     // ========================================
+    // GET WEBHOOK URL (needed for both support and product intents)
+    // ========================================
+    let settings = null;
+    try {
+      settings = await db.widgetSettings.findUnique({
+        where: { shop: shopDomain },
+      });
+      routeLogger.debug({
+        shop: shopDomain,
+        hasCustomWebhook: !!(settings as any)?.webhookUrl
+      }, 'Retrieved widget settings');
+    } catch (error) {
+      routeLogger.debug('Could not fetch settings from database');
+      settings = null;
+    }
+
+    // Use custom webhook URL only if it's a valid URL
+    const customWebhookUrl = (settings as any)?.webhookUrl;
+    const isValidCustomUrl = customWebhookUrl &&
+                            typeof customWebhookUrl === 'string' &&
+                            customWebhookUrl.trim() !== '' &&
+                            customWebhookUrl !== 'https://' &&
+                            customWebhookUrl !== 'null' &&
+                            customWebhookUrl !== 'undefined' &&
+                            customWebhookUrl.startsWith('https://') &&
+                            customWebhookUrl.length > 8;
+
+    const webhookUrl = isValidCustomUrl ? customWebhookUrl : process.env.N8N_WEBHOOK_URL;
+
+    // ========================================
     // SUPPORT INTENT HANDLERS (NO PRODUCTS)
     // ========================================
 
     let n8nResponse;
     let recommendations = [];
 
-    // Handle support intents with text-only responses
+    // ✅ AI-POWERED: Handle support intents with dynamic, shop-specific responses
     if (isSupportIntent) {
-      const lang = enhancedContext.locale?.toLowerCase().split('-')[0] || 'en';
+      // Use AI to generate shop-specific support responses
+      n8nResponse = await handleCustomerSupportWithAI(
+        finalMessage,
+        intent.type,
+        shopDomain,
+        enhancedContext.locale,
+        webhookUrl,
+        routeLogger
+      );
 
-      if (intent.type === "SHIPPING_INFO") {
-        const shippingMessages: Record<string, string> = {
-          en: "📦 **Shipping Information**\n\n✅ **Free Shipping** on orders over $50\n🚚 **Standard Delivery**: 3-5 business days\n⚡ **Express Delivery**: 1-2 business days\n🌍 We ship worldwide!\n\n*Shipping costs are calculated at checkout based on your location.*",
-          fr: "📦 **Informations de Livraison**\n\n✅ **Livraison Gratuite** sur les commandes de plus de 50€\n🚚 **Livraison Standard**: 3-5 jours ouvrables\n⚡ **Livraison Express**: 1-2 jours ouvrables\n🌍 Nous livrons dans le monde entier!\n\n*Les frais de port sont calculés lors du paiement selon votre localisation.*",
-          es: "📦 **Información de Envío**\n\n✅ **Envío Gratis** en pedidos superiores a $50\n🚚 **Entrega Estándar**: 3-5 días hábiles\n⚡ **Entrega Express**: 1-2 días hábiles\n🌍 ¡Enviamos a todo el mundo!\n\n*Los costos de envío se calculan al finalizar la compra según su ubicación.*",
-          de: "📦 **Versandinformationen**\n\n✅ **Kostenloser Versand** bei Bestellungen über 50€\n🚚 **Standardlieferung**: 3-5 Werktage\n⚡ **Express-Lieferung**: 1-2 Werktage\n🌍 Wir versenden weltweit!\n\n*Die Versandkosten werden beim Checkout basierend auf Ihrem Standort berechnet.*"
-        };
-        const quickReplies = lang === 'fr'
-          ? ["Suivre ma commande", "Politique de retour", "Parcourir les produits"]
-          : ["Track my order", "Return policy", "Browse products"];
-
-        n8nResponse = {
-          message: shippingMessages[lang] || shippingMessages['en'],
-          recommendations: [], // NO PRODUCTS
-          quickReplies: quickReplies,
-          confidence: 1.0,
-          messageType: "support"
-        };
-      } else if (intent.type === "RETURNS") {
-        const returnMessages: Record<string, string> = {
-          en: "↩️ **Return Policy**\n\n✅ **30-Day Money-Back Guarantee**\n📦 **Free Returns** on all orders\n💳 Full refund or exchange available\n\n**Return Requirements:**\n• Items must be unused and in original packaging\n• Tags must be attached\n• Return within 30 days of delivery\n\nContact our support team to initiate a return!",
-          fr: "↩️ **Politique de Retour**\n\n✅ **Garantie de remboursement de 30 jours**\n📦 **Retours Gratuits** sur toutes les commandes\n💳 Remboursement complet ou échange disponible\n\n**Conditions de retour:**\n• Les articles doivent être neufs et dans leur emballage d'origine\n• Les étiquettes doivent être attachées\n• Retour dans les 30 jours suivant la livraison\n\nContactez notre équipe d'assistance pour initier un retour!",
-          es: "↩️ **Política de Devoluciones**\n\n✅ **Garantía de devolución de 30 días**\n📦 **Devoluciones Gratis** en todos los pedidos\n💳 Reembolso completo o cambio disponible\n\n**Requisitos de devolución:**\n• Los artículos deben estar sin usar y en su empaque original\n• Las etiquetas deben estar adjuntas\n• Devolver dentro de los 30 días de la entrega\n\n¡Contacte a nuestro equipo de soporte para iniciar una devolución!",
-          de: "↩️ **Rückgaberichtlinie**\n\n✅ **30-Tage-Geld-zurück-Garantie**\n📦 **Kostenlose Rücksendungen** bei allen Bestellungen\n💳 Vollständige Rückerstattung oder Umtausch verfügbar\n\n**Rückgabebedingungen:**\n• Artikel müssen unbenutzt und in Originalverpackung sein\n• Etiketten müssen angebracht sein\n• Rücksendung innerhalb von 30 Tagen nach Lieferung\n\nKontaktieren Sie unser Support-Team, um eine Rücksendung einzuleiten!"
-        };
-        const quickReplies = lang === 'fr'
-          ? ["Comment retourner?", "Suivre commande", "Parcourir produits"]
-          : ["How to return?", "Track order", "Browse products"];
-
-        n8nResponse = {
-          message: returnMessages[lang] || returnMessages['en'],
-          recommendations: [], // NO PRODUCTS
-          quickReplies: quickReplies,
-          confidence: 1.0,
-          messageType: "support"
-        };
-      } else if (intent.type === "TRACK_ORDER") {
-        const trackMessages: Record<string, string> = {
-          en: "🔍 **Track Your Order**\n\n**To track your order:**\n\n1. Check your email for the shipping confirmation\n2. Click the tracking link in the email\n3. Or enter your order number on our website\n\n**Need Help?**\nIf you haven't received a tracking number within 2 business days, please contact our support team with your order number.",
-          fr: "🔍 **Suivre Votre Commande**\n\n**Pour suivre votre commande:**\n\n1. Vérifiez votre email pour la confirmation d'expédition\n2. Cliquez sur le lien de suivi dans l'email\n3. Ou entrez votre numéro de commande sur notre site web\n\n**Besoin d'aide?**\nSi vous n'avez pas reçu de numéro de suivi dans les 2 jours ouvrables, veuillez contacter notre équipe d'assistance avec votre numéro de commande.",
-          es: "🔍 **Rastrear Su Pedido**\n\n**Para rastrear su pedido:**\n\n1. Revise su correo electrónico para la confirmación de envío\n2. Haga clic en el enlace de seguimiento en el correo electrónico\n3. O ingrese su número de pedido en nuestro sitio web\n\n**¿Necesita ayuda?**\nSi no ha recibido un número de seguimiento dentro de 2 días hábiles, comuníquese con nuestro equipo de soporte con su número de pedido.",
-          de: "🔍 **Verfolgen Sie Ihre Bestellung**\n\n**So verfolgen Sie Ihre Bestellung:**\n\n1. Überprüfen Sie Ihre E-Mail auf die Versandbestätigung\n2. Klicken Sie auf den Tracking-Link in der E-Mail\n3. Oder geben Sie Ihre Bestellnummer auf unserer Website ein\n\n**Brauchen Sie Hilfe?**\nWenn Sie innerhalb von 2 Werktagen keine Tracking-Nummer erhalten haben, wenden Sie sich bitte mit Ihrer Bestellnummer an unser Support-Team."
-        };
-        const quickReplies = lang === 'fr'
-          ? ["Informations de livraison", "Politique de retour", "Aide"]
-          : ["Shipping info", "Return policy", "Help"];
-
-        n8nResponse = {
-          message: trackMessages[lang] || trackMessages['en'],
-          recommendations: [], // NO PRODUCTS
-          quickReplies: quickReplies,
-          confidence: 1.0,
-          messageType: "support"
-        };
-      } else if (intent.type === "HELP_FAQ") {
-        const helpMessages: Record<string, string> = {
-          en: "💬 **How Can We Help?**\n\n**Quick Links:**\n\n📦 **Shipping** - Delivery times and costs\n↩️ **Returns** - Our return policy\n🔍 **Track Order** - Find your package\n💳 **Payment** - Accepted payment methods\n🛡️ **Security** - Safe & secure checkout\n\n**Still have questions?**\nFeel free to ask me anything about our products, policies, or services. I'm here to help!",
-          fr: "💬 **Comment Pouvons-Nous Vous Aider?**\n\n**Liens Rapides:**\n\n📦 **Livraison** - Délais et coûts de livraison\n↩️ **Retours** - Notre politique de retour\n🔍 **Suivre Commande** - Trouvez votre colis\n💳 **Paiement** - Modes de paiement acceptés\n🛡️ **Sécurité** - Paiement sûr et sécurisé\n\n**Vous avez encore des questions?**\nN'hésitez pas à me poser toute question sur nos produits, politiques ou services. Je suis là pour vous aider!",
-          es: "💬 **¿Cómo Podemos Ayudar?**\n\n**Enlaces Rápidos:**\n\n📦 **Envío** - Tiempos y costos de entrega\n↩️ **Devoluciones** - Nuestra política de devoluciones\n🔍 **Rastrear Pedido** - Encuentre su paquete\n💳 **Pago** - Métodos de pago aceptados\n🛡️ **Seguridad** - Pago seguro y protegido\n\n**¿Todavía tiene preguntas?**\nNo dude en preguntarme cualquier cosa sobre nuestros productos, políticas o servicios. ¡Estoy aquí para ayudar!",
-          de: "💬 **Wie Können Wir Helfen?**\n\n**Schnelllinks:**\n\n📦 **Versand** - Lieferzeiten und -kosten\n↩️ **Rücksendungen** - Unsere Rückgaberichtlinie\n🔍 **Bestellung Verfolgen** - Finden Sie Ihr Paket\n💳 **Zahlung** - Akzeptierte Zahlungsmethoden\n🛡️ **Sicherheit** - Sichere Kaufabwicklung\n\n**Haben Sie noch Fragen?**\nFragen Sie mich gerne zu unseren Produkten, Richtlinien oder Dienstleistungen. Ich bin hier, um zu helfen!"
-        };
-        const quickReplies = lang === 'fr'
-          ? ["Informations de livraison", "Politique de retour", "Parcourir produits"]
-          : ["Shipping info", "Return policy", "Browse products"];
-
-        n8nResponse = {
-          message: helpMessages[lang] || helpMessages['en'],
-          recommendations: [], // NO PRODUCTS
-          quickReplies: quickReplies,
-          confidence: 1.0,
-          messageType: "support"
-        };
-      }
-
-      routeLogger.info({ intent: intent.type, hasProducts: false }, '✅ Support intent handled - NO PRODUCTS');
+      routeLogger.info({ intent: intent.type, hasProducts: false }, '✅ Support intent handled with AI - NO PRODUCTS');
     }
     // ========================================
     // PRODUCT INTENT HANDLERS
     // ========================================
     else {
-      // Get webhook URL from widget settings
-      let settings = null;
-      try {
-        settings = await db.widgetSettings.findUnique({
-          where: { shop: shopDomain },
-        });
-        routeLogger.debug({
-          shop: shopDomain,
-          hasCustomWebhook: !!(settings as any)?.webhookUrl
-        }, 'Retrieved widget settings');
-      } catch (error) {
-        routeLogger.debug('Could not fetch settings from database');
-        settings = null;
-      }
-
-      // Use custom webhook URL only if it's a valid URL
-      const customWebhookUrl = (settings as any)?.webhookUrl;
-      const isValidCustomUrl = customWebhookUrl &&
-                              typeof customWebhookUrl === 'string' &&
-                              customWebhookUrl.trim() !== '' &&
-                              customWebhookUrl !== 'https://' &&
-                              customWebhookUrl !== 'null' &&
-                              customWebhookUrl !== 'undefined' &&
-                              customWebhookUrl.startsWith('https://') &&
-                              customWebhookUrl.length > 8;
-
-      const webhookUrl = isValidCustomUrl ? customWebhookUrl : process.env.N8N_WEBHOOK_URL;
-
       // ✅ CRITICAL FIX: Handle shop session/authentication failure for ALL product intents
       const isProductIntent = ["BESTSELLERS", "NEW_ARRIVALS", "ON_SALE", "RECOMMENDATIONS", "PRODUCT_SEARCH"].includes(intent.type);
 
