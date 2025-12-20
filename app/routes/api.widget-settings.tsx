@@ -125,6 +125,39 @@ function analyzeSentiment(message: string): string {
   return "neutral";
 }
 
+// ✅ ADDED: Language detection helper
+function detectLanguage(message: string): string {
+  const lower = message.toLowerCase();
+
+  // French detection
+  if (/(bonjour|salut|merci|montre|produit|cherche|voudrais|pourrais|nouveauté|meilleures?|vente)/i.test(message)) {
+    return 'fr';
+  }
+
+  // Spanish detection
+  if (/(hola|gracias|producto|busco|quiero|puedo|nuevo)/i.test(message)) {
+    return 'es';
+  }
+
+  // German detection
+  if (/(hallo|danke|produkt|suche|möchte|kann)/i.test(message)) {
+    return 'de';
+  }
+
+  // Portuguese detection
+  if (/(olá|obrigado|produto|procuro|gostaria|posso)/i.test(message)) {
+    return 'pt';
+  }
+
+  // Italian detection
+  if (/(ciao|grazie|prodotto|cerco|vorrei|posso)/i.test(message)) {
+    return 'it';
+  }
+
+  // Default to English
+  return 'en';
+}
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   // ✅ SECURITY FIX: Apply rate limiting
   // Generous limit for widget settings retrieval: 300 requests per minute
@@ -294,13 +327,19 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     console.log("🔍 DEBUG: User message:", finalMessage);
     console.log("🔍 DEBUG: Shop:", shopDomain);
 
-    // ✅ IMPROVED: Detect intent and sentiment
+    // ✅ IMPROVED: Detect intent, sentiment, and language
     const intent = detectIntent(finalMessage);
     const sentiment = analyzeSentiment(finalMessage);
+    const detectedLanguage = detectLanguage(finalMessage);
 
-    routeLogger.debug({ intent: intent.type, sentiment }, 'Intent and sentiment detected');
+    routeLogger.debug({
+      intent: intent.type,
+      sentiment,
+      language: detectedLanguage
+    }, 'Intent, sentiment, and language detected');
     console.log("🔍 DEBUG: Detected intent:", JSON.stringify(intent));
     console.log("🔍 DEBUG: Detected sentiment:", sentiment);
+    console.log("🔍 DEBUG: Detected language:", detectedLanguage);
 
     // ========================================
     // HANDLE SUPPORT INTENTS (NO PRODUCTS)
@@ -516,6 +555,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       sentiment: sentiment,
       intent: intent.type,
       shopDomain: shopDomain,
+      locale: detectedLanguage, // ✅ ADDED: Pass detected language to AI
+      languageInstruction: `IMPORTANT: Respond in ${detectedLanguage === 'fr' ? 'French' : detectedLanguage === 'es' ? 'Spanish' : detectedLanguage === 'de' ? 'German' : detectedLanguage === 'pt' ? 'Portuguese' : detectedLanguage === 'it' ? 'Italian' : 'English'}. User's language: ${detectedLanguage}`, // ✅ ADDED: Explicit language instruction
       timestamp: new Date().toISOString(),
       userAgent: request.headers.get('user-agent') || undefined,
       referer: request.headers.get('referer') || undefined,
@@ -533,6 +574,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       });
       routeLogger.debug({
         shop: shopDomain,
+        workflowType: (settings as any)?.workflowType || 'DEFAULT',
         hasCustomWebhook: !!(settings as any)?.webhookUrl
       }, 'Retrieved widget settings');
     } catch (error) {
@@ -540,18 +582,57 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       settings = null;
     }
 
-    // Use custom webhook URL only if it's a valid URL
-    const customWebhookUrl = (settings as any)?.webhookUrl;
-    const isValidCustomUrl = customWebhookUrl &&
-                            typeof customWebhookUrl === 'string' &&
-                            customWebhookUrl.trim() !== '' &&
-                            customWebhookUrl !== 'https://' &&
-                            customWebhookUrl !== 'null' &&
-                            customWebhookUrl !== 'undefined' &&
-                            customWebhookUrl.startsWith('https://') &&
-                            customWebhookUrl.length > 8;
+    // ✅ IMPROVED: Determine workflow type and webhook URL
+    const workflowType = (settings as any)?.workflowType || 'DEFAULT';
+    let webhookUrl: string | undefined;
+    let workflowDescription: string;
 
-    const webhookUrl = isValidCustomUrl ? customWebhookUrl : process.env.N8N_WEBHOOK_URL;
+    if (workflowType === 'CUSTOM') {
+      // CUSTOM WORKFLOW: Use merchant's custom N8N webhook
+      const customWebhookUrl = (settings as any)?.webhookUrl;
+      const isValidCustomUrl = customWebhookUrl &&
+                              typeof customWebhookUrl === 'string' &&
+                              customWebhookUrl.trim() !== '' &&
+                              customWebhookUrl !== 'https://' &&
+                              customWebhookUrl !== 'null' &&
+                              customWebhookUrl !== 'undefined' &&
+                              customWebhookUrl.startsWith('https://') &&
+                              customWebhookUrl.length > 8;
+
+      if (isValidCustomUrl) {
+        webhookUrl = customWebhookUrl;
+        workflowDescription = 'CUSTOM N8N Workflow (merchant webhook)';
+      } else {
+        // Invalid custom URL - fallback to default
+        webhookUrl = process.env.N8N_WEBHOOK_URL;
+        workflowDescription = 'DEFAULT Workflow (invalid custom URL, using fallback)';
+        routeLogger.warn({
+          shop: shopDomain,
+          customUrl: customWebhookUrl
+        }, '⚠️ Custom workflow selected but URL invalid - falling back to default');
+      }
+    } else {
+      // DEFAULT WORKFLOW: Use default N8N webhook from environment
+      webhookUrl = process.env.N8N_WEBHOOK_URL;
+      workflowDescription = 'DEFAULT N8N Workflow (environment variable)';
+    }
+
+    // ✅ LOG WHICH WORKFLOW IS BEING USED
+    console.log('========================================');
+    console.log(`🔄 WORKFLOW: ${workflowDescription}`);
+    console.log(`📍 Shop: ${shopDomain}`);
+    console.log(`🎯 Intent: ${intent.type}`);
+    console.log(`🌐 Language: ${enhancedContext.locale || 'auto-detect'}`);
+    console.log(`🔗 Webhook: ${webhookUrl ? webhookUrl.substring(0, 30) + '...' : 'NOT SET'}`);
+    console.log('========================================');
+
+    routeLogger.info({
+      workflow: workflowDescription,
+      workflowType,
+      shop: shopDomain,
+      intent: intent.type,
+      hasWebhook: !!webhookUrl
+    }, '🔄 Using workflow');
 
     // ========================================
     // SUPPORT INTENT HANDLERS (NO PRODUCTS)

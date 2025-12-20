@@ -168,6 +168,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const webhookUrl = formData.get("webhookUrl") as string | null;
   const normalizedWebhookUrl = webhookUrl?.trim() || null;
 
+  // ✅ ADDED: Handle workflowType
+  const workflowType = (formData.get("workflowType") as string) || "DEFAULT";
+
   const settingsData = {
     enabled: formData.get("enabled") === "true",
     position: formData.get("position") as string,
@@ -176,11 +179,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     welcomeMessage: formData.get("welcomeMessage") as string,
     inputPlaceholder: formData.get("inputPlaceholder") as string,
     primaryColor: formData.get("primaryColor") as string,
+    workflowType: workflowType, // ✅ ADDED: Save workflow type
     webhookUrl: normalizedWebhookUrl, // Always include, null clears it
   };
 
   try {
     logger.info('💾 Saving settings for shop:', session.shop);
+    logger.info('🔧 Workflow type being saved:', workflowType);
     logger.info('🔧 Webhook URL being saved:', normalizedWebhookUrl || '[CLEARED/DEFAULT]');
 
     // Save settings to database
@@ -194,6 +199,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     });
 
     logger.info("✅ Settings saved to database successfully");
+    logger.info("🔧 Final workflowType in database:", (settings as any).workflowType);
     logger.info("🔧 Final webhookUrl in database:", settings.webhookUrl || '[NULL/DEFAULT]');
 
     return json({
@@ -247,9 +253,25 @@ export default function SettingsPage() {
     setIsSaving(true);
     const formData = new FormData();
 
+    // ✅ IMPROVED: Determine workflow type based on webhookUrl validity
+    const webhookUrl = (settings as any).webhookUrl || "";
+    const isValidCustomUrl = webhookUrl &&
+                           typeof webhookUrl === 'string' &&
+                           webhookUrl.trim() !== '' &&
+                           webhookUrl !== 'https://' &&
+                           webhookUrl !== 'null' &&
+                           webhookUrl !== 'undefined' &&
+                           webhookUrl.startsWith('https://') &&
+                           webhookUrl.length > 8;
+
+    const workflowType = isValidCustomUrl ? "CUSTOM" : "DEFAULT";
+
     Object.entries(settings).forEach(([key, value]) => {
       formData.append(key, String(value));
     });
+
+    // ✅ ADDED: Append workflowType
+    formData.append("workflowType", workflowType);
 
     submit(formData, { method: "post" });
     setIsSaving(false);
