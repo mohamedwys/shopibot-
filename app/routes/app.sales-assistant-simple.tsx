@@ -16,7 +16,6 @@ import {
 } from "@shopify/polaris";
 import { TitleBar } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
-import { n8nService } from "../services/n8n.service.server";
 
 interface Message {
   id: string;
@@ -131,6 +130,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     })) || [];
 
     // Process message through N8N service
+    const { n8nService } = await import("../services/n8n.service.server");
     const n8nResponse = await n8nService.processUserMessage({
       userMessage,
       products,

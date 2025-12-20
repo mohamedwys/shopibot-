@@ -28,7 +28,6 @@ import {
   RefreshIcon
 } from '@shopify/polaris-icons';
 import { authenticate } from "../shopify.server";
-import { n8nService } from "../services/n8n.service.server";
 
 // ✅ FIXED: Added productRecommendations back to Message interface
 interface Message {
@@ -179,6 +178,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
 
     // General chat — no products
+    const { n8nService } = await import("../services/n8n.service.server");
     const n8nResponse = await n8nService.processUserMessage({
       userMessage,
       products: [],

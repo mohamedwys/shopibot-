@@ -1,7 +1,6 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { authenticate, unauthenticated, sessionStorage } from "../shopify.server";
-import { N8NService } from "../services/n8n.service.server";
 import { prisma as db } from "../db.server";
 import { getSecureCorsHeaders, createCorsPreflightResponse, isOriginAllowed, logCorsViolation } from "../lib/cors.server";
 import { rateLimit, RateLimitPresets } from "../lib/rate-limit.server";
@@ -124,201 +123,6 @@ function analyzeSentiment(message: string): string {
   }
 
   return "neutral";
-}
-
-// ========================================
-// AI-POWERED SUPPORT HANDLER FUNCTIONS
-// ========================================
-
-/**
- * Build contextual message for AI to understand support intent
- */
-function buildContextualSupportMessage(userMessage: string, intentType: string): string {
-  const contextPrompts: Record<string, string> = {
-    SHIPPING_INFO: `User is asking about shipping/delivery. Their question: "${userMessage}". Please provide accurate, helpful shipping information for this store. Include details about delivery times, costs, and any free shipping thresholds if applicable.`,
-    RETURNS: `User is asking about returns/refunds/exchanges. Their question: "${userMessage}". Please provide the return policy for this store. Include details about the return window, conditions, and process.`,
-    TRACK_ORDER: `User wants to track their order. Their question: "${userMessage}". Please help them understand how to track their order, what information they'll need, and where to find tracking details.`,
-    HELP_FAQ: `User needs general help. Their question: "${userMessage}". Please assist them with general support and guide them to relevant resources.`
-  };
-
-  return contextPrompts[intentType] || userMessage;
-}
-
-/**
- * Generate appropriate quick replies for support categories
- */
-function generateSupportQuickReplies(intentType: string, locale?: string): string[] {
-  const lang = locale?.toLowerCase().split('-')[0] || 'en';
-
-  const quickRepliesMap: Record<string, Record<string, string[]>> = {
-    SHIPPING_INFO: {
-      en: ["Return policy", "Track my order", "Browse products"],
-      fr: ["Politique de retour", "Suivre ma commande", "Parcourir les produits"],
-      es: ["Política de devoluciones", "Rastrear mi pedido", "Ver productos"],
-      de: ["Rückgaberichtlinie", "Bestellung verfolgen", "Produkte durchsuchen"]
-    },
-    RETURNS: {
-      en: ["How do I return?", "Shipping info", "Browse products"],
-      fr: ["Comment retourner?", "Informations de livraison", "Parcourir les produits"],
-      es: ["¿Cómo devolver?", "Información de envío", "Ver productos"],
-      de: ["Wie zurücksenden?", "Versandinformationen", "Produkte durchsuchen"]
-    },
-    TRACK_ORDER: {
-      en: ["Contact support", "Shipping info", "Browse products"],
-      fr: ["Contacter le support", "Informations de livraison", "Parcourir les produits"],
-      es: ["Contactar soporte", "Información de envío", "Ver productos"],
-      de: ["Support kontaktieren", "Versandinformationen", "Produkte durchsuchen"]
-    },
-    HELP_FAQ: {
-      en: ["Shipping info", "Return policy", "Browse products"],
-      fr: ["Informations de livraison", "Politique de retour", "Parcourir les produits"],
-      es: ["Información de envío", "Política de devoluciones", "Ver productos"],
-      de: ["Versandinformationen", "Rückgaberichtlinie", "Produkte durchsuchen"]
-    }
-  };
-
-  const replies = quickRepliesMap[intentType];
-  return replies?.[lang] || replies?.['en'] || ["Browse products", "Help & Support"];
-}
-
-/**
- * Get fallback support message when AI is unavailable
- */
-function getFallbackSupportMessage(intentType: string, locale?: string): string {
-  const lang = locale?.toLowerCase().split('-')[0] || 'en';
-
-  const fallbackMessages: Record<string, Record<string, string>> = {
-    SHIPPING_INFO: {
-      en: "I'd love to help with shipping information! Please ask me your specific question and I'll do my best to assist you. 😊",
-      fr: "Je serais ravi de vous aider avec les informations de livraison! Posez-moi votre question spécifique et je ferai de mon mieux pour vous aider. 😊",
-      es: "¡Me encantaría ayudarte con la información de envío! Hazme tu pregunta específica y haré todo lo posible para ayudarte. 😊",
-      de: "Ich helfe Ihnen gerne mit Versandinformationen! Stellen Sie mir Ihre spezifische Frage und ich werde mein Bestes tun, um Ihnen zu helfen. 😊"
-    },
-    RETURNS: {
-      en: "I can help with returns and exchanges! What would you like to know?",
-      fr: "Je peux vous aider avec les retours et les échanges! Que voulez-vous savoir?",
-      es: "¡Puedo ayudarte con devoluciones y cambios! ¿Qué te gustaría saber?",
-      de: "Ich kann Ihnen bei Rücksendungen und Umtausch helfen! Was möchten Sie wissen?"
-    },
-    TRACK_ORDER: {
-      en: "To help you track your order, I'll need some information. What's your order number or email?",
-      fr: "Pour vous aider à suivre votre commande, j'ai besoin de quelques informations. Quel est votre numéro de commande ou votre email?",
-      es: "Para ayudarte a rastrear tu pedido, necesito información. ¿Cuál es tu número de pedido o correo electrónico?",
-      de: "Um Ihnen bei der Nachverfolgung Ihrer Bestellung zu helfen, benötige ich einige Informationen. Was ist Ihre Bestellnummer oder E-Mail?"
-    },
-    HELP_FAQ: {
-      en: "I'm here to help! What can I assist you with today?",
-      fr: "Je suis là pour vous aider! Comment puis-je vous assister aujourd'hui?",
-      es: "¡Estoy aquí para ayudar! ¿En qué puedo asistirte hoy?",
-      de: "Ich bin hier um zu helfen! Womit kann ich Ihnen heute helfen?"
-    }
-  };
-
-  const messages = fallbackMessages[intentType];
-  return messages?.[lang] || messages?.['en'] || "How can I help you today?";
-}
-
-/**
- * Handle customer support intents with AI-powered responses
- */
-async function handleCustomerSupportWithAI(
-  userMessage: string,
-  intentType: string,
-  shop: string,
-  locale: string | undefined,
-  webhookUrl: string | undefined,
-  logger: any
-): Promise<any> {
-  try {
-    // Build contextual message to help AI understand the support category
-    const contextualMessage = buildContextualSupportMessage(userMessage, intentType);
-
-    logger.info({ intentType, shop }, 'Handling customer support with AI');
-
-    // Send to N8N workflow for AI processing
-    const n8nService = new N8NService(webhookUrl);
-    const aiResponse = await n8nService.processUserMessage({
-      userMessage: contextualMessage,
-      products: [], // NO PRODUCTS for support queries
-      context: {
-        shop,
-        intentType: "customer_support",
-        supportCategory: intentType,
-        locale
-      }
-    });
-
-    return {
-      message: String(aiResponse.message || getFallbackSupportMessage(intentType, locale)),
-      recommendations: [], // NO PRODUCTS for support queries
-      quickReplies: aiResponse.quickReplies || generateSupportQuickReplies(intentType, locale),
-      confidence: aiResponse.confidence || 0.8,
-      messageType: "support"
-    };
-  } catch (error) {
-    logger.error({ error: String(error), intentType }, 'AI support handler error - using fallback');
-
-    // Use fallback message when AI is unavailable
-    return {
-      message: getFallbackSupportMessage(intentType, locale),
-      recommendations: [], // NO PRODUCTS for support queries
-      quickReplies: generateSupportQuickReplies(intentType, locale),
-      confidence: 0.5,
-      messageType: "support"
-    };
-  }
-}
-
-/**
- * Handle general chat with AI
- */
-async function handleGeneralChatWithAI(
-  userMessage: string,
-  shop: string,
-  locale: string | undefined,
-  webhookUrl: string | undefined,
-  logger: any
-): Promise<any> {
-  try {
-    logger.info({ shop }, 'Handling general chat with AI');
-
-    const n8nService = new N8NService(webhookUrl);
-    const aiResponse = await n8nService.processUserMessage({
-      userMessage,
-      products: [],
-      context: {
-        shop,
-        intentType: "general_chat",
-        locale
-      }
-    });
-
-    return {
-      message: String(aiResponse.message || "I'm here to help! What would you like to know?"),
-      recommendations: [],
-      quickReplies: aiResponse.quickReplies || ["Show bestsellers", "What's on sale?", "New arrivals", "Help & Support"],
-      confidence: aiResponse.confidence || 0.7,
-      messageType: "general"
-    };
-  } catch (error) {
-    logger.error({ error: String(error) }, 'AI general chat error - using fallback');
-
-    const lang = locale?.toLowerCase().split('-')[0] || 'en';
-    const fallbackMessages: Record<string, string> = {
-      en: "I'm here to help! You can ask me about products, shipping, returns, or anything else! 😊",
-      fr: "Je suis là pour vous aider! Vous pouvez me poser des questions sur les produits, la livraison, les retours ou autre chose! 😊",
-      es: "¡Estoy aquí para ayudar! ¡Puedes preguntarme sobre productos, envíos, devoluciones o cualquier otra cosa! 😊",
-      de: "Ich bin hier um zu helfen! Sie können mich nach Produkten, Versand, Rücksendungen oder etwas anderem fragen! 😊"
-    };
-
-    return {
-      message: fallbackMessages[lang] || fallbackMessages['en'],
-      recommendations: [],
-      quickReplies: ["Show bestsellers", "Shipping info", "Return policy"],
-      confidence: 0.6,
-      messageType: "general"
-    };
-  }
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -752,6 +556,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       routeLogger.info({ intent: intent.type }, '✅ Sending support query to N8N - NO PRODUCTS');
 
       try {
+        const { N8NService } = await import("../services/n8n.service.server");
         const customN8NService = new N8NService(webhookUrl);
 
         // Send to N8N with intent context so AI knows it's a support query
@@ -880,6 +685,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
         // Try N8N first, but have fallback ready
         try {
+          const { N8NService } = await import("../services/n8n.service.server");
           const customN8NService = new N8NService(webhookUrl);
           n8nResponse = await customN8NService.processUserMessage({
             userMessage: finalMessage,
@@ -938,6 +744,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       } else {
         // General chat - use N8N
         try {
+          const { N8NService } = await import("../services/n8n.service.server");
           const customN8NService = new N8NService(webhookUrl);
           n8nResponse = await customN8NService.processUserMessage({
             userMessage: finalMessage,

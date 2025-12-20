@@ -1,7 +1,6 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { authenticate, unauthenticated, sessionStorage } from "../shopify.server";
-import { N8NService } from "../services/n8n.service.server";
 import { prisma as db } from "../db.server";
 import { getSecureCorsHeaders, createCorsPreflightResponse, isOriginAllowed, logCorsViolation } from "../lib/cors.server";
 import { rateLimit, RateLimitPresets } from "../lib/rate-limit.server";
@@ -295,6 +294,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }, 'Processing with N8N service');
 
     // Create N8N service instance with custom webhook URL if provided
+    const { N8NService } = await import("../services/n8n.service.server");
     const customN8NService = new N8NService(webhookUrl);
 
     // Process message through N8N service
