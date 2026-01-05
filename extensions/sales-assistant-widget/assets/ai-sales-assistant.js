@@ -1352,7 +1352,7 @@ function createWidget() {
                 <div class="quick-actions-section">
                   <div class="section-label"><span>${escapeHTML(widgetSettings.sectionDiscoveryLabel || 'Discover')}</span></div>
                   <div class="quick-actions-grid">
-                    <button class="quick-action-btn" data-prompt="What are your best-selling products?">
+                    <button class="quick-action-btn" data-prompt="Show me your popular products">
                       <span class="quick-action-text">${escapeHTML(widgetSettings.bestSellersText || 'Best Sellers')}</span>
                     </button>
                     <button class="quick-action-btn" data-prompt="Show me new arrivals">
