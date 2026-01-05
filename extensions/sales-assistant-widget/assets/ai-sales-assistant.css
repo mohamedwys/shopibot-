@@ -433,8 +433,6 @@
 #ai-chat-messages .ai-message,
 .ai-chat-messages .ai-message,
 .ai-chat-messages-container .ai-message {
-  max-width: 100% !important; /* FULL WIDTH */
-  width: 100% !important; /* FULL WIDTH */
   margin: 0 0 16px 0 !important;
   display: block !important;
   box-sizing: border-box !important;
@@ -455,15 +453,18 @@
   margin-top: 0 !important;
 }
 .ai-message.user-message {
-  max-width: 85% !important; /* User messages stay smaller */
+  max-width: 75% !important;
   width: fit-content !important;
   margin-left: auto !important;
-  margin-right: 0 !important;
+  margin-right: 12px !important;
+  margin-bottom: 16px !important;
 }
 .ai-message.assistant-message:not(.products-grid-container):not(.ai-welcome-message) {
-  max-width: 90% !important;
+  max-width: 75% !important;
   width: fit-content !important;
-  margin: 0 auto 16px auto !important;
+  margin-left: 12px !important;
+  margin-right: auto !important;
+  margin-bottom: 16px !important;
 }
 .ai-message.product-recommendation {
   margin-top: 0 !important; /* Use consistent margin pattern */
