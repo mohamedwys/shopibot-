@@ -997,6 +997,136 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       responseTime
     }, 'Sending response');
 
+    // ========================================
+    // DATABASE PERSISTENCE FOR ANALYTICS
+    // ========================================
+    // Save chat data to database for dashboard analytics
+    // IMPORTANT: This is non-blocking - errors won't break the chatbot
+    try {
+      const sessionId = context.sessionId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+      // Step 1: Get or create UserProfile
+      let userProfile = await db.userProfile.findUnique({
+        where: {
+          shop_sessionId: {
+            shop: shopDomain,
+            sessionId: sessionId
+          }
+        }
+      });
+
+      if (!userProfile) {
+        userProfile = await db.userProfile.create({
+          data: {
+            shop: shopDomain,
+            sessionId: sessionId,
+            customerId: context.customerId as string | null || null,
+            preferences: JSON.stringify({}),
+            browsingHistory: JSON.stringify([]),
+            purchaseHistory: JSON.stringify([]),
+            interactions: JSON.stringify([])
+          }
+        });
+        routeLogger.debug({ sessionId }, 'Created new UserProfile');
+      }
+
+      // Step 2: Get or create ChatSession
+      let chatSession = await db.chatSession.findFirst({
+        where: {
+          shop: shopDomain,
+          userProfileId: userProfile.id,
+          // Find sessions from the last 24 hours (consider them active)
+          lastMessageAt: {
+            gte: new Date(Date.now() - 24 * 60 * 60 * 1000)
+          }
+        },
+        orderBy: {
+          lastMessageAt: 'desc'
+        }
+      });
+
+      if (!chatSession) {
+        chatSession = await db.chatSession.create({
+          data: {
+            shop: shopDomain,
+            userProfileId: userProfile.id,
+            context: JSON.stringify({
+              intent: intent.type,
+              sentiment: sentiment,
+              language: detectedLanguage
+            }),
+            lastMessageAt: new Date()
+          }
+        });
+        routeLogger.debug({ sessionId }, 'Created new ChatSession');
+      } else {
+        // Update existing session
+        chatSession = await db.chatSession.update({
+          where: { id: chatSession.id },
+          data: {
+            lastMessageAt: new Date(),
+            context: JSON.stringify({
+              intent: intent.type,
+              sentiment: sentiment,
+              language: detectedLanguage
+            })
+          }
+        });
+      }
+
+      // Step 3: Save user message
+      await db.chatMessage.create({
+        data: {
+          sessionId: chatSession.id,
+          role: 'user',
+          content: finalMessage,
+          intent: intent.type,
+          sentiment: sentiment,
+          confidence: null,
+          productsShown: JSON.stringify([]),
+          metadata: JSON.stringify({
+            language: detectedLanguage,
+            timestamp: new Date().toISOString()
+          })
+        }
+      });
+
+      // Step 4: Save assistant message
+      await db.chatMessage.create({
+        data: {
+          sessionId: chatSession.id,
+          role: 'assistant',
+          content: n8nResponse.message,
+          intent: intent.type,
+          sentiment: 'neutral', // Assistant messages are neutral
+          confidence: n8nResponse.confidence || 0.7,
+          productsShown: JSON.stringify(recommendations.map((p: any) => p.id)),
+          productClicked: null, // Will be updated when user clicks
+          metadata: JSON.stringify({
+            messageType: n8nResponse.messageType || 'general',
+            responseTime: responseTime,
+            hasRecommendations: recommendations.length > 0,
+            recommendationCount: recommendations.length,
+            timestamp: new Date().toISOString()
+          })
+        }
+      });
+
+      routeLogger.info({
+        sessionId,
+        chatSessionId: chatSession.id,
+        userProfileId: userProfile.id
+      }, '✅ Saved chat data to database');
+
+    } catch (dbError) {
+      // Log error but don't break the chatbot
+      routeLogger.error({
+        error: dbError instanceof Error ? dbError.message : String(dbError),
+        stack: dbError instanceof Error ? dbError.stack : undefined
+      }, '❌ Failed to save chat data to database (non-blocking)');
+      // Continue - chatbot still works even if analytics fails
+    }
+
     // ✅ IMPROVED: Enhanced response with all fields
     return json({
       // Main response (backward compatible)
