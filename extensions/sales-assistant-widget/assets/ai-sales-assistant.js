@@ -1330,19 +1330,15 @@ function createWidget() {
                   <div class="section-label"><span>${escapeHTML(widgetSettings.sectionDiscoveryLabel || 'Discover')}</span></div>
                   <div class="quick-actions-grid">
                     <button class="quick-action-btn" data-prompt="What are your best-selling products?">
-                      <span class="quick-action-icon">🏆</span>
                       <span class="quick-action-text">${escapeHTML(widgetSettings.bestSellersText || 'Best Sellers')}</span>
                     </button>
                     <button class="quick-action-btn" data-prompt="Show me new arrivals">
-                      <span class="quick-action-icon">✨</span>
                       <span class="quick-action-text">${escapeHTML(widgetSettings.newArrivalsText || 'New Arrivals')}</span>
                     </button>
                     <button class="quick-action-btn" data-prompt="What products are on sale?">
-                      <span class="quick-action-icon">🔥</span>
                       <span class="quick-action-text">${escapeHTML(widgetSettings.onSaleText || 'On Sale')}</span>
                     </button>
                     <button class="quick-action-btn" data-prompt="Show me recommendations for me">
-                      <span class="quick-action-icon">💎</span>
                       <span class="quick-action-text">${escapeHTML(widgetSettings.recommendationsText || 'Recommended')}</span>
                     </button>
                   </div>
@@ -1351,19 +1347,15 @@ function createWidget() {
                   <div class="section-label"><span>${escapeHTML(widgetSettings.sectionSupportLabel || 'Support')}</span></div>
                   <div class="quick-actions-grid">
                     <button class="quick-action-btn" data-prompt="Tell me about shipping and delivery">
-                      <span class="quick-action-icon">📦</span>
                       <span class="quick-action-text">${escapeHTML(widgetSettings.shippingText || 'Shipping')}</span>
                     </button>
                     <button class="quick-action-btn" data-prompt="What is your return policy?">
-                      <span class="quick-action-icon">↩️</span>
                       <span class="quick-action-text">${escapeHTML(widgetSettings.returnsText || 'Returns')}</span>
                     </button>
                     <button class="quick-action-btn" data-prompt="How can I track my order?">
-                      <span class="quick-action-icon">🔍</span>
                       <span class="quick-action-text">${escapeHTML(widgetSettings.trackOrderText || 'Track Order')}</span>
                     </button>
                     <button class="quick-action-btn" data-prompt="I need help with something">
-                      <span class="quick-action-icon">💬</span>
                       <span class="quick-action-text">${escapeHTML(widgetSettings.helpText || 'Help')}</span>
                     </button>
                   </div>
