@@ -501,6 +501,7 @@ Respond with just the category name.`,
       responseTime?: number;
       confidence?: number;
       workflowType?: 'default' | 'custom';
+      isNewSession?: boolean; // Track if this is a new session
     }
   ): Promise<void> {
     try {
@@ -514,23 +515,43 @@ Respond with just the category name.`,
         },
         update: {
           totalMessages: { increment: 1 },
-          avgResponseTime: data.responseTime
-            ? { increment: data.responseTime }
-            : undefined,
-          avgConfidence: data.confidence ? { increment: data.confidence } : undefined,
+          // FIX: Increment sessions when it's a new session
+          totalSessions: data.isNewSession ? { increment: 1 } : undefined,
         },
         create: {
           shop,
           date: today,
+          totalSessions: data.isNewSession ? 1 : 0, // Start with 1 if new session
           totalMessages: 1,
-          avgResponseTime: data.responseTime || 0,
-          avgConfidence: data.confidence || 0,
+          avgResponseTime: 0,
+          avgConfidence: 0,
           topIntents: '{}',
           topProducts: '{}',
           sentimentBreakdown: '{}',
-          workflowUsage: '{}', // Will be ignored if field doesn't exist
+          workflowUsage: '{}',
         } as any,
       });
+
+      // FIX: Calculate proper averages instead of summing
+      if (data.responseTime !== undefined) {
+        const currentTotal = analytics.avgResponseTime * (analytics.totalMessages - 1);
+        const newAvg = (currentTotal + data.responseTime) / analytics.totalMessages;
+
+        await db.chatAnalytics.update({
+          where: { id: analytics.id },
+          data: { avgResponseTime: newAvg },
+        });
+      }
+
+      if (data.confidence !== undefined) {
+        const currentTotal = analytics.avgConfidence * (analytics.totalMessages - 1);
+        const newAvg = (currentTotal + data.confidence) / analytics.totalMessages;
+
+        await db.chatAnalytics.update({
+          where: { id: analytics.id },
+          data: { avgConfidence: newAvg },
+        });
+      }
 
       // Update top intents
       if (data.intent) {
@@ -581,7 +602,7 @@ Respond with just the category name.`,
         }
       }
 
-      this.logger.debug({ shop, workflowType: data.workflowType }, 'Updated analytics');
+      this.logger.debug({ shop, workflowType: data.workflowType, isNewSession: data.isNewSession }, 'Updated analytics');
     } catch (error) {
       logError(error, 'Error updating analytics');
     }

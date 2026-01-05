@@ -165,6 +165,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       userProfile.id
     );
 
+    // FIX: Detect if this is a new session (for analytics)
+    // A session is "new" if it has no messages yet
+    const isNewSession = chatSession.messages.length === 0;
+
     // Classify intent and sentiment
     const startTime = Date.now();
     const [intent, sentiment] = await Promise.all([
@@ -307,6 +311,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       responseTime,
       confidence: n8nResponse.confidence,
       workflowType: isValidCustomUrl ? 'custom' : 'default',
+      isNewSession, // FIX: Track session creation for proper analytics
     });
 
     return json(
