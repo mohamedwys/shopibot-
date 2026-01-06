@@ -78,6 +78,9 @@ export interface N8NRequest {
 
     // Conversation context
     previousMessages?: string[];
+    conversationHistory?: Array<{ role: string; content: string }>;
+    messageCount?: number;
+    isFirstMessage?: boolean;
     userPreferences?: UserPreferences;
     sentiment?: string;
     intent?: string;

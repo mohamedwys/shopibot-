@@ -198,6 +198,25 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       customerId || undefined
     );
 
+    // ✅ CRITICAL FIX: Prepare conversation history to prevent repeated greetings
+    // Extract conversation history from chatSession to pass to N8N
+    let conversationHistory: Array<{ role: string; content: string }> = [];
+    let messageCount = 0;
+
+    // chatSession already includes messages (loaded at line 163-166)
+    if (chatSession && chatSession.messages && chatSession.messages.length > 0) {
+      // Convert messages to conversation history format
+      // Messages are ordered desc (newest first), so reverse for chronological order
+      conversationHistory = [...chatSession.messages]
+        .reverse()
+        .map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }));
+
+      messageCount = chatSession.messages.length;
+    }
+
     // Enhanced context for better AI responses
     const enhancedContext = {
       // Shop context
@@ -216,7 +235,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       currentProductId: (context.currentProductId as string) || undefined,
       cartId: (context.cartId as string) || undefined,
 
-      // Conversation context
+      // Conversation context - ✅ ADDED: Conversation history fields
+      previousMessages: conversationHistory.map(m => m.content),
+      conversationHistory: conversationHistory,
+      messageCount: messageCount + 1, // +1 because we're about to add the current message
+      isFirstMessage: messageCount === 0,
       userPreferences: personalizationContext.preferences,
       recentProducts: personalizationContext.recentProducts,
       sentiment: sentiment,
