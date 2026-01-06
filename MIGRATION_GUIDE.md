@@ -1,170 +1,145 @@
-# Database Migration Guide
+# Database Migration Required
 
-## ⚠️ CRITICAL: Missing Database Column
+## ⚠️ Issue: Missing `workflowUsage` Column
 
-Your analytics dashboard is showing zeros because the `workflowUsage` column is missing from the `ChatAnalytics` table in your production database.
+Your analytics dashboard is failing because the `workflowUsage` column doesn't exist in your production database's `ChatAnalytics` table.
 
-## Error Message You're Seeing
-
+**Error you're seeing:**
 ```
 The column `ChatAnalytics.workflowUsage` does not exist in the current database.
 ```
 
-## Quick Fix
+## ✅ Solution: Run Prisma Migration
 
-You need to run a database migration to add this column. Choose one of the methods below:
+The migration file already exists at:
+```
+prisma/migrations/20251216190500_add_workflow_usage_tracking/migration.sql
+```
+
+You just need to apply it to your production database.
 
 ---
 
-## Method 1: Using Prisma Migrate (Recommended)
+## How to Run the Migration
 
-If you have access to your production server's shell:
+### On Your Production Server:
 
 ```bash
 # Navigate to your project directory
 cd /path/to/shopibot
 
-# Run the migration
+# Run pending migrations
 npx prisma migrate deploy
 ```
 
-This will apply all pending migrations, including the `workflowUsage` column.
+This will:
+- ✅ Detect the pending `add_workflow_usage_tracking` migration
+- ✅ Add the `workflowUsage` column to `ChatAnalytics` table
+- ✅ Set default value of `'{}'` for existing records
 
 ---
 
-## Method 2: Using the Node.js Script
+## Platform-Specific Instructions
 
-If Prisma migrate doesn't work (network issues, etc.):
+### Vercel
 
+**Option 1 - Using Vercel CLI:**
 ```bash
-# Run the custom migration script
-node scripts/add-workflow-column.mjs
+vercel env pull .env.local
+npx prisma migrate deploy
 ```
 
-This script:
-- ✅ Connects directly to your database
-- ✅ Checks if the column already exists
-- ✅ Adds the column if missing
-- ✅ Safe to run multiple times (idempotent)
+**Option 2 - Build Hook:**
+Add to your `package.json`:
+```json
+{
+  "scripts": {
+    "vercel-build": "prisma migrate deploy && remix vite:build"
+  }
+}
+```
+
+### Render / Railway
+
+SSH into your service and run:
+```bash
+npx prisma migrate deploy
+```
+
+Or add as a build command:
+```bash
+npx prisma migrate deploy && npm run build
+```
+
+### Direct Database Access
+
+If you have direct PostgreSQL access:
+```sql
+ALTER TABLE "ChatAnalytics"
+ADD COLUMN "workflowUsage" TEXT NOT NULL DEFAULT '{}';
+```
 
 ---
 
-## Method 3: Direct SQL (If you have database access)
+## Verify Migration Success
 
-If you can access your PostgreSQL database directly:
+After running the migration:
 
+```bash
+# Check migration status
+npx prisma migrate status
+
+# You should see: "Database schema is up to date!"
+```
+
+Or query directly:
 ```sql
--- Check if column exists
 SELECT column_name
 FROM information_schema.columns
 WHERE table_name = 'ChatAnalytics'
 AND column_name = 'workflowUsage';
-
--- If it doesn't exist, add it:
-ALTER TABLE "ChatAnalytics"
-ADD COLUMN "workflowUsage" TEXT NOT NULL DEFAULT '{}';
 ```
-
-Or run the SQL file:
-
-```bash
-psql $DATABASE_URL < scripts/add-workflow-usage-column.sql
-```
-
----
-
-## Method 4: Using Your Hosting Platform
-
-### For Vercel:
-1. Go to your project settings
-2. Navigate to the PostgreSQL database
-3. Open the SQL editor
-4. Run this query:
-
-```sql
-ALTER TABLE "ChatAnalytics"
-ADD COLUMN "workflowUsage" TEXT NOT NULL DEFAULT '{}';
-```
-
-### For Render/Railway/Other:
-1. Access your database console
-2. Run the SQL query above
-
----
-
-## Verification
-
-After running the migration, verify it worked:
-
-```bash
-# Using Prisma Studio
-npx prisma studio
-
-# Or check via SQL
-psql $DATABASE_URL -c "SELECT column_name FROM information_schema.columns WHERE table_name = 'ChatAnalytics' AND column_name = 'workflowUsage';"
-```
-
-You should see the `workflowUsage` column listed.
-
----
-
-## What This Column Does
-
-The `workflowUsage` column tracks whether users are using:
-- **Default workflow**: The built-in N8N workflow
-- **Custom workflow**: A custom N8N webhook URL
-
-This helps you understand which workflow type is being used more in your analytics dashboard.
 
 ---
 
 ## After Migration
 
-Once the column is added:
-
-1. **Restart your application** (if needed)
-2. **Visit your analytics dashboard**: `/app/analytics`
-3. **Send a few test messages** via the widget
-4. **Check the dashboard again** - data should now appear!
+1. **No restart needed** - Changes take effect immediately
+2. **Visit** `/app/analytics`
+3. **Send a test message** via the widget
+4. **Refresh dashboard** - Data should now appear!
 
 ---
 
 ## Troubleshooting
 
-### If you see "Prisma engines not found" errors:
+### "Cannot find Prisma engines"
 
+```bash
+npx prisma generate
+npx prisma migrate deploy
+```
+
+### Network Issues
+
+If you get 403 errors downloading Prisma engines:
 ```bash
 PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1 npx prisma migrate deploy
 ```
 
-### If the Node.js script fails:
+### Still Not Working?
 
-Make sure you have the `pg` package installed:
-
-```bash
-npm install pg
-```
-
-### If you don't have DATABASE_URL:
-
-The script needs either `DATABASE_URL` or `DIRECT_URL` environment variable. Check your `.env` file or hosting platform settings.
+Check the logs for specific errors and ensure:
+- Database connection string is correct
+- You have ALTER TABLE permissions
+- The migration hasn't already been applied (`npx prisma migrate status`)
 
 ---
 
-## Need Help?
+## What This Migration Does
 
-1. Check the logs for specific error messages
-2. Verify your database connection string is correct
-3. Ensure you have permissions to alter tables
-4. Try the direct SQL method if all else fails
+Adds workflow usage tracking to distinguish between:
+- **Default workflow** - Built-in N8N workflow
+- **Custom workflow** - User-configured N8N webhook
 
----
-
-## Files Included
-
-- `scripts/add-workflow-column.mjs` - Node.js migration script
-- `scripts/add-workflow-usage-column.sql` - Raw SQL migration
-- `scripts/run-workflow-migration.js` - Alternative Prisma-based script
-- `prisma/migrations/20251216190500_add_workflow_usage_tracking/` - Prisma migration
-
-Choose whichever method works best for your environment!
+This data appears in your analytics dashboard to show which workflow type is being used more.
