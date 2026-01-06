@@ -1,14 +1,11 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")      // Prisma Accelerate URL (for queries with caching/pooling)
-  directUrl = env("DIRECT_URL")        // Direct Neon connection (for migrations)
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Session {
@@ -30,114 +27,115 @@ model Session {
 }
 
 model WidgetSettings {
-  id              String       @id @default(cuid())
-  shop            String       @unique
-  enabled         Boolean      @default(true)
-  position        String       @default("bottom-right")
-  buttonText      String       @default("Ask AI Assistant")
-  chatTitle       String       @default("AI Sales Assistant")
-  welcomeMessage  String       @default("Hello! I'm your AI sales assistant. I can help you find products, answer questions about pricing, shipping, and provide personalized recommendations. How can I assist you today?")
-  inputPlaceholder String      @default("Ask me anything about our products...")
-  primaryColor    String       @default("#ee5cee")
-  workflowType    WorkflowType @default(DEFAULT) // Workflow type: DEFAULT uses env N8N_WEBHOOK_URL, CUSTOM uses webhookUrl
-  webhookUrl      String?      // Optional - custom N8N webhook URL (only used when workflowType=CUSTOM)
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  id               String       @id @default(cuid())
+  shop             String       @unique
+  enabled          Boolean      @default(true)
+  position         String       @default("bottom-right")
+  buttonText       String       @default("Ask AI Assistant")
+  chatTitle        String       @default("AI Sales Assistant")
+  welcomeMessage   String       @default("Hello! I'm your AI sales assistant. I can help you find products, answer questions about pricing, shipping, and provide personalized recommendations. How can I assist you today?")
+  inputPlaceholder String       @default("Ask me anything about our products...")
+  primaryColor     String       @default("#ee5cee")
+  webhookUrl       String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  workflowType     WorkflowType @default(DEFAULT)
 }
 
-enum WorkflowType {
-  DEFAULT  // Use default N8N workflow from environment variable
-  CUSTOM   // Use custom N8N webhook URL from webhookUrl field
-}
-
-// Store product embeddings for semantic search
 model ProductEmbedding {
-  id              String   @id @default(cuid())
-  shop            String
-  productId       String   // Shopify product ID
-  productHandle   String
-  title           String
-  description     String?
-  embedding       String   // JSON stringified array of floats
-  embeddingModel  String   @default("text-embedding-3-small")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String   @id @default(cuid())
+  shop           String
+  productId      String
+  productHandle  String
+  title          String
+  description    String?
+  embedding      String
+  embeddingModel String   @default("text-embedding-3-small")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@unique([shop, productId])
   @@index([shop, productHandle])
 }
 
-// Track user profiles and preferences
 model UserProfile {
-  id              String   @id @default(cuid())
+  id              String        @id @default(cuid())
   shop            String
-  customerId      String?  // Shopify customer ID (optional for guests)
-  sessionId       String   // Browser session ID
-  preferences     String   @default("{}") // JSON: colors, price range, categories
-  browsingHistory String   @default("[]") // JSON: recently viewed products
-  purchaseHistory String   @default("[]") // JSON: purchased products
-  interactions    String   @default("[]") // JSON: chat interactions
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  customerId      String?
+  sessionId       String
+  preferences     String        @default("{}")
+  browsingHistory String        @default("[]")
+  purchaseHistory String        @default("[]")
+  interactions    String        @default("[]")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
   chatSessions    ChatSession[]
 
   @@unique([shop, sessionId])
   @@index([shop, customerId])
-  @@index([shop, updatedAt]) // For efficient active users queries (analytics.service.ts:getActiveUsers)
+  @@index([shop, updatedAt])
 }
 
-// Store chat sessions with context
 model ChatSession {
-  id              String      @id @default(cuid())
-  shop            String
-  userProfileId   String
-  userProfile     UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
-  context         String      @default("{}") // JSON: current context, intent, sentiment
-  lastMessageAt   DateTime    @default(now())
-  createdAt       DateTime    @default(now())
-  messages        ChatMessage[]
+  id            String        @id @default(cuid())
+  shop          String
+  userProfileId String
+  context       String        @default("{}")
+  lastMessageAt DateTime      @default(now())
+  createdAt     DateTime      @default(now())
+  messages      ChatMessage[]
+  userProfile   UserProfile   @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
 
   @@index([shop, userProfileId])
   @@index([shop, lastMessageAt])
 }
 
-// Store individual chat messages
 model ChatMessage {
-  id              String      @id @default(cuid())
-  sessionId       String
-  session         ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  role            String      // 'user' | 'assistant'
-  content         String
-  intent          String?     // Classified intent
-  sentiment       String?     // positive, neutral, negative
-  confidence      Float?      // AI confidence score
-  productsShown   String      @default("[]") // JSON: product IDs shown
-  productClicked  String?     // Product ID if clicked
-  metadata        String      @default("{}") // JSON: additional data
-  timestamp       DateTime    @default(now())
+  id             String      @id @default(cuid())
+  sessionId      String
+  role           String
+  content        String
+  intent         String?
+  sentiment      String?
+  confidence     Float?
+  productsShown  String      @default("[]")
+  productClicked String?
+  metadata       String      @default("{}")
+  timestamp      DateTime    @default(now())
+  session        ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@index([sessionId, timestamp])
-  @@index([role, timestamp]) // For filtering messages by role (user/assistant) with time ordering
+  @@index([role, timestamp])
 }
 
-// Analytics for tracking performance
 model ChatAnalytics {
-  id                  String   @id @default(cuid())
-  shop                String
-  date                DateTime
-  totalSessions       Int      @default(0)
-  totalMessages       Int      @default(0)
-  avgResponseTime     Float    @default(0)
-  avgConfidence       Float    @default(0)
-  topIntents          String   @default("{}") // JSON: intent -> count
-  topProducts         String   @default("{}") // JSON: productId -> clicks
-  sentimentBreakdown  String   @default("{}") // JSON: sentiment -> count
-  workflowUsage       String   @default("{}") // JSON: workflow type (default/custom) -> count
-  conversionsTracked  Int      @default(0)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  shop               String
+  date               DateTime
+  totalSessions      Int      @default(0)
+  totalMessages      Int      @default(0)
+  avgResponseTime    Float    @default(0)
+  avgConfidence      Float    @default(0)
+  topIntents         String   @default("{}")
+  topProducts        String   @default("{}")
+  sentimentBreakdown String   @default("{}")
+  conversionsTracked Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  workflowUsage      String   @default("{}")
 
   @@unique([shop, date])
   @@index([shop, date])
-  @@index([date]) // For efficient time-series queries across all shops
+  @@index([date])
+}
+
+model playing_with_neon {
+  id    Int    @id @default(autoincrement())
+  name  String
+  value Float? @db.Real
+}
+
+enum WorkflowType {
+  DEFAULT
+  CUSTOM
 }
