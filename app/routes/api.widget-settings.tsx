@@ -58,8 +58,8 @@ function detectIntent(message: string): Intent {
     return { type: "TRACK_ORDER" };
   }
 
-  // Help/FAQ: "I need help with something"
-  if (/(help|faq|question|support|assistance|aide|besoin.*aide|customer.*service|service.*client)/i.test(lower)) {
+  // Help/FAQ: "I need help with something" or "How can I talk to someone"
+  if (/(help|faq|question|support|assistance|aide|besoin.*aide|customer.*service|service.*client|talk.*to.*someone|speak.*to.*someone|contact.*you|reach.*you|parler.*avec|parler.*quelqu'un|contacter|joindre|comment.*vous.*contacter)/i.test(lower)) {
     return { type: "HELP_FAQ" };
   }
 
@@ -130,28 +130,28 @@ function analyzeSentiment(message: string): string {
 function detectLanguage(message: string): string {
   const lower = message.toLowerCase();
 
-  // French detection
-  if (/(bonjour|salut|merci|montre|produit|cherche|voudrais|pourrais|nouveauté|meilleures?|vente)/i.test(message)) {
+  // French detection - expanded with more common words
+  if (/(bonjour|salut|merci|montre|produit|cherche|voudrais|pourrais|nouveauté|meilleures?|vente|jaimerais|j'aimerais|parler|quelqu'un|quelqun|comment|faire|avec|pour|suis|être|avoir|puis|peux|peut|dois|doit|besoin|aide|aidez|s'il vous plaît|svp|oui|non)/i.test(message)) {
     return 'fr';
   }
 
   // Spanish detection
-  if (/(hola|gracias|producto|busco|quiero|puedo|nuevo)/i.test(message)) {
+  if (/(hola|gracias|producto|busco|quiero|puedo|nuevo|hablar|cómo|hacer|ayuda|necesito)/i.test(message)) {
     return 'es';
   }
 
   // German detection
-  if (/(hallo|danke|produkt|suche|möchte|kann)/i.test(message)) {
+  if (/(hallo|danke|produkt|suche|möchte|kann|sprechen|wie|machen|hilfe|brauche)/i.test(message)) {
     return 'de';
   }
 
   // Portuguese detection
-  if (/(olá|obrigado|produto|procuro|gostaria|posso)/i.test(message)) {
+  if (/(olá|obrigado|produto|procuro|gostaria|posso|falar|como|fazer|ajuda|preciso)/i.test(message)) {
     return 'pt';
   }
 
   // Italian detection
-  if (/(ciao|grazie|prodotto|cerco|vorrei|posso)/i.test(message)) {
+  if (/(ciao|grazie|prodotto|cerco|vorrei|posso|parlare|come|fare|aiuto|bisogno)/i.test(message)) {
     return 'it';
   }
 
@@ -357,8 +357,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     // Declare variables outside try block for error logging
     const variables: { first: number; query?: string; sortKey?: string; reverse?: boolean } = { first: 50 };
 
-    // Only fetch products for product-related intents
-    if (!isSupportIntent) {
+    // ✅ CRITICAL FIX: Only fetch products for actual product-related intents
+    // Do NOT fetch for GENERAL_CHAT or support intents
+    const productIntents = ["BESTSELLERS", "NEW_ARRIVALS", "ON_SALE", "RECOMMENDATIONS", "PRODUCT_SEARCH"];
+    const isProductIntent = productIntents.includes(intent.type);
+
+    if (isProductIntent) {
       try {
         console.log('🔍 STEP 1: Getting admin context for shop:', shopDomain);
         // Use unauthenticated admin (uses offline token, works in production)
@@ -578,6 +582,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         productsFetchFailed = true;
         products = [];
       }
+    } else {
+      console.log('ℹ️ Non-product intent, skipping product fetch');
+      console.log('🔍 Intent type:', intent.type);
+      routeLogger.info({ intent: intent.type }, 'Skipping product fetch for non-product intent');
     }
 
     // Enhanced context for better AI responses
@@ -721,9 +729,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     // PRODUCT INTENT HANDLERS
     // ========================================
     else {
-      // ✅ CRITICAL FIX: Handle shop session/authentication failure for ALL product intents
-      const isProductIntent = ["BESTSELLERS", "NEW_ARRIVALS", "ON_SALE", "RECOMMENDATIONS", "PRODUCT_SEARCH"].includes(intent.type);
-
+      // ✅ Handle shop session/authentication failure for ALL product intents
       if (productsFetchFailed && isProductIntent) {
         // Shop session not available - provide helpful message
         const lang = enhancedContext.locale?.toLowerCase().split('-')[0] || 'en';
@@ -822,62 +828,18 @@ export const action = async ({ request }: ActionFunctionArgs) => {
             context: enhancedContext
           });
 
-          // ✅ CRITICAL FIX: Detect when AI incorrectly says it has no products
-          // Check if the response message indicates "no products" but we actually have products
-          const noProductPatterns = [
-            /n'ai pas.*détails.*produits/i,  // "n'ai pas de détails sur les produits"
-            /pas.*informations.*produits/i,  // "pas d'informations sur les produits"
-            /no.*details.*products/i,         // "no details on products"
-            /don't have.*details/i,           // "don't have details"
-            /can't.*access.*products/i,       // "can't access products"
-            /unable.*access.*catalog/i,       // "unable to access catalog"
-            /malheureusement/i,               // "unfortunately" (often precedes error messages)
-            /rupture de stock/i,              // "out of stock" (French)
-            /sont en rupture/i,               // "are out of stock"
-            /tous.*en rupture/i,              // "all out of stock"
-            /actuellement.*rupture/i,         // "currently out of stock"
-            /out of stock/i,                  // "out of stock" (English)
-            /currently.*out.*stock/i,         // "currently out of stock"
-            /all.*out.*stock/i,               // "all out of stock"
-            /no.*stock/i,                     // "no stock"
-            /pas en stock/i,                  // "not in stock" (French)
-            /non disponible/i,                // "not available" (French)
-            /not available/i,                 // "not available"
-            /unavailable/i,                   // "unavailable"
-          ];
-
           console.log('🤖 DEBUG: Received N8N response:', n8nResponse.message.substring(0, 200));
           console.log('🤖 DEBUG: N8N recommendations count:', n8nResponse.recommendations?.length || 0);
 
-          const messageIndicatesNoProducts = noProductPatterns.some(pattern =>
-            pattern.test(n8nResponse.message)
-          );
-
-          console.log('🔍 DEBUG: Pattern match - AI says no products?', messageIndicatesNoProducts);
-          console.log('🔍 DEBUG: Actual products available?', products.length > 0);
-
-          // If AI says "no products" but we have products, override the response
-          if (messageIndicatesNoProducts && products.length > 0) {
-            console.log('⚠️ DEBUG: AI INCORRECTLY SAID NO PRODUCTS - OVERRIDING!');
-            console.log('⚠️ DEBUG: AI message was:', n8nResponse.message);
-            routeLogger.warn(
-              { aiMessage: n8nResponse.message.substring(0, 100) },
-              '⚠️ AI incorrectly said no products available - overriding with actual products'
-            );
-            n8nResponse = {
-              message: responseText,
-              recommendations: recommendations,
-              quickReplies: quickReplies,
-              confidence: 0.8,
-              messageType: "product_recommendation"
-            };
-          }
-          // Use N8N recommendations if available, otherwise use our fallback
-          else if (n8nResponse.recommendations && n8nResponse.recommendations.length > 0) {
+          // ✅ TRUST THE AI: Use N8N's response and recommendations as-is
+          // The AI knows best what to recommend based on the user's query
+          if (n8nResponse.recommendations && n8nResponse.recommendations.length > 0) {
             recommendations = n8nResponse.recommendations;
             console.log('✅ DEBUG: Using N8N recommendations:', recommendations.length);
             routeLogger.info({ count: recommendations.length }, 'Using N8N recommendations');
-          } else {
+          } else if (products.length > 0) {
+            // Only use fallback products if N8N didn't provide any but products are available
+            recommendations = recommendations;
             console.log('✅ DEBUG: Using fallback recommendations:', recommendations.length);
             routeLogger.info({ count: recommendations.length }, 'Using fallback recommendations');
           }
@@ -901,83 +863,31 @@ export const action = async ({ request }: ActionFunctionArgs) => {
           const customN8NService = new N8NService(webhookUrl);
           n8nResponse = await customN8NService.processUserMessage({
             userMessage: finalMessage,
-            products,
+            products: [], // ✅ Don't send products for general chat - let AI decide if it needs them
             context: enhancedContext
           });
-          recommendations = n8nResponse.recommendations || [];
+
           console.log('💬 DEBUG: N8N response for general chat:', n8nResponse.message.substring(0, 200));
+          console.log('💬 DEBUG: N8N recommendations count:', n8nResponse.recommendations?.length || 0);
 
-          // ✅ CRITICAL FIX: Detect when AI incorrectly says it has no products (same as PRODUCT_SEARCH)
-          const noProductPatterns = [
-            /n'ai pas.*détails.*produits/i,  // "n'ai pas de détails sur les produits"
-            /pas.*informations.*produits/i,  // "pas d'informations sur les produits"
-            /no.*details.*products/i,         // "no details on products"
-            /don't have.*details/i,           // "don't have details"
-            /can't.*access.*products/i,       // "can't access products"
-            /unable.*access.*catalog/i,       // "unable to access catalog"
-            /malheureusement/i,               // "unfortunately" (often precedes error messages)
-            /rupture de stock/i,              // "out of stock" (French)
-            /sont en rupture/i,               // "are out of stock"
-            /tous.*en rupture/i,              // "all out of stock"
-            /actuellement.*rupture/i,         // "currently out of stock"
-            /out of stock/i,                  // "out of stock" (English)
-            /currently.*out.*stock/i,         // "currently out of stock"
-            /all.*out.*stock/i,               // "all out of stock"
-            /no.*stock/i,                     // "no stock"
-            /pas en stock/i,                  // "not in stock" (French)
-            /non disponible/i,                // "not available" (French)
-            /not available/i,                 // "not available"
-            /unavailable/i,                   // "unavailable"
-          ];
-
-          console.log('🔍 DEBUG [General Chat]: Pattern match - AI says no products?', noProductPatterns.some(pattern => pattern.test(n8nResponse.message)));
-          console.log('🔍 DEBUG [General Chat]: Actual products available?', products.length > 0);
-
-          const messageIndicatesNoProducts = noProductPatterns.some(pattern =>
-            pattern.test(n8nResponse.message)
-          );
-
-          // If AI says "no products" but we have products, override the response
-          if (messageIndicatesNoProducts && products.length > 0) {
-            console.log('⚠️ DEBUG [General Chat]: AI INCORRECTLY SAID NO PRODUCTS - OVERRIDING!');
-            console.log('⚠️ DEBUG [General Chat]: AI message was:', n8nResponse.message);
-            routeLogger.warn(
-              { aiMessage: n8nResponse.message.substring(0, 100) },
-              '⚠️ AI incorrectly said no products available in general chat - overriding'
-            );
-            n8nResponse = {
-              message: "Here are some products you might be interested in:",
-              recommendations: products.slice(0, 6),
-              confidence: 0.7,
-              messageType: "product_recommendation"
-            };
-            recommendations = products.slice(0, 6);
-          }
-          // ✅ If N8N doesn't return products but we have products available, show them
-          else if ((!recommendations || recommendations.length === 0) && products.length > 0) {
-            recommendations = products.slice(0, 6);
-            routeLogger.info({ count: recommendations.length }, 'Added products to N8N response');
-          }
+          // ✅ TRUST THE AI: Use N8N's response as-is
+          // The AI knows best how to respond to general chat queries
+          recommendations = n8nResponse.recommendations || [];
+          routeLogger.info({
+            hasRecommendations: recommendations.length > 0,
+            count: recommendations.length
+          }, 'Using N8N response for general chat');
         } catch (error) {
           routeLogger.error({ error: (error as Error).message }, 'N8N service failed');
 
-          // ✅ CRITICAL FIX: Fallback response with products if available
-          if (products.length > 0) {
-            n8nResponse = {
-              message: "Here are some products you might be interested in:",
-              recommendations: products.slice(0, 6),
-              confidence: 0.7,
-              messageType: "product_recommendation"
-            };
-            recommendations = products.slice(0, 6);
-          } else {
-            n8nResponse = {
-              message: "I'm here to help! You can ask me about products, pricing, shipping, or any questions about our store.",
-              recommendations: [],
-              confidence: 0.5,
-              messageType: "general"
-            };
-          }
+          // Fallback: Simple helpful message without forcing products
+          n8nResponse = {
+            message: "I'm here to help! You can ask me about products, pricing, shipping, or any questions about our store.",
+            recommendations: [],
+            confidence: 0.5,
+            messageType: "general"
+          };
+          recommendations = [];
         }
       }
     }
