@@ -380,7 +380,7 @@ export default function Index() {
               </Text>
 
               <Box paddingBlock="200">
-                <ProgressBar progress={75} size="medium" tone="success" />
+                <ProgressBar progress={100} size="medium" tone="success" />
               </Box>
 
               <BlockStack gap="400">
@@ -389,22 +389,19 @@ export default function Index() {
                     title: t("dashboard.step1Title"),
                     desc: t("dashboard.step1Desc"),
                     completed: true,
+                    optional: false,
                   },
                   {
                     title: t("dashboard.step2Title"),
                     desc: t("dashboard.step2Desc"),
                     completed: true,
+                    optional: false,
                   },
                   {
                     title: t("dashboard.step3Title"),
                     desc: t("dashboard.step3Desc"),
                     completed: true,
-                  },
-                  {
-                    title: t("dashboard.step4Title"),
-                    desc: t("dashboard.step4Desc"),
-                    completed: false,
-                    optional: true,
+                    optional: false,
                   },
                 ].map((step, i) => (
                   <Card key={i} background={step.completed ? "bg-surface-secondary" : undefined}>
@@ -445,7 +442,6 @@ export default function Index() {
                 <Button variant="primary" url="/app/settings">
                   {t("dashboard.customizeWidget")}
                 </Button>
-                <Button url="/app/sales-assistant">{t("dashboard.testChat")}</Button>
               </InlineStack>
             </BlockStack>
           </Card>
