@@ -210,10 +210,10 @@ export default function SettingsPage() {
               <InlineStack align="space-between" blockAlign="center">
                 <BlockStack gap="200">
                   <Text variant="headingMd" as="h2">
-                    {t("integration.title")}
+                    {t("settings.integration.title")}
                   </Text>
                   <Text variant="bodyMd" as="p" tone="subdued">
-                    {t("integration.subtitle")}
+                    {t("settings.integration.subtitle")}
                   </Text>
                 </BlockStack>
               </InlineStack>
@@ -225,24 +225,24 @@ export default function SettingsPage() {
                   <InlineStack gap="200" blockAlign="center">
                     <Icon source={AlertCircleIcon} />
                     <Text variant="bodyMd" as="p">
-                      <strong>{t("integration.importantLabel")}</strong> {t("integration.importantMessage")}
+                      <strong>{t("settings.integration.importantLabel")}</strong> {t("settings.integration.importantMessage")}
                     </Text>
                   </InlineStack>
                 </Banner>
 
                 <BlockStack gap="300">
                   <Text variant="headingSm" as="h3">
-                    {t("integration.guideTitle")}
+                    {t("settings.integration.guideTitle")}
                   </Text>
 
                   <List type="number">
                     <List.Item>
                       <BlockStack gap="100">
                         <Text variant="bodyMd" as="p" fontWeight="semibold">
-                          {t("integration.step1Title")}
+                          {t("settings.integration.step1Title")}
                         </Text>
                         <Text variant="bodyMd" as="p" tone="subdued">
-                          {t("integration.step1Description")}
+                          {t("settings.integration.step1Description")}
                         </Text>
                       </BlockStack>
                     </List.Item>
@@ -250,10 +250,10 @@ export default function SettingsPage() {
                     <List.Item>
                       <BlockStack gap="100">
                         <Text variant="bodyMd" as="p" fontWeight="semibold">
-                          {t("integration.step2Title")}
+                          {t("settings.integration.step2Title")}
                         </Text>
                         <Text variant="bodyMd" as="p" tone="subdued">
-                          {t("integration.step2Description")}
+                          {t("settings.integration.step2Description")}
                         </Text>
                       </BlockStack>
                     </List.Item>
@@ -261,10 +261,10 @@ export default function SettingsPage() {
                     <List.Item>
                       <BlockStack gap="100">
                         <Text variant="bodyMd" as="p" fontWeight="semibold">
-                          {t("integration.step3Title")}
+                          {t("settings.integration.step3Title")}
                         </Text>
                         <Text variant="bodyMd" as="p" tone="subdued">
-                          {t("integration.step3Description")}
+                          {t("settings.integration.step3Description")}
                         </Text>
                       </BlockStack>
                     </List.Item>
@@ -272,10 +272,10 @@ export default function SettingsPage() {
                     <List.Item>
                       <BlockStack gap="100">
                         <Text variant="bodyMd" as="p" fontWeight="semibold">
-                          {t("integration.step4Title")}
+                          {t("settings.integration.step4Title")}
                         </Text>
                         <Text variant="bodyMd" as="p" tone="subdued">
-                          {t("integration.step4Description")}
+                          {t("settings.integration.step4Description")}
                         </Text>
                       </BlockStack>
                     </List.Item>
@@ -286,15 +286,15 @@ export default function SettingsPage() {
 
                 <BlockStack gap="300">
                   <Text variant="headingSm" as="h3">
-                    {t("integration.customizationTitle")}
+                    {t("settings.integration.customizationTitle")}
                   </Text>
                   <Text variant="bodyMd" as="p">
-                    {t("integration.customizationDescription")}
+                    {t("settings.integration.customizationDescription")}
                   </Text>
                   <InlineStack gap="200" blockAlign="center">
                     <Icon source={CheckCircleIcon} tone="success" />
                     <Text variant="bodyMd" as="p" tone="success">
-                      {t("integration.customizationNote")}
+                      {t("settings.integration.customizationNote")}
                     </Text>
                   </InlineStack>
                 </BlockStack>
@@ -304,10 +304,10 @@ export default function SettingsPage() {
                 <Banner tone="warning">
                   <BlockStack gap="200">
                     <Text variant="bodyMd" as="p" fontWeight="semibold">
-                      {t("integration.helpTitle")}
+                      {t("settings.integration.helpTitle")}
                     </Text>
                     <Text variant="bodyMd" as="p">
-                      {t("integration.helpDescription")}
+                      {t("settings.integration.helpDescription")}
                     </Text>
                   </BlockStack>
                 </Banner>
