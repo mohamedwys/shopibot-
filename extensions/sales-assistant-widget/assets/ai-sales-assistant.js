@@ -56,6 +56,7 @@ async function loadTranslations(lang) {
       close: 'Close',
       thinking: 'Thinking',
       poweredByAI: 'Powered by AI',
+      inputPlaceholder: 'Ask me anything about our products...',
       bestSellers: 'Best Sellers',
       newArrivals: 'New Arrivals',
       onSale: 'On Sale',
@@ -1426,7 +1427,7 @@ function createWidget() {
 
         <div class="ai-chat-input">
           <div class="ai-chat-input-wrapper">
-            <input type="text" id="ai-chat-input-field" placeholder="${escapeHTML(widgetSettings.inputPlaceholder || 'Type a message...')}" aria-label="Type your message" />
+            <input type="text" id="ai-chat-input-field" placeholder="${escapeHTML(widgetSettings.inputPlaceholder || t('inputPlaceholder'))}" aria-label="Type your message" />
             <button id="ai-chat-send-btn" aria-label="Send message">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <path d="M18 2L9 11M18 2L12 18L9 11M18 2L2 8L9 11" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
