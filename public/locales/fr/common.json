@@ -120,14 +120,32 @@
     "workflowInfoCustom": "Flux de Travail Personnalisé",
     "widgetPreview": "Aperçu du Widget",
     "widgetPreviewPosition": "Position",
-    "integration": "Instructions d'Intégration",
-    "integrationDesc": "Pour activer votre Assistant Commercial IA:",
-    "integrationStep1": "1. Accédez à Boutique en Ligne → Thèmes",
-    "integrationStep2": "2. Cliquez sur Personnaliser sur votre thème actif",
-    "integrationStep3": "3. Faites défiler jusqu'aux Intégrations d'applications",
-    "integrationStep4": "4. Trouvez Assistant Commercial IA et activez-le",
-    "integrationStep5": "5. Enregistrez les modifications du thème",
-    "integrationNote": "Le widget apparaîtra sur toutes les pages de votre boutique."
+    "integration": {
+    "title": "Configuration et Intégration",
+    "subtitle": "Activez votre Assistant de Vente IA en 4 étapes simples",
+    "importantLabel": "Important :",
+    "importantMessage": "Assurez-vous que le widget du chatbot est activé dans la section des intégrations d'applications de votre thème pour le garder visible sur votre boutique.",
+    "guideTitle": "Guide d'Activation Étape par Étape :",
+    
+    "step1Title": "Accéder à l'Éditeur de Thème",
+    "step1Description": "Allez dans Boutique en ligne → Thèmes dans votre administration Shopify, puis cliquez sur Personnaliser sur votre thème actif",
+    
+    "step2Title": "Activer l'Intégration d'Application",
+    "step2Description": "Dans l'éditeur de thème, cliquez sur la section Intégrations d'applications dans la barre latérale gauche. Trouvez Assistant de Vente IA et activez-le",
+    
+    "step3Title": "Personnaliser les Paramètres (Optionnel)",
+    "step3Description": "Après avoir activé l'intégration de l'application, vous pouvez cliquer sur Assistant de Vente IA pour accéder à des options de personnalisation supplémentaires directement dans l'éditeur de thème, telles que les préférences de positionnement et de visibilité.",
+    
+    "step4Title": "Enregistrer et Publier",
+    "step4Description": "Cliquez sur Enregistrer dans le coin supérieur droit pour publier vos modifications. Votre chatbot sera maintenant actif sur votre boutique !",
+    
+    "customizationTitle": "Personnalisation et Design",
+    "customizationDescription": "Toutes les personnalisations du chatbot, y compris le design, le positionnement, les couleurs, le texte des boutons et les messages de bienvenue, sont gérées directement depuis cette page de paramètres de l'application. Tous les changements que vous effectuez ici seront automatiquement reflétés sur votre boutique une fois l'intégration de l'application activée dans votre thème.",
+    "customizationNote": "Aucun codage ni modification du thème n'est requis pour la personnalisation !",
+    
+    "helpTitle": "Besoin d'Aide ?",
+    "helpDescription": "Si vous rencontrez des difficultés pour activer le chatbot ou si vous avez besoin d'assistance pour la personnalisation, veuillez contacter notre équipe d'assistance. Nous sommes là pour vous aider à tirer le meilleur parti de votre Assistant de Vente IA."
+  }
   },
   "billing": {
     "title": "Plans Tarifaires",

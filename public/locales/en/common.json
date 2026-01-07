@@ -120,14 +120,32 @@
     "workflowInfoCustom": "Custom Workflow: Forward messages to your own N8N workflow for custom AI processing and responses.",
     "widgetPreview": "Widget Preview",
     "widgetPreviewPosition": "Position",
-    "integration": "Integration Instructions",
-    "integrationDesc": "Your AI Sales Assistant is configured as an app embed. To activate it on your store:",
-    "integrationStep1": "1. Go to Online Store → Themes",
-    "integrationStep2": "2. Click Customize on your active theme",
-    "integrationStep3": "3. Scroll down to App embeds in the theme editor",
-    "integrationStep4": "4. Find AI Sales Assistant and toggle it ON",
-    "integrationStep5": "5. Save your theme changes",
-    "integrationNote": "The widget will appear on all pages of your store once enabled in the theme editor. Settings configured here will automatically apply to the widget."
+    "integration": {
+    "title": "Setup & Integration",
+    "subtitle": "Activate your AI Sales Assistant in 4 simple steps",
+    "importantLabel": "Important:",
+    "importantMessage": "Ensure the chatbot widget is activated in your theme's app embeds section to keep it visible on your storefront.",
+    "guideTitle": "Step-by-Step Activation Guide:",
+    
+    "step1Title": "Navigate to Theme Editor",
+    "step1Description": "Go to Online Store → Themes in your Shopify admin, then click Customize on your active theme",
+    
+    "step2Title": "Enable App Embed",
+    "step2Description": "In the theme editor, click the App embeds section in the left sidebar. Find AI Sales Assistant and toggle it ON",
+    
+    "step3Title": "Customize Settings (Optional)",
+    "step3Description": "After enabling the app embed, you can click on AI Sales Assistant to access additional customization options directly in the theme editor, such as positioning and visibility preferences.",
+    
+    "step4Title": "Save & Publish",
+    "step4Description": "Click Save in the top right corner to publish your changes. Your chatbot will now be live on your store!",
+    
+    "customizationTitle": "Customization & Design",
+    "customizationDescription": "All chatbot customizations including design, positioning, colors, button text, and welcome messages are managed directly from this app settings page. Any changes you make here will automatically reflect on your storefront once the app embed is activated in your theme.",
+    "customizationNote": "No coding or theme editing required for customization!",
+    
+    "helpTitle": "Need Help?",
+    "helpDescription": "If you're having trouble activating the chatbot or need assistance with customization, please contact our support team. We're here to help you get the most out of your AI Sales Assistant."
+  }
   },
   "billing": {
     "title": "Pricing Plans",

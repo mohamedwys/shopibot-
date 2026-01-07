@@ -203,42 +203,115 @@ export default function SettingsPage() {
           </Layout.Section>
         )}
 
-        {/* Chatbot Interface Language Setting */}
+      {/* Integration Instructions */}
         <Layout.Section>
           <Card>
-            <BlockStack gap="400">
-              <Text variant="headingMd" as="h2">
-                Chatbot Interface Language
-              </Text>
-              <Text variant="bodyMd" as="p" tone="subdued">
-                Select the language for your chatbot's user interface. The AI will automatically detect and respond in your customer's language.
-              </Text>
+            <BlockStack gap="500">
+              <InlineStack align="space-between" blockAlign="center">
+                <BlockStack gap="200">
+                  <Text variant="headingMd" as="h2">
+                    {t("integration.title")}
+                  </Text>
+                  <Text variant="bodyMd" as="p" tone="subdued">
+                    {t("integration.subtitle")}
+                  </Text>
+                </BlockStack>
+              </InlineStack>
 
-              <FormLayout>
-                <Select
-                  label="Interface Language"
-                  value={(settings as any).interfaceLanguage || "en"}
-                  options={[
-                    { label: "English", value: "en" },
-                    { label: "Français (French)", value: "fr" },
-                    { label: "Español (Spanish)", value: "es" },
-                    { label: "Deutsch (German)", value: "de" },
-                    { label: "Italiano (Italian)", value: "it" },
-                    { label: "Português (Portuguese)", value: "pt" },
-                    { label: "Nederlands (Dutch)", value: "nl" },
-                  ]}
-                  onChange={(value) =>
-                    setSettings((prev: any) => ({ ...prev, interfaceLanguage: value }))
-                  }
-                  helpText="This controls the chatbot interface text only. AI responses will automatically match your customer's language."
-                />
-              </FormLayout>
+              <Divider />
 
-              <Banner tone="info">
-                <Text variant="bodyMd" as="p">
-                  <strong>Note:</strong> The AI assistant automatically detects and responds in your customer's preferred language, regardless of the interface language setting.
-                </Text>
-              </Banner>
+              <BlockStack gap="400">
+                <Banner tone="info">
+                  <InlineStack gap="200" blockAlign="center">
+                    <Icon source={AlertCircleIcon} />
+                    <Text variant="bodyMd" as="p">
+                      <strong>{t("integration.importantLabel")}</strong> {t("integration.importantMessage")}
+                    </Text>
+                  </InlineStack>
+                </Banner>
+
+                <BlockStack gap="300">
+                  <Text variant="headingSm" as="h3">
+                    {t("integration.guideTitle")}
+                  </Text>
+
+                  <List type="number">
+                    <List.Item>
+                      <BlockStack gap="100">
+                        <Text variant="bodyMd" as="p" fontWeight="semibold">
+                          {t("integration.step1Title")}
+                        </Text>
+                        <Text variant="bodyMd" as="p" tone="subdued">
+                          {t("integration.step1Description")}
+                        </Text>
+                      </BlockStack>
+                    </List.Item>
+
+                    <List.Item>
+                      <BlockStack gap="100">
+                        <Text variant="bodyMd" as="p" fontWeight="semibold">
+                          {t("integration.step2Title")}
+                        </Text>
+                        <Text variant="bodyMd" as="p" tone="subdued">
+                          {t("integration.step2Description")}
+                        </Text>
+                      </BlockStack>
+                    </List.Item>
+
+                    <List.Item>
+                      <BlockStack gap="100">
+                        <Text variant="bodyMd" as="p" fontWeight="semibold">
+                          {t("integration.step3Title")}
+                        </Text>
+                        <Text variant="bodyMd" as="p" tone="subdued">
+                          {t("integration.step3Description")}
+                        </Text>
+                      </BlockStack>
+                    </List.Item>
+                    
+                    <List.Item>
+                      <BlockStack gap="100">
+                        <Text variant="bodyMd" as="p" fontWeight="semibold">
+                          {t("integration.step4Title")}
+                        </Text>
+                        <Text variant="bodyMd" as="p" tone="subdued">
+                          {t("integration.step4Description")}
+                        </Text>
+                      </BlockStack>
+                    </List.Item>
+                  </List>
+                </BlockStack>
+
+                <Divider />
+
+                <BlockStack gap="300">
+                  <Text variant="headingSm" as="h3">
+                    {t("integration.customizationTitle")}
+                  </Text>
+                  <Text variant="bodyMd" as="p">
+                    {t("integration.customizationDescription")}
+                  </Text>
+                  <InlineStack gap="200" blockAlign="center">
+                    <Icon source={CheckCircleIcon} tone="success" />
+                    <Text variant="bodyMd" as="p" tone="success">
+                      {t("integration.customizationNote")}
+                    </Text>
+                  </InlineStack>
+                </BlockStack>
+
+                <Divider />
+
+                <Banner tone="warning">
+                  <BlockStack gap="200">
+                    <Text variant="bodyMd" as="p" fontWeight="semibold">
+                      {t("integration.helpTitle")}
+                    </Text>
+                    <Text variant="bodyMd" as="p">
+                      {t("integration.helpDescription")}
+                    </Text>
+                  </BlockStack>
+                </Banner>
+              </BlockStack>
             </BlockStack>
           </Card>
         </Layout.Section>
@@ -324,108 +397,6 @@ export default function SettingsPage() {
                   </Text>
                 </Banner>
               </FormLayout>
-            </BlockStack>
-          </Card>
-        </Layout.Section>
-
-        {/* Integration Instructions */}
-        <Layout.Section>
-          <Card>
-            <BlockStack gap="500">
-              <InlineStack align="space-between" blockAlign="center">
-                <BlockStack gap="200">
-                  <Text variant="headingMd" as="h2">
-                    Setup & Integration
-                  </Text>
-                  <Text variant="bodyMd" as="p" tone="subdued">
-                    Activate your AI Sales Assistant in 3 simple steps
-                  </Text>
-                </BlockStack>
-              </InlineStack>
-
-              <Divider />
-
-              <BlockStack gap="400">
-                <Banner tone="info">
-                  <InlineStack gap="200" blockAlign="center">
-                    <Icon source={AlertCircleIcon} />
-                    <Text variant="bodyMd" as="p">
-                      <strong>Important:</strong> Your chatbot settings are configured here, but you need to activate the widget in your theme to make it visible to customers.
-                    </Text>
-                  </InlineStack>
-                </Banner>
-
-                <BlockStack gap="300">
-                  <Text variant="headingSm" as="h3">
-                    Step-by-Step Activation Guide:
-                  </Text>
-
-                  <List type="number">
-                    <List.Item>
-                      <BlockStack gap="100">
-                        <Text variant="bodyMd" as="p" fontWeight="semibold">
-                          Navigate to Theme Editor
-                        </Text>
-                        <Text variant="bodyMd" as="p" tone="subdued">
-                          Go to <strong>Online Store → Themes</strong> in your Shopify admin, then click <strong>Customize</strong> on your active theme
-                        </Text>
-                      </BlockStack>
-                    </List.Item>
-
-                    <List.Item>
-                      <BlockStack gap="100">
-                        <Text variant="bodyMd" as="p" fontWeight="semibold">
-                          Enable App Embed
-                        </Text>
-                        <Text variant="bodyMd" as="p" tone="subdued">
-                          In the theme editor, click the <strong>App embeds</strong> section in the left sidebar. Find <strong>AI Sales Assistant</strong> and toggle it <strong>ON</strong>
-                        </Text>
-                      </BlockStack>
-                    </List.Item>
-
-                    <List.Item>
-                      <BlockStack gap="100">
-                        <Text variant="bodyMd" as="p" fontWeight="semibold">
-                          Save & Publish
-                        </Text>
-                        <Text variant="bodyMd" as="p" tone="subdued">
-                          Click <strong>Save</strong> in the top right corner to publish your changes. Your chatbot will now be live on your store!
-                        </Text>
-                      </BlockStack>
-                    </List.Item>
-                  </List>
-                </BlockStack>
-
-                <Divider />
-
-                <BlockStack gap="300">
-                  <Text variant="headingSm" as="h3">
-                    Customization & Design
-                  </Text>
-                  <Text variant="bodyMd" as="p">
-                    All visual customizations (colors, position, button text, welcome messages, etc.) are configured right here in the app settings. Once you save your changes and the app embed is enabled in your theme, the updates will automatically appear on your storefront.
-                  </Text>
-                  <InlineStack gap="200" blockAlign="center">
-                    <Icon source={CheckCircleIcon} tone="success" />
-                    <Text variant="bodyMd" as="p" tone="success">
-                      No coding or theme editing required for customization!
-                    </Text>
-                  </InlineStack>
-                </BlockStack>
-
-                <Divider />
-
-                <Banner tone="warning">
-                  <BlockStack gap="200">
-                    <Text variant="bodyMd" as="p" fontWeight="semibold">
-                      Need Help?
-                    </Text>
-                    <Text variant="bodyMd" as="p">
-                      If you're having trouble activating the chatbot or need assistance with customization, please contact our support team. We're here to help you get the most out of your AI Sales Assistant.
-                    </Text>
-                  </BlockStack>
-                </Banner>
-              </BlockStack>
             </BlockStack>
           </Card>
         </Layout.Section>

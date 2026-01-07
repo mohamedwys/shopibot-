@@ -120,14 +120,32 @@
     "workflowInfoCustom": "Benutzerdefinierter Workflow: Leitet Nachrichten an Ihren eigenen N8N-Workflow zur benutzerdefinierten KI-Verarbeitung und Antworten weiter.",
     "widgetPreview": "Widget-Vorschau",
     "widgetPreviewPosition": "Position",
-    "integration": "Integrationsanleitung",
-    "integrationDesc": "Ihr KI-Verkaufsassistent ist als App-Einbindung konfiguriert. Um ihn in Ihrem Shop zu aktivieren:",
-    "integrationStep1": "1. Gehen Sie zu Online-Shop → Themes",
-    "integrationStep2": "2. Klicken Sie auf Anpassen Ihres aktiven Themes",
-    "integrationStep3": "3. Scrollen Sie im Theme-Editor zu App-Einbindungen",
-    "integrationStep4": "4. Suchen Sie KI-Verkaufsassistent und schalten Sie ihn EIN",
-    "integrationStep5": "5. Speichern Sie Ihre Theme-Änderungen",
-    "integrationNote": "Das Widget erscheint auf allen Seiten Ihres Shops, sobald es im Theme-Editor aktiviert ist. Hier konfigurierte Einstellungen werden automatisch auf das Widget angewendet."
+    "integration": {
+    "title": "Einrichtung & Integration",
+    "subtitle": "Aktivieren Sie Ihren KI-Verkaufsassistenten in 4 einfachen Schritten",
+    "importantLabel": "Wichtig:",
+    "importantMessage": "Stellen Sie sicher, dass das Chatbot-Widget im App-Einbettungsbereich Ihres Themes aktiviert ist, damit es in Ihrem Shop sichtbar bleibt.",
+    "guideTitle": "Schritt-für-Schritt-Aktivierungsanleitung:",
+    
+    "step1Title": "Zum Theme-Editor navigieren",
+    "step1Description": "Gehen Sie in Ihrem Shopify-Admin zu Onlineshop → Themes und klicken Sie dann bei Ihrem aktiven Theme auf Anpassen",
+    
+    "step2Title": "App-Einbettung aktivieren",
+    "step2Description": "Klicken Sie im Theme-Editor in der linken Seitenleiste auf den Bereich App-Einbettungen. Suchen Sie KI-Verkaufsassistent und schalten Sie ihn EIN",
+    
+    "step3Title": "Einstellungen anpassen (Optional)",
+    "step3Description": "Nach der Aktivierung der App-Einbettung können Sie auf KI-Verkaufsassistent klicken, um direkt im Theme-Editor auf zusätzliche Anpassungsoptionen wie Positionierung und Sichtbarkeitseinstellungen zuzugreifen.",
+    
+    "step4Title": "Speichern & Veröffentlichen",
+    "step4Description": "Klicken Sie oben rechts auf Speichern, um Ihre Änderungen zu veröffentlichen. Ihr Chatbot ist jetzt in Ihrem Shop live!",
+    
+    "customizationTitle": "Anpassung & Design",
+    "customizationDescription": "Alle Chatbot-Anpassungen einschließlich Design, Positionierung, Farben, Button-Text und Willkommensnachrichten werden direkt auf dieser App-Einstellungsseite verwaltet. Alle hier vorgenommenen Änderungen werden automatisch in Ihrem Shop angezeigt, sobald die App-Einbettung in Ihrem Theme aktiviert ist.",
+    "customizationNote": "Keine Programmierung oder Theme-Bearbeitung für die Anpassung erforderlich!",
+    
+    "helpTitle": "Brauchen Sie Hilfe?",
+    "helpDescription": "Wenn Sie Schwierigkeiten bei der Aktivierung des Chatbots haben oder Unterstützung bei der Anpassung benötigen, kontaktieren Sie bitte unser Support-Team. Wir helfen Ihnen gerne, das Beste aus Ihrem KI-Verkaufsassistenten herauszuholen."
+  }
   },
   "billing": {
     "title": "Preispläne",

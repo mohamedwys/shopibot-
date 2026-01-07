@@ -120,14 +120,32 @@
     "workflowInfoCustom": "Fluxo de Trabalho Personalizado",
     "widgetPreview": "Visualização do Widget",
     "widgetPreviewPosition": "Posição",
-    "integration": "Instruções de Integração",
-    "integrationDesc": "Para ativar seu Assistente de Vendas AI:",
-    "integrationStep1": "1. Vá para Loja Online → Temas",
-    "integrationStep2": "2. Clique em Personalizar no seu tema ativo",
-    "integrationStep3": "3. Role até Incorporações de aplicativos",
-    "integrationStep4": "4. Encontre Assistente de Vendas AI e ative-o",
-    "integrationStep5": "5. Salve as alterações do tema",
-    "integrationNote": "O widget aparecerá em todas as páginas da sua loja."
+    "integration": {
+    "title": "Configuração e Integração",
+    "subtitle": "Ative seu Assistente de Vendas IA em 4 passos simples",
+    "importantLabel": "Importante:",
+    "importantMessage": "Certifique-se de que o widget do chatbot está ativado na seção de incorporações de aplicativos do seu tema para mantê-lo visível na sua loja.",
+    "guideTitle": "Guia de Ativação Passo a Passo:",
+    
+    "step1Title": "Navegar para o Editor de Temas",
+    "step1Description": "Vá para Loja online → Temas no seu painel administrativo do Shopify e clique em Personalizar no seu tema ativo",
+    
+    "step2Title": "Ativar Incorporação de Aplicativo",
+    "step2Description": "No editor de temas, clique na seção Incorporações de aplicativos na barra lateral esquerda. Encontre Assistente de Vendas IA e ative-o",
+    
+    "step3Title": "Personalizar Configurações (Opcional)",
+    "step3Description": "Após ativar a incorporação do aplicativo, você pode clicar em Assistente de Vendas IA para acessar opções de personalização adicionais diretamente no editor de temas, como preferências de posicionamento e visibilidade.",
+    
+    "step4Title": "Salvar e Publicar",
+    "step4Description": "Clique em Salvar no canto superior direito para publicar suas alterações. Seu chatbot agora estará ativo na sua loja!",
+    
+    "customizationTitle": "Personalização e Design",
+    "customizationDescription": "Todas as personalizações do chatbot, incluindo design, posicionamento, cores, texto dos botões e mensagens de boas-vindas, são gerenciadas diretamente nesta página de configurações do aplicativo. Quaisquer alterações feitas aqui serão automaticamente refletidas na sua loja assim que a incorporação do aplicativo for ativada no seu tema.",
+    "customizationNote": "Nenhuma programação ou edição de tema necessária para personalização!",
+    
+    "helpTitle": "Precisa de Ajuda?",
+    "helpDescription": "Se você está tendo problemas para ativar o chatbot ou precisa de assistência com a personalização, entre em contato com nossa equipe de suporte. Estamos aqui para ajudá-lo a aproveitar ao máximo seu Assistente de Vendas IA."
+  }
   },
   "billing": {
     "title": "Planos de Preços",

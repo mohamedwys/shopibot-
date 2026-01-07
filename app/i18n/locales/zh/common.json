@@ -120,14 +120,32 @@
     "workflowInfoCustom": "自定义工作流：将消息转发至您自己的 N8N 工作流，进行自定义 AI 处理和响应。",
     "widgetPreview": "小部件预览",
     "widgetPreviewPosition": "位置",
-    "integration": "集成说明",
-    "integrationDesc": "您的 AI 销售助手已配置为应用嵌入块。要在店铺中激活它：",
-    "integrationStep1": "1. 进入在线商店 → 主题",
-    "integrationStep2": "2. 点击您当前使用主题的“自定义”",
-    "integrationStep3": "3. 在主题编辑器中向下滚动至“应用嵌入”",
-    "integrationStep4": "4. 找到“AI 销售助手”并将其打开",
-    "integrationStep5": "5. 保存您的主题更改",
-    "integrationNote": "在主题编辑器中启用后，小部件将显示在您店铺的所有页面上。此处配置的设置将自动应用于小部件。"
+    "integration": {
+    "title": "设置与集成",
+    "subtitle": "通过4个简单步骤激活您的AI销售助手",
+    "importantLabel": "重要提示：",
+    "importantMessage": "确保在主题的应用嵌入部分激活聊天机器人小部件，以使其在您的商店中保持可见。",
+    "guideTitle": "分步激活指南：",
+    
+    "step1Title": "导航到主题编辑器",
+    "step1Description": "在您的Shopify管理后台中转到在线商店 → 主题，然后点击您的活动主题上的自定义",
+    
+    "step2Title": "启用应用嵌入",
+    "step2Description": "在主题编辑器中，点击左侧边栏的应用嵌入部分。找到AI销售助手并将其打开",
+    
+    "step3Title": "自定义设置（可选）",
+    "step3Description": "启用应用嵌入后，您可以点击AI销售助手直接在主题编辑器中访问其他自定义选项，例如定位和可见性首选项。",
+    
+    "step4Title": "保存并发布",
+    "step4Description": "点击右上角的保存以发布您的更改。您的聊天机器人现在将在您的商店中上线！",
+    
+    "customizationTitle": "自定义与设计",
+    "customizationDescription": "所有聊天机器人自定义，包括设计、定位、颜色、按钮文本和欢迎消息，都直接从此应用设置页面进行管理。一旦在主题中激活应用嵌入，您在此处所做的任何更改都将自动反映在您的商店中。",
+    "customizationNote": "自定义无需编码或主题编辑！",
+    
+    "helpTitle": "需要帮助？",
+    "helpDescription": "如果您在激活聊天机器人时遇到问题或需要自定义方面的帮助，请联系我们的支持团队。我们随时为您提供帮助，让您充分利用AI销售助手。"
+  }
   },
   "billing": {
     "title": "定价套餐",

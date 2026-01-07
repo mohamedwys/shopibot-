@@ -120,14 +120,32 @@
     "workflowInfoCustom": "Flujo de Trabajo Personalizado: Reenvíe mensajes a su propio flujo de trabajo N8N para procesamiento y respuestas AI personalizadas.",
     "widgetPreview": "Vista Previa del Widget",
     "widgetPreviewPosition": "Posición",
-    "integration": "Instrucciones de Integración",
-    "integrationDesc": "Su Asistente de Ventas AI está configurado como una integración de aplicación. Para activarlo en su tienda:",
-    "integrationStep1": "1. Vaya a Tienda Online → Temas",
-    "integrationStep2": "2. Haga clic en Personalizar en su tema activo",
-    "integrationStep3": "3. Desplácese hacia abajo hasta Integraciones de aplicaciones en el editor de temas",
-    "integrationStep4": "4. Busque Asistente de Ventas AI y actívelo",
-    "integrationStep5": "5. Guarde los cambios del tema",
-    "integrationNote": "El widget aparecerá en todas las páginas de su tienda una vez habilitado en el editor de temas. La configuración aquí se aplicará automáticamente al widget."
+    "integration": {
+    "title": "Configuración e Integración",
+    "subtitle": "Active su Asistente de Ventas IA en 4 sencillos pasos",
+    "importantLabel": "Importante:",
+    "importantMessage": "Asegúrese de que el widget del chatbot esté activado en la sección de incrustaciones de aplicaciones de su tema para mantenerlo visible en su tienda.",
+    "guideTitle": "Guía de Activación Paso a Paso:",
+    
+    "step1Title": "Navegar al Editor de Temas",
+    "step1Description": "Vaya a Tienda online → Temas en su administrador de Shopify, luego haga clic en Personalizar en su tema activo",
+    
+    "step2Title": "Activar Incrustación de Aplicación",
+    "step2Description": "En el editor de temas, haga clic en la sección Incrustaciones de aplicaciones en la barra lateral izquierda. Busque Asistente de Ventas IA y actívelo",
+    
+    "step3Title": "Personalizar Configuración (Opcional)",
+    "step3Description": "Después de activar la incrustación de la aplicación, puede hacer clic en Asistente de Ventas IA para acceder a opciones de personalización adicionales directamente en el editor de temas, como preferencias de posicionamiento y visibilidad.",
+    
+    "step4Title": "Guardar y Publicar",
+    "step4Description": "Haga clic en Guardar en la esquina superior derecha para publicar sus cambios. ¡Su chatbot ahora estará activo en su tienda!",
+    
+    "customizationTitle": "Personalización y Diseño",
+    "customizationDescription": "Todas las personalizaciones del chatbot, incluido el diseño, posicionamiento, colores, texto de botones y mensajes de bienvenida, se gestionan directamente desde esta página de configuración de la aplicación. Cualquier cambio que realice aquí se reflejará automáticamente en su tienda una vez que la incrustación de la aplicación esté activada en su tema.",
+    "customizationNote": "¡No se requiere programación ni edición del tema para la personalización!",
+    
+    "helpTitle": "¿Necesita Ayuda?",
+    "helpDescription": "Si tiene problemas para activar el chatbot o necesita asistencia con la personalización, comuníquese con nuestro equipo de soporte. Estamos aquí para ayudarle a aprovechar al máximo su Asistente de Ventas IA."
+  }
   },
   "billing": {
     "title": "Planes de Precios",
