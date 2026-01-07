@@ -312,7 +312,12 @@ export default function Index() {
                 </BlockStack>
               </Card>
             </Box>
+          </InlineStack>
+        </Layout.Section>
 
+        {/* Top Questions and Setup Progress - Side by Side */}
+        <Layout.Section>
+          <InlineStack gap="400" align="start">
             {/* Top Questions Card */}
             <Box width="50%">
               <Card>
@@ -362,91 +367,91 @@ export default function Index() {
                 </BlockStack>
               </Card>
             </Box>
-          </InlineStack>
-        </Layout.Section>
 
-        {/* Setup Progress Card */}
-        <Layout.Section>
-          <Card>
-            <BlockStack gap="500">
-              <InlineStack align="space-between" blockAlign="center">
-                <Text variant="headingLg" as="h3" fontWeight="bold">
-                  {t("dashboard.setupProgress")}
-                </Text>
-                <Badge tone="success">{t("dashboard.stepsCompleted")}</Badge>
-              </InlineStack>
-              <Text variant="bodyMd" as="p" tone="subdued">
-                {t("dashboard.completeSteps")}
-              </Text>
+            {/* Setup Progress Card */}
+            <Box width="50%">
+              <Card>
+                <BlockStack gap="500">
+                  <InlineStack align="space-between" blockAlign="center">
+                    <Text variant="headingLg" as="h3" fontWeight="bold">
+                      {t("dashboard.setupProgress")}
+                    </Text>
+                    <Badge tone="success">{t("dashboard.stepsCompleted")}</Badge>
+                  </InlineStack>
+                  <Text variant="bodyMd" as="p" tone="subdued">
+                    {t("dashboard.completeSteps")}
+                  </Text>
 
-              <Box paddingBlock="200">
-                <ProgressBar progress={100} size="medium" tone="success" />
-              </Box>
+                  <Box paddingBlock="200">
+                    <ProgressBar progress={100} size="medium" tone="success" />
+                  </Box>
 
-              <BlockStack gap="400">
-                {[
-                  {
-                    title: t("dashboard.step1Title"),
-                    desc: t("dashboard.step1Desc"),
-                    completed: true,
-                    optional: false,
-                  },
-                  {
-                    title: t("dashboard.step2Title"),
-                    desc: t("dashboard.step2Desc"),
-                    completed: true,
-                    optional: false,
-                  },
-                  {
-                    title: t("dashboard.step3Title"),
-                    desc: t("dashboard.step3Desc"),
-                    completed: true,
-                    optional: false,
-                  },
-                ].map((step, i) => (
-                  <Card key={i} background={step.completed ? "bg-surface-secondary" : undefined}>
-                    <InlineStack gap="400" align="start" blockAlign="center">
-                      <Box>
-                        <Badge tone={step.completed ? "success" : "attention"} size="large">
-                          {step.completed ? "✓" : "○"}
-                        </Badge>
-                      </Box>
-                      <Box width="100%">
-                        <InlineStack align="space-between" blockAlign="center">
-                          <BlockStack gap="200">
-                            <InlineStack gap="200" blockAlign="center">
-                              <Text variant="bodyLg" as="p" fontWeight="semibold">
-                                {step.title}
-                              </Text>
-                              {step.optional && (
-                                <Badge tone="info">{t("dashboard.optional")}</Badge>
+                  <BlockStack gap="400">
+                    {[
+                      {
+                        title: t("dashboard.step1Title"),
+                        desc: t("dashboard.step1Desc"),
+                        completed: true,
+                        optional: false,
+                      },
+                      {
+                        title: t("dashboard.step2Title"),
+                        desc: t("dashboard.step2Desc"),
+                        completed: true,
+                        optional: false,
+                      },
+                      {
+                        title: t("dashboard.step3Title"),
+                        desc: t("dashboard.step3Desc"),
+                        completed: true,
+                        optional: false,
+                      },
+                    ].map((step, i) => (
+                      <Card key={i} background={step.completed ? "bg-surface-secondary" : undefined}>
+                        <InlineStack gap="400" align="start" blockAlign="center">
+                          <Box>
+                            <Badge tone={step.completed ? "success" : "attention"} size="large">
+                              {step.completed ? "✓" : "○"}
+                            </Badge>
+                          </Box>
+                          <Box width="100%">
+                            <InlineStack align="space-between" blockAlign="center">
+                              <BlockStack gap="200">
+                                <InlineStack gap="200" blockAlign="center">
+                                  <Text variant="bodyLg" as="p" fontWeight="semibold">
+                                    {step.title}
+                                  </Text>
+                                  {step.optional && (
+                                    <Badge tone="info">{t("dashboard.optional")}</Badge>
+                                  )}
+                                </InlineStack>
+                                <Text variant="bodyMd" as="p" tone="subdued">
+                                  {step.desc}
+                                </Text>
+                              </BlockStack>
+                              {!step.completed && (
+                                <Button url="/app/settings">{t("dashboard.connectNow")}</Button>
                               )}
                             </InlineStack>
-                            <Text variant="bodyMd" as="p" tone="subdued">
-                              {step.desc}
-                            </Text>
-                          </BlockStack>
-                          {!step.completed && (
-                            <Button url="/app/settings">{t("dashboard.connectNow")}</Button>
-                          )}
+                          </Box>
                         </InlineStack>
-                      </Box>
-                    </InlineStack>
-                  </Card>
-                ))}
-              </BlockStack>
+                      </Card>
+                    ))}
+                  </BlockStack>
 
-              <Divider />
+                  <Divider />
 
-              <InlineStack gap="300">
-                <Button variant="primary" url="/app/settings">
-                  {t("dashboard.customizeWidget")}
-                </Button>
-              </InlineStack>
-            </BlockStack>
-          </Card>
+                  <InlineStack gap="300">
+                    <Button variant="primary" url="/app/settings">
+                      {t("dashboard.customizeWidget")}
+                    </Button>
+                  </InlineStack>
+                </BlockStack>
+              </Card>
+            </Box>
+          </InlineStack>
         </Layout.Section>
-
+        
         {/* Quick Actions */}
         <Layout.Section>
           <BlockStack gap="400">
