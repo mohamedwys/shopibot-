@@ -184,6 +184,8 @@ export class N8NService {
 
       if (!response.data?.message) {
         this.logger.warn({ responseKeys: Object.keys(response.data || {}) }, 'Unexpected response format - missing message field');
+        // Throw error to trigger fallback processing
+        throw new Error('N8N response missing required message field');
       }
 
       return response.data;
