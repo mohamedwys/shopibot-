@@ -692,6 +692,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       routeLogger.debug({
         shop: shopDomain,
         workflowType: (settings as any)?.workflowType || 'DEFAULT',
+        plan: (settings as any)?.plan || 'BASIC',
         hasCustomWebhook: !!(settings as any)?.webhookUrl
       }, 'Retrieved widget settings');
     } catch (error) {
@@ -699,11 +700,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       settings = null;
     }
 
-    // ✅ IMPROVED: Determine workflow type and webhook URL
+    // ✅ IMPROVED: Determine workflow type and webhook URL based on PLAN
     const workflowType = (settings as any)?.workflowType || 'DEFAULT';
+    const plan = (settings as any)?.plan || 'BASIC';
     let webhookUrl: string | undefined;
     let workflowDescription: string;
 
+    // First check if custom workflow is selected (overrides plan-based routing)
     if (workflowType === 'CUSTOM') {
       // CUSTOM WORKFLOW: Use merchant's custom N8N webhook
       const customWebhookUrl = (settings as any)?.webhookUrl;
@@ -720,24 +723,55 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         webhookUrl = customWebhookUrl;
         workflowDescription = 'CUSTOM N8N Workflow (merchant webhook)';
       } else {
-        // Invalid custom URL - fallback to default
-        webhookUrl = process.env.N8N_WEBHOOK_URL;
-        workflowDescription = 'DEFAULT Workflow (invalid custom URL, using fallback)';
+        // Invalid custom URL - fallback to plan-based routing
+        if (plan === 'BYOK') {
+          webhookUrl = process.env.N8N_WEBHOOK_BYOK || process.env.N8N_WEBHOOK_URL;
+          workflowDescription = 'BYOK Workflow (fallback from invalid custom URL)';
+        } else {
+          webhookUrl = process.env.N8N_WEBHOOK_URL;
+          workflowDescription = 'DEFAULT Workflow (invalid custom URL, using fallback)';
+        }
         routeLogger.warn({
           shop: shopDomain,
-          customUrl: customWebhookUrl
-        }, '⚠️ Custom workflow selected but URL invalid - falling back to default');
+          customUrl: customWebhookUrl,
+          plan
+        }, '⚠️ Custom workflow selected but URL invalid - falling back to plan-based routing');
       }
     } else {
-      // DEFAULT WORKFLOW: Use default N8N webhook from environment
-      webhookUrl = process.env.N8N_WEBHOOK_URL;
-      workflowDescription = 'DEFAULT N8N Workflow (environment variable)';
+      // DEFAULT WORKFLOW: Use plan-based webhook routing
+      if (plan === 'BYOK') {
+        // BYOK Plan: Use BYOK-specific webhook (with customer's own OpenAI API key)
+        webhookUrl = process.env.N8N_WEBHOOK_BYOK || process.env.N8N_WEBHOOK_URL;
+        workflowDescription = 'BYOK Plan Workflow (customer API key)';
+        routeLogger.info({
+          shop: shopDomain,
+          plan,
+          hasByokWebhook: !!process.env.N8N_WEBHOOK_BYOK
+        }, '🔑 Using BYOK plan webhook');
+      } else if (plan === 'BASIC') {
+        // BASIC Plan ($25/month): Use default webhook
+        webhookUrl = process.env.N8N_WEBHOOK_URL;
+        workflowDescription = 'BASIC Plan Workflow ($25/month)';
+      } else if (plan === 'UNLIMITED') {
+        // UNLIMITED Plan ($79/month): Use default webhook (or could be a separate one)
+        webhookUrl = process.env.N8N_WEBHOOK_URL;
+        workflowDescription = 'UNLIMITED Plan Workflow ($79/month)';
+      } else {
+        // Fallback for unknown plans
+        webhookUrl = process.env.N8N_WEBHOOK_URL;
+        workflowDescription = 'DEFAULT Workflow (unknown plan)';
+        routeLogger.warn({
+          shop: shopDomain,
+          plan
+        }, '⚠️ Unknown plan, using default webhook');
+      }
     }
 
     // ✅ LOG WHICH WORKFLOW IS BEING USED
     console.log('========================================');
     console.log(`🔄 WORKFLOW: ${workflowDescription}`);
     console.log(`📍 Shop: ${shopDomain}`);
+    console.log(`💎 Plan: ${plan}`);
     console.log(`🎯 Intent: ${intent.type}`);
     console.log(`🌐 Language: ${enhancedContext.locale || 'auto-detect'}`);
     console.log(`🔗 Webhook: ${webhookUrl ? webhookUrl.substring(0, 30) + '...' : 'NOT SET'}`);
@@ -746,6 +780,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     routeLogger.info({
       workflow: workflowDescription,
       workflowType,
+      plan,
       shop: shopDomain,
       intent: intent.type,
       hasWebhook: !!webhookUrl
