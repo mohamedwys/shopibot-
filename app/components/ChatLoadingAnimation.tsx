@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 interface ChatLoadingAnimationProps {
   /** Primary color for the dots animation (defaults to Polaris blue) */
@@ -20,23 +20,14 @@ export function ChatLoadingAnimation({
   dotSize = 10,
   gap = 8,
 }: ChatLoadingAnimationProps) {
-  const containerStyle: React.CSSProperties = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: `${gap}px`,
-    padding: '4px',
-  };
 
-  const dotStyle: React.CSSProperties = {
-    width: `${dotSize}px`,
-    height: `${dotSize}px`,
-    borderRadius: '50%',
-    backgroundColor: primaryColor,
-  };
-
-  return (
-    <>
-      <style dangerouslySetInnerHTML={{__html: `
+  useEffect(() => {
+    // Inject keyframes into document head if not already present
+    const styleId = 'chat-loading-animation-keyframes';
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
         @keyframes chatDotBounce {
           0%, 60%, 100% {
             transform: translateY(0) scale(1);
@@ -47,29 +38,36 @@ export function ChatLoadingAnimation({
             opacity: 1;
           }
         }
-        .chat-loading-dot {
-          animation: chatDotBounce 1.4s ease-in-out infinite;
-        }
-        .chat-loading-dot:nth-child(1) {
-          animation-delay: 0s;
-        }
-        .chat-loading-dot:nth-child(2) {
-          animation-delay: 0.2s;
-        }
-        .chat-loading-dot:nth-child(3) {
-          animation-delay: 0.4s;
-        }
-      `}} />
-      <div
-        role="status"
-        aria-label={ariaLabel}
-        aria-live="polite"
-        style={containerStyle}
-      >
-        <div className="chat-loading-dot" style={dotStyle} />
-        <div className="chat-loading-dot" style={dotStyle} />
-        <div className="chat-loading-dot" style={dotStyle} />
-      </div>
-    </>
+      `;
+      document.head.appendChild(style);
+    }
+  }, []);
+
+  const containerStyle: React.CSSProperties = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: `${gap}px`,
+    padding: '4px',
+  };
+
+  const dotBaseStyle: React.CSSProperties = {
+    width: `${dotSize}px`,
+    height: `${dotSize}px`,
+    borderRadius: '50%',
+    backgroundColor: primaryColor,
+    animation: 'chatDotBounce 1.4s ease-in-out infinite',
+  };
+
+  return (
+    <div
+      role="status"
+      aria-label={ariaLabel}
+      aria-live="polite"
+      style={containerStyle}
+    >
+      <div style={{ ...dotBaseStyle, animationDelay: '0s' }} />
+      <div style={{ ...dotBaseStyle, animationDelay: '0.2s' }} />
+      <div style={{ ...dotBaseStyle, animationDelay: '0.4s' }} />
+    </div>
   );
 }
