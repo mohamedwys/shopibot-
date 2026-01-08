@@ -16,7 +16,6 @@ import {
 } from "@shopify/polaris";
 import { TitleBar } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
-import { ChatLoadingAnimation } from "../components/ChatLoadingAnimation";
 
 interface Message {
   id: string;
@@ -277,14 +276,41 @@ export default function SalesAssistantSimple() {
                         padding: "12px",
                         borderRadius: "8px",
                         backgroundColor: "#ffffff",
-                        border: "1px solid #e1e3e5"
+                        border: "1px solid #e1e3e5",
+                        display: "flex",
+                        gap: "6px",
+                        alignItems: "center"
                       }}>
-                        <ChatLoadingAnimation
-                          primaryColor="#006fbb"
-                          ariaLabel="AI is thinking"
-                          dotSize={10}
-                          gap={6}
-                        />
+                        <style dangerouslySetInnerHTML={{__html: `
+                          @keyframes loadingBounce {
+                            0%, 60%, 100% { transform: translateY(0) scale(1); opacity: 0.7; }
+                            30% { transform: translateY(-10px) scale(1.2); opacity: 1; }
+                          }
+                        `}} />
+                        <div style={{
+                          width: "10px",
+                          height: "10px",
+                          borderRadius: "50%",
+                          backgroundColor: "#006fbb",
+                          animation: "loadingBounce 1.4s ease-in-out infinite",
+                          animationDelay: "0s"
+                        }} />
+                        <div style={{
+                          width: "10px",
+                          height: "10px",
+                          borderRadius: "50%",
+                          backgroundColor: "#006fbb",
+                          animation: "loadingBounce 1.4s ease-in-out infinite",
+                          animationDelay: "0.2s"
+                        }} />
+                        <div style={{
+                          width: "10px",
+                          height: "10px",
+                          borderRadius: "50%",
+                          backgroundColor: "#006fbb",
+                          animation: "loadingBounce 1.4s ease-in-out infinite",
+                          animationDelay: "0.4s"
+                        }} />
                       </div>
                     </div>
                   )}
