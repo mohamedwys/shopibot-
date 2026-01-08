@@ -130,8 +130,8 @@ function analyzeSentiment(message: string): string {
 function detectLanguage(message: string): string {
   const lower = message.toLowerCase();
 
-  // French detection - expanded with more common words
-  if (/(bonjour|salut|merci|montre|produit|cherche|voudrais|pourrais|nouveauté|meilleures?|vente|jaimerais|j'aimerais|parler|quelqu'un|quelqun|comment|faire|avec|pour|suis|être|avoir|puis|peux|peut|dois|doit|besoin|aide|aidez|s'il vous plaît|svp|oui|non|vous|avez|des|chaussures|chaussure)/i.test(message)) {
+  // French detection - expanded with more common words including very short messages
+  if (/(bonjour|salut|merci|montre|produit|cherche|voudrais|pourrais|nouveauté|meilleures?|vente|jaimerais|j'aimerais|parler|quelqu'un|quelqun|comment|faire|avec|pour|suis|être|avoir|puis|peux|peut|dois|doit|besoin|aide|aidez|s'il vous plaît|svp|oui|non|vous|avez|des|chaussures|chaussure|je|veux|voir|bien|super|parfait|d'accord|ok|quoi|quel|quelle|tous|toutes|aussi)/i.test(message)) {
     return 'fr';
   }
 

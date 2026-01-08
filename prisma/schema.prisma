@@ -40,6 +40,9 @@ model WidgetSettings {
   interfaceLanguage String      @default("en")
   plan             String       @default("BASIC")
   openaiApiKey     String?
+  apiKeyLastTested DateTime?
+  apiKeyLastUpdated DateTime?
+  apiKeyStatus     String?
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
   workflowType     WorkflowType @default(DEFAULT)
@@ -150,6 +153,24 @@ model Conversation {
 
   @@index([shop, sessionId])
   @@index([shop, timestamp])
+}
+
+model ByokUsage {
+  id              String   @id @default(cuid())
+  shop            String
+  date            DateTime
+  totalApiCalls   Int      @default(0)
+  totalTokensUsed Int      @default(0)
+  promptTokens    Int      @default(0)
+  completionTokens Int     @default(0)
+  estimatedCost   Float    @default(0)
+  plan            String   @default("BYOK")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([shop, date])
+  @@index([shop, date])
+  @@index([date])
 }
 
 enum WorkflowType {

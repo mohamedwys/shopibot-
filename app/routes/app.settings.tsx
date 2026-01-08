@@ -17,6 +17,8 @@ import {
   List,
   InlineStack,
   Icon,
+  Button,
+  Spinner,
 } from "@shopify/polaris";
 import { CheckCircleIcon, AlertCircleIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
@@ -144,7 +146,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
   }
 
-  const settingsData = {
+  // Prepare base settings data
+  const settingsData: any = {
     enabled: formData.get("enabled") === "true",
     position: formData.get("position") as string,
     buttonText: formData.get("buttonText") as string,
@@ -158,6 +161,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     plan: plan,
     openaiApiKey: encryptedApiKey,
   };
+
+  // Update apiKeyLastUpdated if API key was changed
+  if (encryptedApiKey) {
+    settingsData.apiKeyLastUpdated = new Date();
+  }
 
   try {
     logger.info(`Saving settings for shop: ${session.shop}`);
@@ -206,6 +214,10 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState(initialSettings);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
+  const [isTestingKey, setIsTestingKey] = useState(false);
+  const [keyTestResult, setKeyTestResult] = useState<{ valid: boolean; message: string } | null>(null);
+  const [usageData, setUsageData] = useState<any>(null);
+  const [loadingUsage, setLoadingUsage] = useState(false);
 
   // Show success banner when settings are saved
   useEffect(() => {
@@ -213,6 +225,27 @@ export default function SettingsPage() {
       setShowSuccessBanner(true);
     }
   }, [actionData]);
+
+  // Fetch usage data for BYOK plan
+  useEffect(() => {
+    if ((settings as any).plan === "BYOK") {
+      const fetchUsage = async () => {
+        setLoadingUsage(true);
+        try {
+          const response = await fetch(`/api/byok-usage?shop=${encodeURIComponent((settings as any).shop)}`);
+          if (response.ok) {
+            const data = await response.json();
+            setUsageData(data);
+          }
+        } catch (error) {
+          console.error("Failed to fetch BYOK usage data:", error);
+        } finally {
+          setLoadingUsage(false);
+        }
+      };
+      fetchUsage();
+    }
+  }, [(settings as any).plan, (settings as any).shop]);
 
   const handleSave = useCallback(() => {
     setIsSaving(true);
@@ -241,6 +274,46 @@ export default function SettingsPage() {
     submit(formData, { method: "post" });
     setIsSaving(false);
   }, [settings, submit]);
+
+  const handleTestConnection = useCallback(async () => {
+    const apiKey = (settings as any).openaiApiKey;
+    if (!apiKey || apiKey.trim() === "") {
+      setKeyTestResult({
+        valid: false,
+        message: "Please enter an API key first"
+      });
+      return;
+    }
+
+    setIsTestingKey(true);
+    setKeyTestResult(null);
+
+    try {
+      const response = await fetch("/api/test-openai-key", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          shop: (settings as any).shop,
+          apiKey: apiKey
+        })
+      });
+
+      const result = await response.json();
+      setKeyTestResult({
+        valid: result.valid,
+        message: result.message
+      });
+    } catch (error) {
+      setKeyTestResult({
+        valid: false,
+        message: "Failed to test API key. Please try again."
+      });
+    } finally {
+      setIsTestingKey(false);
+    }
+  }, [settings]);
 
   return (
     <Page
@@ -438,20 +511,148 @@ export default function SettingsPage() {
                     <TextField
                       label={t("settings.openaiApiKey")}
                       value={(settings as any).openaiApiKey || ""}
-                      onChange={(value) =>
-                        setSettings((prev: any) => ({ ...prev, openaiApiKey: value }))
-                      }
+                      onChange={(value) => {
+                        setSettings((prev: any) => ({ ...prev, openaiApiKey: value }));
+                        setKeyTestResult(null); // Clear test result when key changes
+                      }}
                       type="password"
                       placeholder={t("settings.openaiApiKeyPlaceholder")}
                       helpText={t("settings.openaiApiKeyHelp")}
                       autoComplete="off"
+                      connectedRight={
+                        <Button
+                          onClick={handleTestConnection}
+                          loading={isTestingKey}
+                          disabled={!(settings as any).openaiApiKey || (settings as any).openaiApiKey.trim() === ""}
+                        >
+                          {t("settings.testConnection")}
+                        </Button>
+                      }
                     />
+
+                    {keyTestResult && (
+                      <Banner
+                        tone={keyTestResult.valid ? "success" : "critical"}
+                        onDismiss={() => setKeyTestResult(null)}
+                      >
+                        <InlineStack gap="200" align="start">
+                          <Icon source={keyTestResult.valid ? CheckCircleIcon : AlertCircleIcon} />
+                          <Text as="p">{keyTestResult.message}</Text>
+                        </InlineStack>
+                      </Banner>
+                    )}
+
+                    {(settings as any).apiKeyLastTested && (
+                      <Text as="p" variant="bodySm" tone="subdued">
+                        Last tested: {new Date((settings as any).apiKeyLastTested).toLocaleString()}
+                        {(settings as any).apiKeyStatus && ` • Status: ${(settings as any).apiKeyStatus}`}
+                      </Text>
+                    )}
                   </>
                 )}
               </FormLayout>
             </BlockStack>
           </Card>
         </Layout.Section>
+
+        {/* BYOK Usage Tracking */}
+        {(settings as any).plan === "BYOK" && (
+          <Layout.Section>
+            <Card>
+              <BlockStack gap="400">
+                <Text variant="headingMd" as="h2">
+                  {t("settings.usageTracking")}
+                </Text>
+                <Text variant="bodyMd" as="p" tone="subdued">
+                  {t("settings.usageTrackingDesc")}
+                </Text>
+
+                {loadingUsage ? (
+                  <InlineStack align="center">
+                    <Spinner size="small" />
+                    <Text as="p">Loading usage data...</Text>
+                  </InlineStack>
+                ) : usageData ? (
+                  <BlockStack gap="400">
+                    {/* Today's Usage */}
+                    <Card>
+                      <BlockStack gap="300">
+                        <Text variant="headingSm" as="h3">
+                          {t("settings.todayUsage")}
+                        </Text>
+                        <InlineStack gap="600">
+                          <BlockStack gap="100">
+                            <Text variant="bodySm" as="p" tone="subdued">
+                              {t("settings.totalApiCalls")}
+                            </Text>
+                            <Text variant="headingLg" as="p">
+                              {usageData.today.totalApiCalls.toLocaleString()}
+                            </Text>
+                          </BlockStack>
+                          <BlockStack gap="100">
+                            <Text variant="bodySm" as="p" tone="subdued">
+                              {t("settings.totalTokensUsed")}
+                            </Text>
+                            <Text variant="headingLg" as="p">
+                              {usageData.today.totalTokensUsed.toLocaleString()}
+                            </Text>
+                          </BlockStack>
+                          <BlockStack gap="100">
+                            <Text variant="bodySm" as="p" tone="subdued">
+                              {t("settings.estimatedCost")}
+                            </Text>
+                            <Text variant="headingLg" as="p">
+                              ${usageData.today.estimatedCost.toFixed(4)}
+                            </Text>
+                          </BlockStack>
+                        </InlineStack>
+                      </BlockStack>
+                    </Card>
+
+                    {/* This Month's Usage */}
+                    <Card>
+                      <BlockStack gap="300">
+                        <Text variant="headingSm" as="h3">
+                          {t("settings.thisMonthUsage")}
+                        </Text>
+                        <InlineStack gap="600">
+                          <BlockStack gap="100">
+                            <Text variant="bodySm" as="p" tone="subdued">
+                              {t("settings.totalApiCalls")}
+                            </Text>
+                            <Text variant="headingLg" as="p">
+                              {usageData.thisMonth.totalApiCalls.toLocaleString()}
+                            </Text>
+                          </BlockStack>
+                          <BlockStack gap="100">
+                            <Text variant="bodySm" as="p" tone="subdued">
+                              {t("settings.totalTokensUsed")}
+                            </Text>
+                            <Text variant="headingLg" as="p">
+                              {usageData.thisMonth.totalTokensUsed.toLocaleString()}
+                            </Text>
+                          </BlockStack>
+                          <BlockStack gap="100">
+                            <Text variant="bodySm" as="p" tone="subdued">
+                              {t("settings.estimatedCost")}
+                            </Text>
+                            <Text variant="headingLg" as="p">
+                              ${usageData.thisMonth.estimatedCost.toFixed(4)}
+                            </Text>
+                          </BlockStack>
+                        </InlineStack>
+                      </BlockStack>
+                    </Card>
+                  </BlockStack>
+                ) : (
+                  <Banner tone="info">
+                    <Text as="p">{t("settings.noUsageData")}</Text>
+                  </Banner>
+                )}
+              </BlockStack>
+            </Card>
+          </Layout.Section>
+        )}
 
         {/* AI Workflow Settings */}
         <Layout.Section>
