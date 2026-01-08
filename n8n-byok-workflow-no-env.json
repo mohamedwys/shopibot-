@@ -1,0 +1,526 @@
+{
+  "name": "Shopibot BYOK - No Environment Variables Version",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "byok-chatbot",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "af28a3ed-8697-4a68-a0d0-fd3ca66bfc31",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -540,
+        400
+      ],
+      "webhookId": "byok-chatbot-webhook"
+    },
+    {
+      "parameters": {
+        "url": "=https://YOUR-APP-URL.vercel.app/api/settings/{{ $json.body.context.shopDomain }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "YOUR-64-CHAR-INTERNAL-API-KEY-HERE"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "68ddddb9-6ba6-4655-bd2d-e6aff015aa82",
+      "name": "Get Shop Settings",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -320,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "shop",
+              "value": "={{ $('Webhook').item.json.body.context.shopDomain }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "message",
+              "value": "={{ $('Webhook').item.json.body.userMessage }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "sessionId",
+              "value": "={{ $('Webhook').item.json.body.context.sessionId || 'session-' + $now.toUnixInteger() }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "products",
+              "value": "={{ $('Webhook').item.json.body.products }}",
+              "type": "array"
+            },
+            {
+              "id": "5",
+              "name": "openaiApiKey",
+              "value": "={{ $('Get Shop Settings').item.json.openaiApiKey }}",
+              "type": "string"
+            },
+            {
+              "id": "6",
+              "name": "chatTitle",
+              "value": "={{ $('Get Shop Settings').item.json.chatTitle || 'AI Assistant' }}",
+              "type": "string"
+            },
+            {
+              "id": "7",
+              "name": "welcomeMessage",
+              "value": "={{ $('Get Shop Settings').item.json.welcomeMessage }}",
+              "type": "string"
+            },
+            {
+              "id": "8",
+              "name": "locale",
+              "value": "={{ $('Webhook').item.json.body.context.locale || 'en' }}",
+              "type": "string"
+            },
+            {
+              "id": "9",
+              "name": "intent",
+              "value": "={{ $('Webhook').item.json.body.context.intent || 'GENERAL_CHAT' }}",
+              "type": "string"
+            },
+            {
+              "id": "10",
+              "name": "noProductsFound",
+              "value": "={{ $('Webhook').item.json.body.context.noProductsFound || false }}",
+              "type": "boolean"
+            },
+            {
+              "id": "11",
+              "name": "systemPrompt",
+              "value": "={{ 'You are ' + ($('Get Shop Settings').item.json.chatTitle || 'an AI shopping assistant') + ' for an e-commerce store. Help customers find products, answer questions about pricing and shipping, and provide recommendations. Be friendly, helpful, and concise. Respond in ' + ($('Webhook').item.json.body.context.locale === 'fr' ? 'French' : $('Webhook').item.json.body.context.locale === 'es' ? 'Spanish' : $('Webhook').item.json.body.context.locale === 'de' ? 'German' : $('Webhook').item.json.body.context.locale === 'pt' ? 'Portuguese' : $('Webhook').item.json.body.context.locale === 'it' ? 'Italian' : 'English') + '.' + ($('Webhook').item.json.body.context.noProductsFound ? ' Note: No products matched the search. Politely inform the customer and suggest browsing bestsellers or categories.' : ($('Webhook').item.json.body.products.length > 0 ? ' Available products: ' + $('Webhook').item.json.body.products.slice(0, 5).map(p => p.title + ' ($' + p.price + ')').join(', ') : '')) }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e61d50cd-2b36-403f-99cc-1ea866c006cb",
+      "name": "Prepare Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        -100,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "1",
+              "leftValue": "={{ $json.openaiApiKey }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "6beae190-77e5-4940-b3d2-d1cbc34873df",
+      "name": "Check API Key Exists",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        120,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Prepare Data').item.json.openaiApiKey }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o-mini\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": {{ $('Prepare Data').item.json.systemPrompt }}\n    },\n    {\n      \"role\": \"user\",\n      \"content\": {{ $('Prepare Data').item.json.message }}\n    }\n  ],\n  \"temperature\": 0.7,\n  \"max_tokens\": 500\n}",
+        "options": {}
+      },
+      "id": "636f9562-39e2-4e89-b7e9-c77c0507c878",
+      "name": "OpenAI Chat",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        340,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "message",
+              "value": "={{ $('OpenAI Chat').item.json.choices[0].message.content }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "messageType",
+              "value": "={{ $('Prepare Data').item.json.noProductsFound ? 'no_products_found' : ($('Prepare Data').item.json.products.length > 0 ? 'product_recommendation' : 'general') }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "recommendations",
+              "value": "={{ $('Prepare Data').item.json.products.slice(0, 6).map(p => ({ id: p.id, title: p.title, handle: p.handle, price: p.price, image: p.image, description: p.description, relevanceScore: 70 })) }}",
+              "type": "array"
+            },
+            {
+              "id": "4",
+              "name": "quickReplies",
+              "value": "={{ $('Prepare Data').item.json.locale === 'fr' ? ['Voir les meilleures ventes', 'Nouveautés', 'Tous les produits', 'Aide'] : $('Prepare Data').item.json.locale === 'es' ? ['Ver más vendidos', 'Novedades', 'Todos', 'Ayuda'] : $('Prepare Data').item.json.locale === 'de' ? ['Bestseller', 'Neuankömmlinge', 'Alle', 'Hilfe'] : $('Prepare Data').item.json.locale === 'pt' ? ['Mais vendidos', 'Novidades', 'Todos', 'Ajuda'] : $('Prepare Data').item.json.locale === 'it' ? ['Bestseller', 'Novità', 'Tutti', 'Aiuto'] : ['Show bestsellers', 'New arrivals', 'All products', 'Help'] }}",
+              "type": "array"
+            },
+            {
+              "id": "5",
+              "name": "confidence",
+              "value": "=0.85",
+              "type": "number"
+            },
+            {
+              "id": "6",
+              "name": "sentiment",
+              "value": "neutral",
+              "type": "string"
+            },
+            {
+              "id": "7",
+              "name": "requiresHumanEscalation",
+              "value": "=false",
+              "type": "boolean"
+            },
+            {
+              "id": "8",
+              "name": "success",
+              "value": "=true",
+              "type": "boolean"
+            },
+            {
+              "id": "9",
+              "name": "analytics",
+              "value": "={{ { intentDetected: $('Prepare Data').item.json.intent, productsShown: $('Prepare Data').item.json.products.length, responseTime: 0 } }}",
+              "type": "object"
+            },
+            {
+              "id": "10",
+              "name": "timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "11",
+              "name": "response",
+              "value": "={{ $('OpenAI Chat').item.json.choices[0].message.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "474b034e-ef18-4a8f-babb-b0aef4477e0d",
+      "name": "Format Success Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "message",
+              "value": "={{ $('Prepare Data').item.json.locale === 'fr' ? 'Je m\\'excuse, mais je rencontre des difficultés techniques. Veuillez réessayer dans un instant.' : $('Prepare Data').item.json.locale === 'es' ? 'Disculpe, estoy experimentando dificultades técnicas. Inténtelo de nuevo en un momento.' : $('Prepare Data').item.json.locale === 'de' ? 'Entschuldigung, ich habe technische Schwierigkeiten. Bitte versuchen Sie es in einem Moment erneut.' : $('Prepare Data').item.json.locale === 'pt' ? 'Desculpe, estou enfrentando dificuldades técnicas. Tente novamente em um momento.' : $('Prepare Data').item.json.locale === 'it' ? 'Mi scuso, sto riscontrando difficoltà tecniche. Riprova tra un momento.' : 'I apologize, but I\\'m experiencing technical difficulties. Please try again in a moment.' }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "messageType",
+              "value": "error",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "recommendations",
+              "value": "=[]",
+              "type": "array"
+            },
+            {
+              "id": "4",
+              "name": "quickReplies",
+              "value": "={{ $('Prepare Data').item.json.locale === 'fr' ? ['Contacter le support', 'Réessayer'] : $('Prepare Data').item.json.locale === 'es' ? ['Contactar soporte', 'Reintentar'] : ['Contact support', 'Try again'] }}",
+              "type": "array"
+            },
+            {
+              "id": "5",
+              "name": "confidence",
+              "value": "=0.3",
+              "type": "number"
+            },
+            {
+              "id": "6",
+              "name": "sentiment",
+              "value": "neutral",
+              "type": "string"
+            },
+            {
+              "id": "7",
+              "name": "requiresHumanEscalation",
+              "value": "=true",
+              "type": "boolean"
+            },
+            {
+              "id": "8",
+              "name": "success",
+              "value": "=false",
+              "type": "boolean"
+            },
+            {
+              "id": "9",
+              "name": "timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "10",
+              "name": "response",
+              "value": "={{ $('Prepare Data').item.json.locale === 'fr' ? 'Erreur technique' : 'Technical error' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "891820a0-8d41-4763-89af-05d8ae411ce5",
+      "name": "Format Error Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        340,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { message: $json.message, messageType: $json.messageType, recommendations: $json.recommendations, quickReplies: $json.quickReplies, confidence: $json.confidence, sentiment: $json.sentiment, requiresHumanEscalation: $json.requiresHumanEscalation, success: $json.success, analytics: $json.analytics, timestamp: $json.timestamp } }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "8bdb6b54-4348-42ac-8ca9-49c577de1745",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        780,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://YOUR-APP-URL.vercel.app/api/log-conversation",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "YOUR-64-CHAR-INTERNAL-API-KEY-HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"shop\": {{ $('Prepare Data').item.json.shop }},\n  \"sessionId\": {{ $('Prepare Data').item.json.sessionId }},\n  \"message\": {{ $('Prepare Data').item.json.message }},\n  \"response\": {{ $json.response }},\n  \"timestamp\": {{ $json.timestamp }},\n  \"plan\": \"BYOK\"\n}",
+        "options": {}
+      },
+      "id": "1c917c91-ae99-4e90-a123-3c8f7fbe2066",
+      "name": "Log Conversation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        780,
+        180
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get Shop Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Shop Settings": {
+      "main": [
+        [
+          {
+            "node": "Prepare Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Data": {
+      "main": [
+        [
+          {
+            "node": "Check API Key Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check API Key Exists": {
+      "main": [
+        [
+          {
+            "node": "OpenAI Chat",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat": {
+      "main": [
+        [
+          {
+            "node": "Format Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Success Response": {
+      "main": [
+        [
+          {
+            "node": "Log Conversation",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Error Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "versionId": "no-env-v1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "production-ready"
+  },
+  "id": "shopibot-byok-no-env",
+  "tags": [
+    {
+      "createdAt": "2026-01-08T00:00:00.000Z",
+      "updatedAt": "2026-01-08T00:00:00.000Z",
+      "id": "byok",
+      "name": "BYOK"
+    }
+  ]
+}
