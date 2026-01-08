@@ -313,24 +313,17 @@ function showLoading(show) {
       margin-left: 12px;
     `;
 
-    // Create 3 dots with inline styles and animation
-    const primaryColor = widgetSettings.primaryColor || '#3b82f6';
+    // Create 3 dots using CSS classes
+    const dotsContainer = document.createElement('div');
+    dotsContainer.className = 'ai-loading-dots-container';
 
     for (let i = 0; i < 3; i++) {
       const dot = document.createElement('div');
-      dot.style.cssText = `
-        width: 10px;
-        height: 10px;
-        background: ${primaryColor};
-        border-radius: 50%;
-        margin: 0 4px;
-        display: inline-block;
-        animation: modernDotBounce 1.4s ease-in-out infinite;
-        animation-delay: ${i * 0.2}s;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      `;
-      loadingDiv.appendChild(dot);
+      dot.className = 'ai-loading-dot';
+      dotsContainer.appendChild(dot);
     }
+
+    loadingDiv.appendChild(dotsContainer);
 
     // Add to messages
     elements.messagesContainer.appendChild(loadingDiv);
@@ -1506,35 +1499,9 @@ async function safeInit(retries = 20) {
   }
 }
 
-// Inject animation keyframes into head
-function injectKeyframes() {
-  const styleId = 'ai-widget-keyframes';
-  if (!document.getElementById(styleId)) {
-    const style = document.createElement('style');
-    style.id = styleId;
-    style.textContent = `
-      @keyframes modernDotBounce {
-        0%, 60%, 100% {
-          transform: translateY(0) scale(1);
-          opacity: 0.7;
-        }
-        30% {
-          transform: translateY(-12px) scale(1.2);
-          opacity: 1;
-        }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-}
-
 // Start initialization
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    injectKeyframes();
-    safeInit();
-  });
+  document.addEventListener('DOMContentLoaded', () => safeInit());
 } else {
-  injectKeyframes();
   safeInit();
 }
