@@ -589,6 +589,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
 
     // Enhanced context for better AI responses
+    // NOTE: decryptedOpenAIKey will be added later after we fetch settings
     const enhancedContext = {
       ...context,
       customerId: context.customerId || undefined,
@@ -685,15 +686,32 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
     // Get webhook URL from widget settings
     let settings = null;
+    let decryptedOpenAIKey: string | null = null;
     try {
       settings = await db.widgetSettings.findUnique({
         where: { shop: shopDomain },
       });
+
+      // ✅ CRITICAL: Decrypt OpenAI API key if it exists (for BYOK plan)
+      if ((settings as any)?.openaiApiKey && (settings as any)?.plan === 'BYOK') {
+        try {
+          const { decryptApiKey } = await import("../lib/encryption.server");
+          decryptedOpenAIKey = decryptApiKey((settings as any).openaiApiKey);
+          routeLogger.info({ shop: shopDomain }, '🔑 Decrypted OpenAI API key for BYOK plan');
+        } catch (error) {
+          routeLogger.error({
+            error: error instanceof Error ? error.message : String(error),
+            shop: shopDomain
+          }, '❌ Failed to decrypt OpenAI API key for BYOK plan');
+        }
+      }
+
       routeLogger.debug({
         shop: shopDomain,
         workflowType: (settings as any)?.workflowType || 'DEFAULT',
         plan: (settings as any)?.plan || 'BASIC',
-        hasCustomWebhook: !!(settings as any)?.webhookUrl
+        hasCustomWebhook: !!(settings as any)?.webhookUrl,
+        hasOpenAIKey: !!decryptedOpenAIKey
       }, 'Retrieved widget settings');
     } catch (error) {
       routeLogger.debug('Could not fetch settings from database');
@@ -785,6 +803,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       intent: intent.type,
       hasWebhook: !!webhookUrl
     }, '🔄 Using workflow');
+
+    // ✅ CRITICAL: Add OpenAI API key and plan to enhanced context
+    // This must be done AFTER fetching settings and BEFORE calling N8N
+    if (decryptedOpenAIKey) {
+      (enhancedContext as any).openaiApiKey = decryptedOpenAIKey;
+      routeLogger.debug({ shop: shopDomain }, '🔑 Added OpenAI API key to context for N8N');
+    }
+    (enhancedContext as any).plan = plan;
 
     // ========================================
     // SUPPORT INTENT HANDLERS (NO PRODUCTS)

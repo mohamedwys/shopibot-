@@ -1,0 +1,184 @@
+{
+  "name": "Shopibot BYOK Chatbot",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "REPLACE_WITH_YOUR_WEBHOOK_ID"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract data from the incoming request\nconst requestBody = $input.item.json.body;\nconst userMessage = requestBody.userMessage || '';\nconst products = requestBody.products || [];\nconst context = requestBody.context || {};\nconst shopDomain = context.shopDomain || '';\n\n// CRITICAL: Get the shop's OpenAI API key from settings\n// This will be passed from the app via the settings API\nconst openaiApiKey = context.openaiApiKey || '';\n\nif (!openaiApiKey) {\n  throw new Error('OpenAI API key not found for BYOK plan');\n}\n\n// Detect language\nconst locale = context.locale || 'en';\n\n// Prepare context for OpenAI\nlet systemMessage = `You are a helpful AI shopping assistant for an e-commerce store.\n\nLanguage: Respond in ${locale === 'fr' ? 'French' : locale === 'es' ? 'Spanish' : locale === 'de' ? 'German' : locale === 'pt' ? 'Portuguese' : locale === 'it' ? 'Italian' : 'English'}.\n\nYour role:\n- Help customers find products\n- Answer questions about products, pricing, shipping\n- Provide personalized recommendations\n- Be friendly, helpful, and concise\n\nAvailable products: ${products.length} products\n`;\n\nif (products.length > 0) {\n  systemMessage += `\\n\\nTop products:\\n`;\n  products.slice(0, 10).forEach((p, i) => {\n    systemMessage += `${i + 1}. ${p.title} - $${p.price}${p.description ? ' - ' + p.description.substring(0, 100) : ''}\\n`;\n  });\n}\n\nif (context.noProductsFound) {\n  systemMessage += `\\n\\nNote: No products matched the customer's search. Politely inform them and suggest browsing categories or bestsellers.`;\n}\n\n// Return data for next node\nreturn {\n  openaiApiKey,\n  userMessage,\n  systemMessage,\n  products,\n  context,\n  locale\n};"
+      },
+      "id": "extract-data",
+      "name": "Extract Request Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.openaiApiKey }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "gpt-4o-mini"
+            },
+            {
+              "name": "messages",
+              "value": "={{ [{role: 'system', content: $json.systemMessage}, {role: 'user', content: $json.userMessage}] }}"
+            },
+            {
+              "name": "temperature",
+              "value": 0.7
+            },
+            {
+              "name": "max_tokens",
+              "value": 500
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "call-openai",
+      "name": "Call OpenAI (Customer's Key)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract OpenAI response\nconst openaiResponse = $input.item.json;\nconst prevData = $input.item.json;\n\nlet aiMessage = '';\ntry {\n  aiMessage = openaiResponse.choices?.[0]?.message?.content || '';\n} catch (e) {\n  aiMessage = 'I apologize, but I\\'m having trouble processing your request. Please try again.';\n}\n\n// Get products and context from previous step\nconst products = prevData.products || [];\nconst context = prevData.context || {};\nconst locale = prevData.locale || 'en';\n\n// Determine which products to recommend (top 6)\nlet recommendations = [];\nif (products.length > 0 && !context.noProductsFound) {\n  // Simple scoring: prioritize products mentioned in AI response or top products\n  const scoredProducts = products.map(p => {\n    let score = 0;\n    const title = p.title.toLowerCase();\n    const messageLower = aiMessage.toLowerCase();\n    \n    // Boost if product title is mentioned in response\n    if (messageLower.includes(title)) {\n      score += 10;\n    }\n    \n    // Boost if product has good price\n    const price = parseFloat(p.price || 0);\n    if (price > 0 && price < 100) score += 3;\n    if (price >= 100 && price < 500) score += 2;\n    \n    return { ...p, score };\n  });\n  \n  scoredProducts.sort((a, b) => b.score - a.score);\n  recommendations = scoredProducts.slice(0, 6).map(p => ({\n    id: p.id,\n    title: p.title,\n    handle: p.handle,\n    price: p.price,\n    image: p.image,\n    description: p.description,\n    relevanceScore: Math.min(100, p.score * 10)\n  }));\n}\n\n// Generate quick replies based on language\nconst quickReplies = {\n  en: ['Show bestsellers', 'New arrivals', 'View all products', 'Help'],\n  fr: ['Voir les meilleures ventes', 'Nouveautés', 'Voir tous les produits', 'Aide'],\n  es: ['Ver más vendidos', 'Novedades', 'Ver todos los productos', 'Ayuda'],\n  de: ['Bestseller ansehen', 'Neuankömmlinge', 'Alle Produkte', 'Hilfe'],\n  pt: ['Ver mais vendidos', 'Novidades', 'Ver todos', 'Ajuda'],\n  it: ['Bestseller', 'Novità', 'Tutti i prodotti', 'Aiuto']\n};\n\n// Build final response in the format expected by the app\nconst response = {\n  message: aiMessage,\n  messageType: context.noProductsFound ? 'no_products_found' : (recommendations.length > 0 ? 'product_recommendation' : 'general'),\n  recommendations: recommendations,\n  quickReplies: quickReplies[locale] || quickReplies['en'],\n  confidence: 0.85,\n  sentiment: 'neutral',\n  requiresHumanEscalation: false,\n  analytics: {\n    intentDetected: context.intent || 'PRODUCT_SEARCH',\n    responseTime: 0,\n    productsShown: recommendations.length\n  },\n  success: true\n};\n\nreturn response;"
+      },
+      "id": "format-response",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "id": "respond-to-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Error handler - return fallback response\nconst requestBody = $input.item.json.body || {};\nconst context = requestBody.context || {};\nconst locale = context.locale || 'en';\n\nconst errorMessages = {\n  en: 'I apologize, but I\\'m experiencing technical difficulties. Please try again in a moment or contact our support team.',\n  fr: 'Je m\\'excuse, mais je rencontre des difficultés techniques. Veuillez réessayer dans un instant ou contacter notre équipe d\\'assistance.',\n  es: 'Disculpe, estoy experimentando dificultades técnicas. Inténtelo de nuevo en un momento o contacte a nuestro equipo de soporte.',\n  de: 'Entschuldigung, ich habe technische Schwierigkeiten. Bitte versuchen Sie es in einem Moment erneut oder kontaktieren Sie unser Support-Team.',\n  pt: 'Desculpe, estou enfrentando dificuldades técnicas. Tente novamente em um momento ou entre em contato com nossa equipe de suporte.',\n  it: 'Mi scuso, sto riscontrando difficoltà tecniche. Riprova tra un momento o contatta il nostro team di supporto.'\n};\n\nconst response = {\n  message: errorMessages[locale] || errorMessages['en'],\n  messageType: 'error',\n  recommendations: [],\n  quickReplies: ['Contact support', 'Try again'],\n  confidence: 0.3,\n  sentiment: 'neutral',\n  requiresHumanEscalation: true,\n  success: false\n};\n\nreturn response;"
+      },
+      "id": "error-handler",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 500]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "id": "respond-error",
+      "name": "Respond with Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [850, 500]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract Request Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Request Data": {
+      "main": [
+        [
+          {
+            "node": "Call OpenAI (Customer's Key)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call OpenAI (Customer's Key)": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Handler": {
+      "main": [
+        [
+          {
+            "node": "Respond with Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-08T00:00:00.000Z",
+  "versionId": "1"
+}
