@@ -1059,7 +1059,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
             context: enhancedContext
           });
 
-          console.log('💬 DEBUG: N8N response for general chat:', n8nResponse.message.substring(0, 200));
+          console.log('💬 DEBUG: N8N response for general chat:', n8nResponse.message ? n8nResponse.message.substring(0, 200) : '[no message]');
           console.log('💬 DEBUG: N8N recommendations count:', n8nResponse.recommendations?.length || 0);
 
           // ✅ TRUST THE AI: Use N8N's response as-is
@@ -1087,7 +1087,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const responseTime = Date.now() - startTime;
 
     console.log('📨 DEBUG: Final response being returned:');
-    console.log('  - Message:', n8nResponse.message.substring(0, 100));
+    console.log('  - Message:', n8nResponse.message ? n8nResponse.message.substring(0, 100) : '[no message]');
     console.log('  - Recommendations count:', recommendations.length);
     console.log('  - Confidence:', n8nResponse.confidence);
     console.log('  - Response time:', responseTime, 'ms');
