@@ -164,6 +164,28 @@ export default function SalesAssistantSimple() {
   const [inputMessage, setInputMessage] = useState("");
   const [recommendations, setRecommendations] = useState<ProductInfo[]>([]);
 
+  // Inject keyframes once
+  useEffect(() => {
+    const styleId = 'loading-bounce-keyframes';
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        @keyframes loadingBounce {
+          0%, 60%, 100% {
+            transform: translateY(0) scale(1);
+            opacity: 0.7;
+          }
+          30% {
+            transform: translateY(-10px) scale(1.2);
+            opacity: 1;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }, []);
+
   useEffect(() => {
     if (fetcher.data && 'response' in fetcher.data) {
       const newMessage: Message = {
@@ -281,12 +303,6 @@ export default function SalesAssistantSimple() {
                         gap: "6px",
                         alignItems: "center"
                       }}>
-                        <style dangerouslySetInnerHTML={{__html: `
-                          @keyframes loadingBounce {
-                            0%, 60%, 100% { transform: translateY(0) scale(1); opacity: 0.7; }
-                            30% { transform: translateY(-10px) scale(1.2); opacity: 1; }
-                          }
-                        `}} />
                         <div style={{
                           width: "10px",
                           height: "10px",
