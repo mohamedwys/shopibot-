@@ -166,22 +166,10 @@ export default function SalesAssistantSimple() {
 
   // Inject keyframes once
   useEffect(() => {
-    const styleId = 'loading-bounce-keyframes';
-    if (!document.getElementById(styleId)) {
+    if (!document.getElementById('loading-bounce-keyframes')) {
       const style = document.createElement('style');
-      style.id = styleId;
-      style.textContent = `
-        @keyframes loadingBounce {
-          0%, 60%, 100% {
-            transform: translateY(0) scale(1);
-            opacity: 0.7;
-          }
-          30% {
-            transform: translateY(-10px) scale(1.2);
-            opacity: 1;
-          }
-        }
-      `;
+      style.id = 'loading-bounce-keyframes';
+      style.textContent = '@keyframes loadingBounce{0%,60%,100%{transform:translateY(0) scale(1);opacity:.7}30%{transform:translateY(-10px) scale(1.2);opacity:1}}';
       document.head.appendChild(style);
     }
   }, []);

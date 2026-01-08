@@ -292,40 +292,31 @@ function showLoading(show) {
   if (show) {
     if (loadingDiv) loadingDiv.remove();
 
+    // Inject keyframes if not present
+    if (!document.getElementById('bounce-keyframes')) {
+      const style = document.createElement('style');
+      style.id = 'bounce-keyframes';
+      style.textContent = '@keyframes bounce{0%,60%,100%{transform:translateY(0) scale(1);opacity:.7}30%{transform:translateY(-12px) scale(1.2);opacity:1}}';
+      document.head.appendChild(style);
+    }
+
     loadingDiv = document.createElement('div');
     loadingDiv.id = 'ai-loading';
     loadingDiv.className = 'ai-message assistant-message';
     loadingDiv.setAttribute('role', 'status');
     loadingDiv.setAttribute('aria-label', t('thinking'));
     loadingDiv.setAttribute('aria-live', 'polite');
-    loadingDiv.style.cssText = `
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px 20px;
-      background: white;
-      border-radius: 12px;
-      border: 1px solid #f3f4f6;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      margin-bottom: 16px;
-      max-width: fit-content;
-      align-self: flex-start;
-      margin-left: 12px;
-    `;
+    loadingDiv.style.cssText = 'display:flex;align-items:center;justify-content:center;padding:16px 20px;background:white;border-radius:12px;border:1px solid #f3f4f6;box-shadow:0 2px 8px rgba(0,0,0,0.08);margin-bottom:16px;max-width:fit-content;align-self:flex-start;margin-left:12px;gap:8px;';
 
-    // Create 3 dots using CSS classes
-    const dotsContainer = document.createElement('div');
-    dotsContainer.className = 'ai-loading-dots-container';
+    const primaryColor = widgetSettings.primaryColor || '#3b82f6';
 
-    for (let i = 0; i < 3; i++) {
+    // Create 3 dots
+    [0, 0.2, 0.4].forEach(delay => {
       const dot = document.createElement('div');
-      dot.className = 'ai-loading-dot';
-      dotsContainer.appendChild(dot);
-    }
+      dot.style.cssText = `width:10px;height:10px;background:${primaryColor};border-radius:50%;animation:bounce 1.4s ease-in-out infinite;animation-delay:${delay}s;`;
+      loadingDiv.appendChild(dot);
+    });
 
-    loadingDiv.appendChild(dotsContainer);
-
-    // Add to messages
     elements.messagesContainer.appendChild(loadingDiv);
     scrollToBottom();
   } else if (loadingDiv) {
