@@ -313,18 +313,24 @@ function showLoading(show) {
       margin-left: 12px;
     `;
 
-    // Create modern 3-dot bouncing animation
-    const dotsContainer = document.createElement('div');
-    dotsContainer.className = 'ai-loading-dots-container';
-    dotsContainer.setAttribute('aria-hidden', 'true');
+    // Create 3 dots with inline styles and animation
+    const primaryColor = widgetSettings.primaryColor || '#3b82f6';
 
     for (let i = 0; i < 3; i++) {
       const dot = document.createElement('div');
-      dot.className = 'ai-loading-dot';
-      dotsContainer.appendChild(dot);
+      dot.style.cssText = `
+        width: 10px;
+        height: 10px;
+        background: ${primaryColor};
+        border-radius: 50%;
+        margin: 0 4px;
+        display: inline-block;
+        animation: modernDotBounce 1.4s ease-in-out infinite;
+        animation-delay: ${i * 0.2}s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      `;
+      loadingDiv.appendChild(dot);
     }
-
-    loadingDiv.appendChild(dotsContainer);
 
     // Add to messages
     elements.messagesContainer.appendChild(loadingDiv);
