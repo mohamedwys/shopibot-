@@ -38,6 +38,8 @@ model WidgetSettings {
   primaryColor     String       @default("#ee5cee")
   webhookUrl       String?
   interfaceLanguage String      @default("en")
+  plan             String       @default("BASIC")
+  openaiApiKey     String?
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
   workflowType     WorkflowType @default(DEFAULT)
@@ -134,6 +136,20 @@ model playing_with_neon {
   id    Int    @id @default(autoincrement())
   name  String
   value Float? @db.Real
+}
+
+model Conversation {
+  id        String   @id @default(cuid())
+  shop      String
+  sessionId String
+  message   String
+  response  String
+  plan      String   @default("BASIC")
+  timestamp DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@index([shop, sessionId])
+  @@index([shop, timestamp])
 }
 
 enum WorkflowType {

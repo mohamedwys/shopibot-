@@ -23,6 +23,7 @@ import { authenticate } from "../shopify.server";
 import { requireBilling } from "../lib/billing.server";
 import { prisma as db } from "../db.server";
 import { useTranslation } from "react-i18next";
+import { encryptApiKey, decryptApiKey, isValidOpenAIKey } from "../lib/encryption.server";
 
 export const handle = {
   i18n: "common",
@@ -38,6 +39,8 @@ const DEFAULT_SETTINGS = {
   inputPlaceholder: "Ask me anything about our products...",
   primaryColor: "#4c71d6ff",
   interfaceLanguage: "en",
+  plan: "BASIC",
+  openaiApiKey: "",
 };
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -53,7 +56,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     let settings = await db.widgetSettings.findUnique({
       where: { shop: session.shop }
     });
-    
+
     if (!settings) {
       settings = await db.widgetSettings.create({
         data: {
@@ -62,8 +65,20 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         }
       });
     }
-    
-    return json({ settings });
+
+    // Decrypt OpenAI API key if it exists
+    let decryptedSettings = { ...settings };
+    if ((settings as any).openaiApiKey) {
+      try {
+        (decryptedSettings as any).openaiApiKey = decryptApiKey((settings as any).openaiApiKey);
+      } catch (error) {
+        logger.error(error, "Failed to decrypt OpenAI API key");
+        // If decryption fails, clear the key to avoid showing corrupted data
+        (decryptedSettings as any).openaiApiKey = "";
+      }
+    }
+
+    return json({ settings: decryptedSettings });
   } catch (error) {
     logger.error(error, `Database error in settings loader for shop: ${session.shop}`);
     console.error("Full database error:", error);
@@ -87,6 +102,44 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const webhookUrl = formData.get("webhookUrl") as string | null;
   const normalizedWebhookUrl = webhookUrl?.trim() || null;
   const workflowType = (formData.get("workflowType") as string) || "DEFAULT";
+  const plan = (formData.get("plan") as string) || "BASIC";
+  const openaiApiKey = formData.get("openaiApiKey") as string | null;
+
+  // Validation: If plan is BYOK, openaiApiKey must be provided
+  if (plan === "BYOK") {
+    if (!openaiApiKey || openaiApiKey.trim() === "") {
+      return json({
+        success: false,
+        message: "OpenAI API Key is required for the BYOK plan. Please enter your API key.",
+        settings: null
+      }, { status: 400 });
+    }
+
+    // Validate API key format
+    if (!isValidOpenAIKey(openaiApiKey)) {
+      return json({
+        success: false,
+        message: "Invalid OpenAI API Key format. The key should start with 'sk-' or 'sk-proj-' and be at least 20 characters long.",
+        settings: null
+      }, { status: 400 });
+    }
+  }
+
+  // Encrypt the API key if provided
+  let encryptedApiKey: string | null = null;
+  if (openaiApiKey && openaiApiKey.trim() !== "") {
+    try {
+      encryptedApiKey = encryptApiKey(openaiApiKey.trim());
+      logger.info("OpenAI API key encrypted successfully");
+    } catch (error) {
+      logger.error(error, "Failed to encrypt OpenAI API key");
+      return json({
+        success: false,
+        message: "Failed to encrypt API key. Please check your ENCRYPTION_KEY environment variable.",
+        settings: null
+      }, { status: 500 });
+    }
+  }
 
   const settingsData = {
     enabled: formData.get("enabled") === "true",
@@ -99,6 +152,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     interfaceLanguage: formData.get("interfaceLanguage") as string,
     workflowType: workflowType as "DEFAULT" | "CUSTOM",
     webhookUrl: normalizedWebhookUrl,
+    plan: plan,
+    openaiApiKey: encryptedApiKey,
   };
 
   try {
@@ -198,6 +253,14 @@ export default function SettingsPage() {
         {showSuccessBanner && actionData?.success && (
           <Layout.Section>
             <Banner tone="success" onDismiss={() => setShowSuccessBanner(false)}>
+              <p>{actionData.message}</p>
+            </Banner>
+          </Layout.Section>
+        )}
+
+        {actionData && !actionData.success && (
+          <Layout.Section>
+            <Banner tone="critical" onDismiss={() => {}}>
               <p>{actionData.message}</p>
             </Banner>
           </Layout.Section>
@@ -312,6 +375,77 @@ export default function SettingsPage() {
                   </BlockStack>
                 </Banner>
               </BlockStack>
+            </BlockStack>
+          </Card>
+        </Layout.Section>
+
+        {/* Pricing Plan Settings */}
+        <Layout.Section>
+          <Card>
+            <BlockStack gap="400">
+              <Text variant="headingMd" as="h2">
+                {t("settings.pricingPlan")}
+              </Text>
+              <Text variant="bodyMd" as="p" tone="subdued">
+                {t("settings.pricingPlanDesc")}
+              </Text>
+
+              <FormLayout>
+                <Select
+                  label={t("settings.pricingPlan")}
+                  value={(settings as any).plan || "BASIC"}
+                  options={[
+                    { label: t("settings.planBYOK") + " ($5/month)", value: "BYOK" },
+                    { label: t("settings.planBasic") + " ($25/month)", value: "BASIC" },
+                    { label: t("settings.planUnlimited") + " ($79/month)", value: "UNLIMITED" }
+                  ]}
+                  onChange={(value) =>
+                    setSettings((prev: any) => ({
+                      ...prev,
+                      plan: value,
+                      // Clear API key if switching away from BYOK
+                      openaiApiKey: value === "BYOK" ? prev.openaiApiKey : ""
+                    }))
+                  }
+                />
+
+                {(settings as any).plan === "BYOK" && (
+                  <>
+                    <Banner tone="info">
+                      <BlockStack gap="200">
+                        <Text variant="bodyMd" as="p" fontWeight="semibold">
+                          {t("settings.byokInfo")}
+                        </Text>
+                        <Text variant="bodyMd" as="p">
+                          {t("settings.byokInfoDesc")}
+                        </Text>
+                        <Text variant="bodyMd" as="p">
+                          <a
+                            href="https://platform.openai.com/api-keys"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: "#4c71d6", textDecoration: "underline" }}
+                          >
+                            {t("settings.getApiKeyLink")}
+                          </a>
+                        </Text>
+                      </BlockStack>
+                    </Banner>
+
+                    <TextField
+                      label={t("settings.openaiApiKey")}
+                      value={(settings as any).openaiApiKey || ""}
+                      onChange={(value) =>
+                        setSettings((prev: any) => ({ ...prev, openaiApiKey: value }))
+                      }
+                      type="password"
+                      placeholder={t("settings.openaiApiKeyPlaceholder")}
+                      helpText={t("settings.openaiApiKeyHelp")}
+                      autoComplete="off"
+                    />
+                  </>
+                )}
+              </FormLayout>
             </BlockStack>
           </Card>
         </Layout.Section>
