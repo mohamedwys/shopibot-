@@ -14,20 +14,37 @@ Quand l'utilisateur clique sur "Retours" ou pose une question sur la politique d
 
 ## SOLUTION
 
-### 1. Backend envoie maintenant les politiques du magasin
+### 1. Backend fetch maintenant les VRAIES politiques du magasin depuis Shopify
 
-Le contexte N8N contient maintenant :
+Le backend récupère maintenant les politiques directement depuis **Shopify Admin GraphQL** :
+
+```graphql
+query getShopPolicies {
+  shop {
+    name
+    refundPolicy { body }
+    shippingPolicy { body }
+    privacyPolicy { body }
+  }
+}
+```
+
+Le contexte N8N contient maintenant les **VRAIES politiques du shop** :
 ```javascript
 context: {
   intentType: "customer_support",
   supportCategory: "RETURNS" | "SHIPPING_INFO" | "TRACK_ORDER",
   storePolicies: {
-    returns: "Notre politique de retour permet...",
-    shipping: "La plupart de nos produits bénéficient...",
-    trackOrder: "Vous recevrez un email avec..."
+    shopName: "Nom de la boutique",
+    returns: "<VRAIE politique de retour depuis Shopify>",
+    shipping: "<VRAIE politique de livraison depuis Shopify>",
+    privacy: "<VRAIE politique de confidentialité depuis Shopify>"
   }
 }
 ```
+
+✅ **Chaque boutique aura SES propres politiques**
+⚠️ **Si une politique n'est pas configurée dans Shopify**, un message par défaut traduit sera utilisé
 
 ### 2. Modifier le System Prompt dans N8N
 
@@ -45,13 +62,13 @@ context: {
   $('Webhook').item.json.body.context.intentType === 'customer_support' 
   ? 
     // 🆘 SUPPORT QUESTION - Use store policies, NOT inventory
-    '🆘 CUSTOMER SUPPORT MODE\n\n' +
-    'You are answering a SUPPORT question about store policies. DO NOT mention product inventory.\n\n' +
-    '📋 STORE POLICIES:\n' +
-    '• Returns: ' + ($('Webhook').item.json.body.context.storePolicies?.returns || 'Returns within 30 days of purchase') + '\n' +
-    '• Shipping: ' + ($('Webhook').item.json.body.context.storePolicies?.shipping || 'Free shipping on orders over $50') + '\n' +
-    '• Track Order: ' + ($('Webhook').item.json.body.context.storePolicies?.trackOrder || 'Check your email for tracking info') + '\n\n' +
-    'Question type: ' + $('Webhook').item.json.body.context.supportCategory + '\n\n'
+    '🆘 CUSTOMER SUPPORT MODE for ' + ($('Webhook').item.json.body.context.storePolicies?.shopName || 'this shop') + '\n\n' +
+    'You are answering a SUPPORT question. DO NOT mention product inventory.\n\n' +
+    '📋 REAL SHOP POLICIES (fetched from Shopify):\n\n' +
+    '🔄 RETURN POLICY:\n' + ($('Webhook').item.json.body.context.storePolicies?.returns || 'Return policy not configured in Shopify') + '\n\n' +
+    '📦 SHIPPING POLICY:\n' + ($('Webhook').item.json.body.context.storePolicies?.shipping || 'Shipping policy not configured in Shopify') + '\n\n' +
+    'Question type: ' + $('Webhook').item.json.body.context.supportCategory + '\n\n' +
+    'Use the REAL policies above to answer. Be helpful and concise.'
   :
     // 📦 PRODUCT QUESTION - Show inventory
     ($('Webhook').item.json.body.products && $('Webhook').item.json.body.products.length > 0 

@@ -979,9 +979,49 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
     // ✅ AI-POWERED: Send support intents to N8N for shop-specific AI responses
     if (isSupportIntent) {
-      routeLogger.info({ intent: intent.type }, '✅ Sending support query to N8N - NO PRODUCTS');
+      routeLogger.info({ intent: intent.type }, '✅ Sending support query to N8N with shop policies');
 
       try {
+        // 🏪 FETCH REAL SHOP POLICIES from Shopify
+        let shopPolicies: any = null;
+
+        try {
+          console.log('📋 Fetching shop policies from Shopify...');
+          const { admin: shopAdmin } = await unauthenticated.admin(shopDomain);
+
+          const policiesQuery = `
+            #graphql
+            query getShopPolicies {
+              shop {
+                name
+                refundPolicy { body }
+                shippingPolicy { body }
+                privacyPolicy { body }
+              }
+            }
+          `;
+
+          const policiesResponse = await shopAdmin.graphql(policiesQuery);
+          const policiesData = await policiesResponse.json();
+
+          if (policiesData?.data?.shop) {
+            shopPolicies = {
+              shopName: policiesData.data.shop.name,
+              returns: policiesData.data.shop.refundPolicy?.body || null,
+              shipping: policiesData.data.shop.shippingPolicy?.body || null,
+              privacy: policiesData.data.shop.privacyPolicy?.body || null
+            };
+            console.log('✅ Shop policies fetched:', {
+              shopName: shopPolicies.shopName,
+              hasReturns: !!shopPolicies.returns,
+              hasShipping: !!shopPolicies.shipping,
+              hasPrivacy: !!shopPolicies.privacy
+            });
+          }
+        } catch (policyError) {
+          console.error('⚠️ Failed to fetch shop policies, using defaults:', policyError);
+        }
+
         const { N8NService } = await import("../services/n8n.service.server");
         const customN8NService = new N8NService(webhookUrl);
 
@@ -995,29 +1035,28 @@ export const action = async ({ request }: ActionFunctionArgs) => {
             ...enhancedContext,
             intentType: "customer_support",
             supportCategory: intent.type, // SHIPPING_INFO, RETURNS, TRACK_ORDER, or HELP_FAQ
-            // ✅ Add standard store policies (N8N will use these in response)
+            // ✅ Pass REAL shop policies from Shopify (or defaults if not available)
             storePolicies: {
-              returns: enhancedContext.locale === 'fr'
-                ? "Notre politique de retour permet les retours dans les 30 jours suivant l'achat. Contactez notre service client pour plus de détails."
-                : enhancedContext.locale === 'es'
-                ? "Nuestra política de devoluciones permite devoluciones dentro de los 30 días posteriores a la compra. Póngase en contacto con atención al cliente para más detalles."
-                : enhancedContext.locale === 'de'
-                ? "Unsere Rückgaberichtlinie erlaubt Rückgaben innerhalb von 30 Tagen nach dem Kauf. Kontaktieren Sie unseren Kundenservice für weitere Details."
-                : "Our return policy allows returns within 30 days of purchase. Please contact customer support for more details.",
-              shipping: enhancedContext.locale === 'fr'
-                ? "La plupart de nos produits bénéficient de la livraison gratuite pour les commandes de plus de 50$. Les délais de livraison varient selon votre localisation."
-                : enhancedContext.locale === 'es'
-                ? "La mayoría de nuestros productos ofrecen envío gratis en pedidos superiores a $50. Los tiempos de entrega varían según su ubicación."
-                : enhancedContext.locale === 'de'
-                ? "Die meisten unserer Produkte bieten kostenlosen Versand bei Bestellungen über 50$. Die Lieferzeiten variieren je nach Standort."
-                : "Most of our products offer free shipping on orders over $50. Delivery times vary by location.",
-              trackOrder: enhancedContext.locale === 'fr'
-                ? "Vous recevrez un email avec un numéro de suivi dès que votre commande sera expédiée. Consultez votre email ou contactez le support."
-                : enhancedContext.locale === 'es'
-                ? "Recibirá un correo electrónico con un número de seguimiento una vez que se envíe su pedido. Consulte su correo o contacte al soporte."
-                : enhancedContext.locale === 'de'
-                ? "Sie erhalten eine E-Mail mit einer Tracking-Nummer, sobald Ihre Bestellung versendet wird. Überprüfen Sie Ihre E-Mail oder kontaktieren Sie den Support."
-                : "You will receive an email with a tracking number once your order ships. Check your email or contact support."
+              shopName: shopPolicies?.shopName || shopDomain,
+              returns: shopPolicies?.returns || (
+                enhancedContext.locale === 'fr'
+                  ? "Politique de retour non configurée. Veuillez contacter notre service client pour plus d'informations."
+                  : enhancedContext.locale === 'es'
+                  ? "Política de devoluciones no configurada. Póngase en contacto con atención al cliente para más información."
+                  : enhancedContext.locale === 'de'
+                  ? "Rückgaberichtlinie nicht konfiguriert. Bitte kontaktieren Sie unseren Kundenservice für weitere Informationen."
+                  : "Return policy not configured. Please contact customer support for more information."
+              ),
+              shipping: shopPolicies?.shipping || (
+                enhancedContext.locale === 'fr'
+                  ? "Politique de livraison non configurée. Veuillez contacter notre service client pour plus d'informations."
+                  : enhancedContext.locale === 'es'
+                  ? "Política de envío no configurada. Póngase en contacto con atención al cliente para más información."
+                  : enhancedContext.locale === 'de'
+                  ? "Versandrichtlinie nicht konfiguriert. Bitte kontaktieren Sie unseren Kundenservice für weitere Informationen."
+                  : "Shipping policy not configured. Please contact customer support for more information."
+              ),
+              privacy: shopPolicies?.privacy || null
             }
           }
         });
