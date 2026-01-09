@@ -456,12 +456,16 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     // Declare variables outside try block for error logging
     const variables: { first: number; query?: string; sortKey?: string; reverse?: boolean } = { first: 50 };
 
-    // ✅ CRITICAL FIX: Only fetch products for actual product-related intents
-    // Do NOT fetch for GENERAL_CHAT or support intents
+    // ✅ CRITICAL FIX: Always fetch products for ALL intents (including GENERAL_CHAT)
+    // This ensures AI has actual shop context and doesn't make up fake products
     const productIntents = ["BESTSELLERS", "NEW_ARRIVALS", "ON_SALE", "RECOMMENDATIONS", "PRODUCT_SEARCH"];
     const isProductIntent = productIntents.includes(intent.type);
 
-    if (isProductIntent) {
+    // ✅ BYOK FIX: Always fetch products to send to N8N, even for GENERAL_CHAT
+    // This prevents AI from inventing generic products like "Electronics, Smartphones"
+    const shouldFetchProducts = isProductIntent || intent.type === "GENERAL_CHAT";
+
+    if (shouldFetchProducts && !isSupportIntent) {
       try {
         console.log('🔍 STEP 1: Getting admin context for shop:', shopDomain);
         // Use unauthenticated admin (uses offline token, works in production)
@@ -682,9 +686,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         products = [];
       }
     } else {
-      console.log('ℹ️ Non-product intent, skipping product fetch');
+      console.log('ℹ️ Support intent or non-product intent, skipping product fetch');
       console.log('🔍 Intent type:', intent.type);
-      routeLogger.info({ intent: intent.type }, 'Skipping product fetch for non-product intent');
+      routeLogger.info({ intent: intent.type }, 'Skipping product fetch for support intent');
     }
 
     // Enhanced context for better AI responses
@@ -1149,12 +1153,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       } else {
         // General chat - use N8N
         console.log('💬 DEBUG: General chat intent - calling N8N...');
+        console.log('📦 DEBUG: Sending', products.length, 'products to N8N for context');
         try {
           const { N8NService } = await import("../services/n8n.service.server");
           const customN8NService = new N8NService(webhookUrl);
           n8nResponse = await customN8NService.processUserMessage({
             userMessage: finalMessage,
-            products: [], // ✅ Don't send products for general chat - let AI decide if it needs them
+            products: products, // ✅ BYOK FIX: Always send products so AI knows actual inventory
             context: enhancedContext
           });
 
