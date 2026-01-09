@@ -497,7 +497,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     // HANDLE SUPPORT INTENTS (NO PRODUCTS)
     // ========================================
 
-    // Support intents return text-only responses and don't need to fetch products
+    // Support intents return text-only responses but still need product context for better answers
     const isSupportIntent = ["SHIPPING_INFO", "RETURNS", "TRACK_ORDER", "HELP_FAQ"].includes(intent.type);
 
     // ✅ IMPROVED: Fetch more products (50 instead of 20) - ONLY for product intents
@@ -513,11 +513,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const productIntents = ["BESTSELLERS", "NEW_ARRIVALS", "ON_SALE", "RECOMMENDATIONS", "PRODUCT_SEARCH"];
     const isProductIntent = productIntents.includes(intent.type);
 
-    // ✅ BYOK FIX: Always fetch products to send to N8N, even for GENERAL_CHAT
-    // This prevents AI from inventing generic products like "Electronics, Smartphones"
-    const shouldFetchProducts = isProductIntent || intent.type === "GENERAL_CHAT";
+    // ✅ IMPROVED: Always fetch products, even for support questions
+    // This provides shop context to AI and prevents "no products available" messages
+    // Support questions get a smaller set of products for context only
+    const shouldFetchProducts = true; // Always fetch products for context
 
-    if (shouldFetchProducts && !isSupportIntent) {
+    if (shouldFetchProducts) {
       try {
         console.log('🔍 STEP 1: Getting admin context for shop:', shopDomain);
         // Use unauthenticated admin (uses offline token, works in production)
@@ -985,24 +986,28 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         const customN8NService = new N8NService(webhookUrl);
 
         // Send to N8N with intent context so AI knows it's a support query
+        // ✅ IMPROVED: Send products for context, even for support queries
+        // This prevents "no products available" messages and provides better context
         n8nResponse = await customN8NService.processUserMessage({
           userMessage: finalMessage,
-          products: [], // NO PRODUCTS for support queries
+          products: products, // ✅ Send products for context (AI won't show them but knows shop has inventory)
           context: {
             ...enhancedContext,
             intentType: "customer_support",
-            supportCategory: intent.type // SHIPPING_INFO, RETURNS, TRACK_ORDER, or HELP_FAQ
+            supportCategory: intent.type, // SHIPPING_INFO, RETURNS, TRACK_ORDER, or HELP_FAQ
+            noProductsInResponse: true // ✅ Tell AI to not mention products in response
           }
         });
 
-        // Ensure no products are returned for support queries
+        // Ensure no products are returned for support queries (user shouldn't see product cards)
         recommendations = [];
 
         routeLogger.info({
           intent: intent.type,
-          hasProducts: false,
+          hasProducts: products.length > 0,
+          productsForContext: products.length,
           aiResponseLength: n8nResponse?.message?.length || 0
-        }, '✅ Support intent handled by AI - NO PRODUCTS');
+        }, '✅ Support intent handled by AI with product context');
 
       } catch (error) {
         routeLogger.error({ error: String(error), intent: intent.type }, '❌ N8N support handler error - using fallback');

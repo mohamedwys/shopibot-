@@ -19,7 +19,11 @@ const translations: Record<string, any> = {
     trackOrder: "Track Order",
     help: "Help",
     discover: "Discover",
-    support: "Support"
+    support: "Support",
+    // 🌍 Button prompts for quick actions
+    shippingPrompt: "Tell me about shipping and delivery",
+    returnsPrompt: "What is your return policy?",
+    trackOrderPrompt: "How can I track my order?"
   },
   es: {
     online: "En línea",
@@ -37,7 +41,11 @@ const translations: Record<string, any> = {
     trackOrder: "Rastrear pedido",
     help: "Ayuda",
     discover: "Descubrir",
-    support: "Soporte"
+    support: "Soporte",
+    // 🌍 Button prompts for quick actions
+    shippingPrompt: "Cuéntame sobre el envío y la entrega",
+    returnsPrompt: "¿Cuál es su política de devoluciones?",
+    trackOrderPrompt: "¿Cómo puedo rastrear mi pedido?"
   },
   fr: {
     online: "En ligne",
@@ -55,7 +63,11 @@ const translations: Record<string, any> = {
     trackOrder: "Suivre commande",
     help: "Aide",
     discover: "Découvrir",
-    support: "Support"
+    support: "Support",
+    // 🌍 Button prompts for quick actions
+    shippingPrompt: "Parlez-moi de la livraison et de l'expédition",
+    returnsPrompt: "Quelle est votre politique de retour ?",
+    trackOrderPrompt: "Comment puis-je suivre ma commande ?"
   },
   de: {
     online: "Online",
@@ -73,7 +85,11 @@ const translations: Record<string, any> = {
     trackOrder: "Bestellung verfolgen",
     help: "Hilfe",
     discover: "Entdecken",
-    support: "Support"
+    support: "Support",
+    // 🌍 Button prompts for quick actions
+    shippingPrompt: "Erzählen Sie mir über Versand und Lieferung",
+    returnsPrompt: "Was ist Ihre Rückgaberichtlinie?",
+    trackOrderPrompt: "Wie kann ich meine Bestellung verfolgen?"
   },
   ja: {
     online: "オンライン",
@@ -91,7 +107,11 @@ const translations: Record<string, any> = {
     trackOrder: "注文を追跡",
     help: "ヘルプ",
     discover: "発見",
-    support: "サポート"
+    support: "サポート",
+    // 🌍 Button prompts for quick actions
+    shippingPrompt: "配送と配達について教えてください",
+    returnsPrompt: "返品ポリシーは何ですか？",
+    trackOrderPrompt: "注文を追跡するにはどうすればよいですか？"
   },
   it: {
     online: "Online",
@@ -109,7 +129,11 @@ const translations: Record<string, any> = {
     trackOrder: "Traccia ordine",
     help: "Aiuto",
     discover: "Scopri",
-    support: "Supporto"
+    support: "Supporto",
+    // 🌍 Button prompts for quick actions
+    shippingPrompt: "Parlami della spedizione e della consegna",
+    returnsPrompt: "Qual è la vostra politica di reso?",
+    trackOrderPrompt: "Come posso tracciare il mio ordine?"
   },
   pt: {
     online: "Online",
@@ -127,7 +151,11 @@ const translations: Record<string, any> = {
     trackOrder: "Rastrear pedido",
     help: "Ajuda",
     discover: "Descobrir",
-    support: "Suporte"
+    support: "Suporte",
+    // 🌍 Button prompts for quick actions
+    shippingPrompt: "Conte-me sobre envio e entrega",
+    returnsPrompt: "Qual é a sua política de devolução?",
+    trackOrderPrompt: "Como posso rastrear meu pedido?"
   },
   zh: {
     online: "在线",
@@ -145,7 +173,11 @@ const translations: Record<string, any> = {
     trackOrder: "追踪订单",
     help: "帮助",
     discover: "发现",
-    support: "支持"
+    support: "支持",
+    // 🌍 Button prompts for quick actions
+    shippingPrompt: "告诉我关于配送和交付",
+    returnsPrompt: "你们的退货政策是什么？",
+    trackOrderPrompt: "我如何追踪我的订单？"
   }
 };
 

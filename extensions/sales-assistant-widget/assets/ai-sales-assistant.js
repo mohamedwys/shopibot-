@@ -66,7 +66,10 @@ async function loadTranslations(lang) {
       trackOrder: 'Track Order',
       help: 'Help',
       discover: 'Discover',
-      support: 'Support'
+      support: 'Support',
+      shippingPrompt: 'Tell me about shipping and delivery',
+      returnsPrompt: 'What is your return policy?',
+      trackOrderPrompt: 'How can I track my order?'
     };
     return translations;
   }
@@ -1381,13 +1384,13 @@ function createWidget() {
                 <div class="quick-actions-section">
                   <div class="section-label"><span>${escapeHTML(widgetSettings.sectionSupportLabel || t('support'))}</span></div>
                   <div class="quick-actions-grid">
-                    <button class="quick-action-btn" data-prompt="Tell me about shipping and delivery">
+                    <button class="quick-action-btn" data-prompt="${escapeHTML(t('shippingPrompt'))}">
                       <span class="quick-action-text">${escapeHTML(widgetSettings.shippingText || t('shipping'))}</span>
                     </button>
-                    <button class="quick-action-btn" data-prompt="What is your return policy?">
+                    <button class="quick-action-btn" data-prompt="${escapeHTML(t('returnsPrompt'))}">
                       <span class="quick-action-text">${escapeHTML(widgetSettings.returnsText || t('returns'))}</span>
                     </button>
-                    <button class="quick-action-btn" data-prompt="How can I track my order?">
+                    <button class="quick-action-btn" data-prompt="${escapeHTML(t('trackOrderPrompt'))}">
                       <span class="quick-action-text">${escapeHTML(widgetSettings.trackOrderText || t('trackOrder'))}</span>
                     </button>
                     <button class="quick-action-btn" data-prompt="I need help with something">
