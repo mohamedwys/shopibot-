@@ -8,6 +8,7 @@ import { chatRequestSchema, validateData, validationErrorResponse } from "../lib
 import { getAPISecurityHeaders, mergeSecurityHeaders } from "../lib/security-headers.server";
 import { logError, createLogger } from "../lib/logger.server";
 import { personalizationService } from "../services/personalization.service";
+import { getPlanLimits } from "../lib/billing.server";
 
 // Default settings (same as in settings page)
 const DEFAULT_SETTINGS = {
@@ -327,6 +328,104 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     console.log("========================================");
     console.log("🔍 DEBUG: User message:", finalMessage);
     console.log("🔍 DEBUG: Shop:", shopDomain);
+
+    // ========================================
+    // CONVERSATION LIMIT ENFORCEMENT
+    // ========================================
+    // Check conversation limits BEFORE processing to prevent overages
+    try {
+      // Get shop settings to determine plan
+      const shopSettings = await db.widgetSettings.findUnique({
+        where: { shop: shopDomain },
+        select: { plan: true }
+      });
+
+      const currentPlan = shopSettings?.plan || 'BASIC';
+      const planLimits = getPlanLimits(
+        currentPlan === 'BYOK' ? 'BYOK Plan' :
+        currentPlan === 'BASIC' ? 'Starter Plan' :
+        currentPlan === 'UNLIMITED' ? 'Professional Plan' :
+        'Starter Plan'
+      );
+
+      // Check if plan has conversation limits (not Infinity)
+      if (planLimits.maxConversations !== Infinity) {
+        // Calculate start of current billing month (1st of the month)
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+
+        // Count conversations this month for this shop
+        const conversationCount = await db.conversation.count({
+          where: {
+            shop: shopDomain,
+            timestamp: {
+              gte: startOfMonth
+            }
+          }
+        });
+
+        routeLogger.info({
+          shop: shopDomain,
+          plan: currentPlan,
+          conversationCount,
+          limit: planLimits.maxConversations,
+          percentUsed: Math.round((conversationCount / planLimits.maxConversations) * 100)
+        }, '📊 Conversation usage check');
+
+        // Check if limit exceeded
+        if (conversationCount >= planLimits.maxConversations) {
+          routeLogger.warn({
+            shop: shopDomain,
+            plan: currentPlan,
+            conversationCount,
+            limit: planLimits.maxConversations
+          }, '🚫 Conversation limit exceeded');
+
+          return json({
+            error: "conversation_limit_exceeded",
+            message: `You've reached your monthly limit of ${planLimits.maxConversations.toLocaleString()} conversations. Upgrade to Professional Plan for unlimited conversations!`,
+            messageType: "limit_exceeded",
+            conversationsUsed: conversationCount,
+            conversationLimit: planLimits.maxConversations,
+            currentPlan: currentPlan,
+            upgradeUrl: "/app/billing",
+            upgradeAvailable: true,
+            recommendations: [],
+            quickReplies: ["Upgrade to Professional", "View billing"],
+            success: false
+          }, {
+            status: 429, // 429 Too Many Requests
+            headers: mergeSecurityHeaders(
+              getSecureCorsHeaders(request),
+              getAPISecurityHeaders()
+            )
+          });
+        }
+
+        // Warn if approaching limit (90% or more)
+        if (conversationCount >= planLimits.maxConversations * 0.9) {
+          routeLogger.warn({
+            shop: shopDomain,
+            plan: currentPlan,
+            conversationCount,
+            limit: planLimits.maxConversations,
+            percentUsed: Math.round((conversationCount / planLimits.maxConversations) * 100)
+          }, '⚠️ Conversation limit warning (90%+)');
+        }
+      } else {
+        routeLogger.debug({
+          shop: shopDomain,
+          plan: currentPlan
+        }, '✅ Unlimited conversations plan - no limit check');
+      }
+    } catch (limitCheckError) {
+      // Log error but don't block the conversation - graceful degradation
+      routeLogger.error({
+        error: limitCheckError instanceof Error ? limitCheckError.message : String(limitCheckError),
+        shop: shopDomain
+      }, '❌ Failed to check conversation limit (non-blocking)');
+      // Continue processing the message
+    }
 
     // ✅ IMPROVED: Detect intent, sentiment, and language
     const intent = detectIntent(finalMessage);

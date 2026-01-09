@@ -22,7 +22,7 @@ import {
 } from "@shopify/polaris";
 import { CheckCircleIcon, AlertCircleIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
-import { requireBilling } from "../lib/billing.server";
+import { requireBilling, getPlanLimits, checkBillingStatus } from "../lib/billing.server";
 import { prisma as db } from "../db.server";
 import { useTranslation } from "react-i18next";
 import { encryptApiKey, decryptApiKey, isValidOpenAIKey } from "../lib/encryption.server";
@@ -80,7 +80,48 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       }
     }
 
-    return json({ settings: decryptedSettings });
+    // ✅ NEW: Fetch conversation usage for current month
+    let conversationUsage = null;
+    try {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+
+      const conversationCount = await db.conversation.count({
+        where: {
+          shop: session.shop,
+          timestamp: {
+            gte: startOfMonth
+          }
+        }
+      });
+
+      // Get billing status to determine plan
+      const billingStatus = await checkBillingStatus(billing);
+      const planLimits = getPlanLimits(billingStatus.activePlan);
+
+      conversationUsage = {
+        used: conversationCount,
+        limit: planLimits.maxConversations,
+        percentUsed: planLimits.maxConversations === Infinity
+          ? 0
+          : Math.round((conversationCount / planLimits.maxConversations) * 100),
+        isUnlimited: planLimits.maxConversations === Infinity,
+        currentPlan: billingStatus.activePlan
+      };
+
+      logger.debug({
+        shop: session.shop,
+        conversationUsage
+      }, 'Fetched conversation usage');
+    } catch (usageError) {
+      logger.warn({
+        error: usageError instanceof Error ? usageError.message : String(usageError),
+        shop: session.shop
+      }, 'Failed to fetch conversation usage (non-blocking)');
+      // Continue without usage data
+    }
+
+    return json({ settings: decryptedSettings, conversationUsage });
   } catch (error) {
     logger.error(error, `Database error in settings loader for shop: ${session.shop}`);
     console.error("Full database error:", error);
@@ -89,7 +130,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       settings: {
         shop: session.shop,
         ...DEFAULT_SETTINGS
-      }
+      },
+      conversationUsage: null
     });
   }
 };
@@ -206,7 +248,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function SettingsPage() {
-  const { settings: initialSettings } = useLoaderData<typeof loader>();
+  const { settings: initialSettings, conversationUsage } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const submit = useSubmit();
   const { t } = useTranslation();
@@ -554,6 +596,120 @@ export default function SettingsPage() {
             </BlockStack>
           </Card>
         </Layout.Section>
+
+        {/* Conversation Usage Display */}
+        {conversationUsage && !conversationUsage.isUnlimited && (
+          <Layout.Section>
+            <Card>
+              <BlockStack gap="400">
+                <Text variant="headingMd" as="h2">
+                  Conversation Usage
+                </Text>
+                <Text variant="bodyMd" as="p" tone="subdued">
+                  Track your monthly conversation usage and stay within your plan limits.
+                </Text>
+
+                <BlockStack gap="300">
+                  {/* Usage Stats */}
+                  <InlineStack align="space-between" blockAlign="center">
+                    <Text variant="headingLg" as="p" fontWeight="bold">
+                      {conversationUsage.used.toLocaleString()} / {conversationUsage.limit.toLocaleString()}
+                    </Text>
+                    <Badge tone={
+                      conversationUsage.percentUsed >= 100 ? "critical" :
+                      conversationUsage.percentUsed >= 90 ? "warning" :
+                      conversationUsage.percentUsed >= 75 ? "attention" :
+                      "success"
+                    }>
+                      {conversationUsage.percentUsed}% Used
+                    </Badge>
+                  </InlineStack>
+
+                  {/* Progress Bar */}
+                  <Box
+                    background={conversationUsage.percentUsed >= 100 ? "bg-fill-critical" : "bg-fill"}
+                    borderRadius="100"
+                    paddingBlock="050"
+                  >
+                    <Box
+                      background={
+                        conversationUsage.percentUsed >= 100 ? "bg-fill-critical-active" :
+                        conversationUsage.percentUsed >= 90 ? "bg-fill-warning-active" :
+                        conversationUsage.percentUsed >= 75 ? "bg-fill-caution-active" :
+                        "bg-fill-success-active"
+                      }
+                      borderRadius="100"
+                      paddingBlock="050"
+                      width={`${Math.min(conversationUsage.percentUsed, 100)}%`}
+                    />
+                  </Box>
+
+                  {/* Warning Messages */}
+                  {conversationUsage.percentUsed >= 100 && (
+                    <Banner tone="critical">
+                      <BlockStack gap="200">
+                        <Text variant="bodyMd" as="p" fontWeight="semibold">
+                          🚫 Monthly limit reached!
+                        </Text>
+                        <Text variant="bodyMd" as="p">
+                          You've reached your {conversationUsage.limit.toLocaleString()} conversation limit for this month.
+                          Upgrade to Professional Plan for unlimited conversations.
+                        </Text>
+                        <Button
+                          variant="primary"
+                          tone="critical"
+                          onClick={() => window.location.href = '/app/billing'}
+                        >
+                          Upgrade Now
+                        </Button>
+                      </BlockStack>
+                    </Banner>
+                  )}
+
+                  {conversationUsage.percentUsed >= 90 && conversationUsage.percentUsed < 100 && (
+                    <Banner tone="warning">
+                      <Text variant="bodyMd" as="p">
+                        ⚠️ You're approaching your monthly limit ({conversationUsage.percentUsed}% used).
+                        Consider upgrading to avoid service interruption.
+                      </Text>
+                    </Banner>
+                  )}
+
+                  {conversationUsage.percentUsed < 90 && (
+                    <Text variant="bodySm" as="p" tone="subdued">
+                      Resets on the 1st of each month. Upgrade to Professional Plan ($79/month) for unlimited conversations.
+                    </Text>
+                  )}
+                </BlockStack>
+              </BlockStack>
+            </Card>
+          </Layout.Section>
+        )}
+
+        {/* Unlimited Conversations Badge */}
+        {conversationUsage && conversationUsage.isUnlimited && (
+          <Layout.Section>
+            <Card>
+              <BlockStack gap="300">
+                <InlineStack align="space-between" blockAlign="center">
+                  <BlockStack gap="200">
+                    <Text variant="headingMd" as="h2">
+                      Conversation Usage
+                    </Text>
+                    <Text variant="bodyMd" as="p" tone="subdued">
+                      You have unlimited conversations with your current plan.
+                    </Text>
+                  </BlockStack>
+                  <Badge tone="success" size="large">✓ Unlimited</Badge>
+                </InlineStack>
+
+                <Text variant="bodySm" as="p" tone="subdued">
+                  This month: {conversationUsage.used.toLocaleString()} conversations (no limit)
+                </Text>
+              </BlockStack>
+            </Card>
+          </Layout.Section>
+        )}
 
         {/* BYOK Usage Tracking */}
         {(settings as any).plan === "BYOK" && (
