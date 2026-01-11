@@ -197,37 +197,19 @@ export default function AnalyticsPage() {
   };
 
   // Helper to get change badge
-  const getChangeBadge = (change: number) => {
-    if (change === 0) return null;
+  const getChangeBadge = (change: number | null | undefined) => {
+  if (change === 0 || change === null || change === undefined) return null;
 
-    const isPositive = change > 0;
-    const tone = isPositive ? "success" : "critical";
-    const icon = isPositive ? ArrowUpIcon : ArrowDownIcon;
+  const isPositive = change > 0;
+  const tone = isPositive ? "success" : "critical";
+  const icon = isPositive ? ArrowUpIcon : ArrowDownIcon;
 
-    return (
-      <Badge tone={tone} icon={icon}>
-        {`${isPositive ? "+" : ""}${change.toFixed(1)}%`}
-      </Badge>
-    );
-  };
-
-  // Calculate intent colors
-  const getIntentColor = (intent: string) => {
-    const colors: Record<string, string> = {
-      PRODUCT_SEARCH: "#5C6AC4",
-      PRICE_INQUIRY: "#47C1BF",
-      SHIPPING: "#006FBB",
-      RETURNS: "#ED6347",
-      SUPPORT: "#FFC96B",
-      GREETING: "#9C6ADE",
-      THANKS: "#50B83C",
-      COMPARISON: "#637381",
-      AVAILABILITY: "#006FBB",
-      SIZE_FIT: "#47C1BF",
-      OTHER: "#919EAB",
-    };
-    return colors[intent] || "#919EAB";
-  };
+  return (
+    <Badge tone={tone} icon={icon}>
+      {`${isPositive ? "+" : ""}${change.toFixed(1)}%`}
+    </Badge>
+  );
+};
 
   // Calculate sentiment colors
   const getSentimentColor = (sentiment: string) => {
@@ -301,7 +283,7 @@ export default function AnalyticsPage() {
                   <Icon source={PersonIcon} tone="base" />
                 </InlineStack>
                 <Text variant="heading2xl" as="h3">
-                  {formatNumber(data.activeUsers)}
+                  {formatNumber(data.activeUsers ?? 0)}
                 </Text>
                 <Text variant="bodySm" as="p" tone="subdued">
                   {t("analytics.uniqueUsers")}
@@ -320,7 +302,7 @@ export default function AnalyticsPage() {
                   <Icon source={ChartVerticalIcon} tone="base" />
                 </InlineStack>
                 <Text variant="heading2xl" as="h3">
-                  {data.overview.avgConfidence.toFixed(1)}%
+                  {(data.overview?.avgConfidence ?? 0).toFixed(1)}%
                 </Text>
                 {getChangeBadge(data.overview.periodComparison.confidenceChange)}
                 <Text variant="bodySm" as="p" tone="subdued">
@@ -344,7 +326,7 @@ export default function AnalyticsPage() {
                   {t("analytics.messagesPerSession")}
                 </Text>
                 <Text variant="headingLg" as="h3">
-                  {data.engagement.avgMessagesPerSession.toFixed(1)}
+                  {(data.engagement?.avgMessagesPerSession ?? 0).toFixed(1)}
                 </Text>
               </BlockStack>
 
@@ -353,7 +335,7 @@ export default function AnalyticsPage() {
                   {t("analytics.avgSessionDuration")}
                 </Text>
                 <Text variant="headingLg" as="h3">
-                  {Math.round(data.engagement.avgSessionDuration / 60)}m
+                  {Math.round((data.engagement?.avgSessionDuration ?? 0) / 60)}m
                 </Text>
               </BlockStack>
 
@@ -362,7 +344,7 @@ export default function AnalyticsPage() {
                   {t("analytics.avgResponseTime")}
                 </Text>
                 <Text variant="headingLg" as="h3">
-                  {(data.overview.avgResponseTime / 1000).toFixed(1)}s
+                  {((data.overview?.avgResponseTime ?? 0) / 1000).toFixed(1)}s
                 </Text>
               </BlockStack>
 
@@ -371,7 +353,7 @@ export default function AnalyticsPage() {
                   {t("analytics.totalSessions")}
                 </Text>
                 <Text variant="headingLg" as="h3">
-                  {formatNumber(data.engagement.totalSessions)}
+                  {formatNumber(data.engagement?.totalSessions ?? 0)}
                 </Text>
               </BlockStack>
             </InlineGrid>
@@ -385,30 +367,30 @@ export default function AnalyticsPage() {
               {t("analytics.intentDistribution")}
             </Text>
 
-            {data.intents.length > 0 ? (
-              <BlockStack gap="300">
-                {data.intents.map((intent, index) => (
-                  <Box key={index}>
-                    <BlockStack gap="200">
-                      <InlineStack align="space-between">
-                        <Text variant="bodyMd" as="p">
-                          {intent.intent.replace(/_/g, " ")}
+           {(data.intents && data.intents.length > 0) ? (
+            <BlockStack gap="300">
+              {data.intents.map((intent, index) => (
+                <Box key={index}>
+                  <BlockStack gap="200">
+                    <InlineStack align="space-between">
+                      <Text variant="bodyMd" as="p">
+                        {intent.intent?.replace(/_/g, " ") ?? "Unknown"}
+                      </Text>
+                      <InlineStack gap="200">
+                        <Text variant="bodyMd" as="p" tone="subdued">
+                          {formatNumber(intent.count ?? 0)}
                         </Text>
-                        <InlineStack gap="200">
-                          <Text variant="bodyMd" as="p" tone="subdued">
-                            {formatNumber(intent.count)}
-                          </Text>
-                          <Text variant="bodyMd" as="p">
-                            {intent.percentage}%
-                          </Text>
-                        </InlineStack>
+                        <Text variant="bodyMd" as="p">
+                          {(intent.percentage ?? 0).toFixed(1)}%
+                        </Text>
                       </InlineStack>
-                      <ProgressBar
-                        progress={intent.percentage}
-                        size="small"
-                        tone="primary"
-                      />
-                    </BlockStack>
+                    </InlineStack>
+                    <ProgressBar
+                      progress={intent.percentage ?? 0}
+                      size="small"
+                      tone="primary"
+                    />
+                  </BlockStack>
                     {index < data.intents.length - 1 && (
                       <Box paddingBlockStart="300">
                         <Divider />
@@ -592,11 +574,11 @@ export default function AnalyticsPage() {
                 <Box paddingBlockStart="400">
                   <InlineStack align="space-between">
                     <Text variant="bodySm" as="p" tone="subdued">
-                      {new Date(data.trends[0]?.date).toLocaleDateString()}
+                      {new Date(data.trends[0]?.date || "").toLocaleDateString()}
                     </Text>
                     <Text variant="bodySm" as="p" tone="subdued">
                       {new Date(
-                        data.trends[data.trends.length - 1]?.date
+                        data.trends[data.trends.length - 1]?.date || ""
                       ).toLocaleDateString()}
                     </Text>
                   </InlineStack>
@@ -622,24 +604,24 @@ export default function AnalyticsPage() {
                   • {t("analytics.insightLowConfidence")}
                 </Text>
               )}
-              {data.sentiments.find((s) => s.sentiment === "Negative")?.percentage || 0 > 20 && (
+              {((data.sentiments?.find((s) => s.sentiment === "Negative")?.percentage ?? 0) > 20) && (
                 <Text variant="bodyMd" as="p">
                   • {t("analytics.insightNegativeSentiment")}
                 </Text>
               )}
-              {data.engagement.avgMessagesPerSession < 2 && (
+              {(data.engagement?.avgMessagesPerSession ?? 0) < 2 && (
                 <Text variant="bodyMd" as="p">
                   • {t("analytics.insightLowEngagement")}
                 </Text>
               )}
-              {data.intents.length > 0 &&
-                data.intents[0].intent === "OTHER" &&
-                data.intents[0].percentage > 30 && (
+              {data.intents && data.intents.length > 0 &&
+                data.intents[0]?.intent === "OTHER" &&
+                (data.intents[0]?.percentage ?? 0) > 30 && (
                   <Text variant="bodyMd" as="p">
                     • {t("analytics.insightOtherIntent")}
                   </Text>
                 )}
-              {data.overview.totalMessages === 0 && (
+              {(data.overview?.totalMessages ?? 0) === 0 && (
                 <Text variant="bodyMd" as="p">
                   • {t("analytics.insightNoData")}
                 </Text>
