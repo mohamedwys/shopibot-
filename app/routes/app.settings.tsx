@@ -116,17 +116,24 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     let activePlan = null;
 
     try {
-      // Get conversation usage using centralized utility
-      conversationUsage = await getConversationUsage(session.shop, billing);
+      // ✅ FIX: Use database plan for conversation usage calculation
+      // Database plan is the configured plan, billing is just for validation
+      conversationUsage = await getConversationUsage(session.shop);
 
-      // Get billing status for additional plan info
+      // Get billing status for validation/display
       const billingStatus = await checkBillingStatus(billing);
-      planLimits = getPlanLimits(billingStatus.activePlan);
       activePlan = billingStatus.activePlan;
+
+      // ✅ FIX: Use normalized database plan for limits, not billing plan
+      // This ensures UI shows what's configured in database, not what Shopify billing reports
+      planLimits = getPlanLimits(normalizedPlan);
 
       logger.debug({
         shop: session.shop,
+        databasePlan: normalizedPlan,
+        billingPlan: activePlan,
         conversationUsage,
+        planLimitsSource: 'database',
         resetDate: conversationUsage.resetDate
       }, 'Fetched conversation usage');
     } catch (usageError) {

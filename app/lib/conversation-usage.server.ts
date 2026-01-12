@@ -59,31 +59,32 @@ export async function getConversationUsage(
   shop: string,
   billing?: BillingAPI
 ): Promise<ConversationUsage> {
-  // Determine the current plan
+  // ✅ FIX: Always use database plan as primary source
+  // Database plan is what's configured in settings, billing is just for validation
   let planIdentifier: string;
 
+  // Get plan from database (primary source of truth)
+  const settings = await db.widgetSettings.findUnique({
+    where: { shop },
+    select: { plan: true }
+  });
+  planIdentifier = settings?.plan || 'STARTER';
+
+  // Optional: Validate against billing if available (for logging/warnings)
   if (billing) {
-    // Get plan from Shopify billing (most accurate)
     try {
       const { checkBillingStatus } = await import("./billing.server");
       const billingStatus = await checkBillingStatus(billing);
-      planIdentifier = billingStatus.activePlan || 'Starter Plan';
+      const billingPlan = billingStatus.activePlan;
+
+      // Log if there's a mismatch between database and billing
+      if (billingPlan && normalizePlanCode(planIdentifier) !== normalizePlanCode(billingPlan)) {
+        console.warn(`Plan mismatch for ${shop}: Database=${planIdentifier}, Billing=${billingPlan}. Using database plan.`);
+      }
     } catch (error) {
-      console.error('Failed to check billing status:', error);
-      // Fallback to settings
-      const settings = await db.widgetSettings.findUnique({
-        where: { shop },
-        select: { plan: true }
-      });
-      planIdentifier = settings?.plan || 'STARTER';
+      // Billing check failed, but that's okay - we already have database plan
+      console.warn('Failed to validate billing status:', error);
     }
-  } else {
-    // Get plan from settings (fallback when billing not available)
-    const settings = await db.widgetSettings.findUnique({
-      where: { shop },
-      select: { plan: true }
-    });
-    planIdentifier = settings?.plan || 'STARTER';
   }
 
   // Normalize plan code to ensure consistency
