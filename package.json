@@ -26,7 +26,7 @@
     "prisma": "prisma",
     "graphql-codegen": "graphql-codegen",
     "vite": "vite",
-    "vercel-build": "npx prisma migrate deploy && npx prisma generate --no-engine && npm run build"
+    "vercel-build": "bash scripts/deploy-with-retry.sh"
   },
   "type": "module",
   "engines": {
