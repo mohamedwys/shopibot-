@@ -490,7 +490,7 @@ export default function BillingPage() {
                   <InlineStack gap="0" blockAlign="center">
                     <Box width="40%">
                       <Text as="p" variant="bodyMd" tone="subdued">
-                        Intégration OpenAI
+                        OpenAI integration
                       </Text>
                     </Box>
                     <Box width="20%">
@@ -517,7 +517,7 @@ export default function BillingPage() {
                   <InlineStack gap="0" blockAlign="center">
                     <Box width="40%">
                       <Text as="p" variant="bodyMd" tone="subdued">
-                        Analyses approfondies
+                        Advanced analytics
                       </Text>
                     </Box>
                     <Box width="20%">
@@ -544,7 +544,7 @@ export default function BillingPage() {
                   <InlineStack gap="0" blockAlign="center">
                     <Box width="40%">
                       <Text as="p" variant="bodyMd" tone="subdued">
-                        Webhook N8N personnalisé
+                        Custom N8N webhook
                       </Text>
                     </Box>
                     <Box width="20%">
@@ -571,7 +571,7 @@ export default function BillingPage() {
                   <InlineStack gap="0" blockAlign="center">
                     <Box width="40%">
                       <Text as="p" variant="bodyMd" tone="subdued">
-                        Analyse des sentiments
+                        Sentiment analysis
                       </Text>
                     </Box>
                     <Box width="20%">
@@ -598,7 +598,7 @@ export default function BillingPage() {
                   <InlineStack gap="0" blockAlign="center">
                     <Box width="40%">
                       <Text as="p" variant="bodyMd" tone="subdued">
-                        Profilage utilisateur
+                        User profiling
                       </Text>
                     </Box>
                     <Box width="20%">
@@ -625,7 +625,7 @@ export default function BillingPage() {
                   <InlineStack gap="0" blockAlign="center">
                     <Box width="40%">
                       <Text as="p" variant="bodyMd" tone="subdued">
-                        Suivi des produits
+                        Product tracking
                       </Text>
                     </Box>
                     <Box width="20%">
