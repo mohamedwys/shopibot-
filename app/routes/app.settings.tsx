@@ -90,6 +90,16 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const normalizedPlan = normalizePlanCode(settings.plan);
     decryptedSettings.plan = normalizedPlan;
 
+    // 🔍 DEBUG: Log raw database plan value
+    logger.info({
+      shop: session.shop,
+      rawDatabasePlan: originalPlan,
+      normalizedPlan: normalizedPlan,
+      planType: typeof originalPlan,
+      isNull: originalPlan === null,
+      isUndefined: originalPlan === undefined,
+    }, '🔍 DEBUG: Raw database plan value');
+
     // Migrate database if plan code changed
     if (originalPlan !== normalizedPlan) {
       try {
@@ -127,6 +137,27 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       // ✅ FIX: Use normalized database plan for limits, not billing plan
       // This ensures UI shows what's configured in database, not what Shopify billing reports
       planLimits = getPlanLimits(normalizedPlan);
+
+      // 🔍 DEBUG: Detailed logging for STARTER plan showing unlimited bug
+      logger.info({
+        shop: session.shop,
+        databasePlan: normalizedPlan,
+        billingPlan: activePlan,
+        conversationUsage: {
+          used: conversationUsage.used,
+          limit: conversationUsage.limit,
+          isUnlimited: conversationUsage.isUnlimited,
+          percentUsed: conversationUsage.percentUsed,
+          currentPlan: conversationUsage.currentPlan,
+        },
+        planLimits: {
+          maxConversations: planLimits.maxConversations,
+          isInfinity: planLimits.maxConversations === Infinity,
+          hasCustomWebhook: planLimits.hasCustomWebhook,
+        },
+        planLimitsSource: 'database',
+        resetDate: conversationUsage.resetDate
+      }, '🔍 DEBUG: Complete conversation usage data');
 
       logger.debug({
         shop: session.shop,
