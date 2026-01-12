@@ -393,6 +393,42 @@ export default function SettingsPage() {
       }}
     >
       <Layout>
+        {/* Debug Info Banner - Shows plan details */}
+        {process.env.NODE_ENV === 'development' && (
+          <Layout.Section>
+            <Banner tone="info">
+              <BlockStack gap="200">
+                <Text variant="bodyMd" as="p" fontWeight="semibold">
+                  🔍 Debug Info (Development Only)
+                </Text>
+                <Text variant="bodySm" as="p">
+                  <strong>Database Plan:</strong> {settings.plan} {' '}
+                  {settings.plan === PlanCode.BYOK && '(BYOK - Should be Unlimited)'}
+                  {settings.plan === PlanCode.PROFESSIONAL && '(Professional - Should be Unlimited)'}
+                  {settings.plan === PlanCode.STARTER && '(Starter - Should show 1000 limit)'}
+                </Text>
+                {activePlan && (
+                  <Text variant="bodySm" as="p">
+                    <strong>Billing Plan:</strong> {activePlan}
+                  </Text>
+                )}
+                {conversationUsage && (
+                  <Text variant="bodySm" as="p">
+                    <strong>Usage Calculation:</strong> {conversationUsage.used} / {conversationUsage.limit === Infinity ? '∞ (Unlimited)' : conversationUsage.limit}
+                    {' | isUnlimited: '}{conversationUsage.isUnlimited ? '✓ TRUE' : '✗ FALSE'}
+                  </Text>
+                )}
+                {planLimits && (
+                  <Text variant="bodySm" as="p">
+                    <strong>Plan Limits:</strong> maxConversations={planLimits.maxConversations === Infinity ? '∞' : planLimits.maxConversations},
+                    hasCustomWebhook={planLimits.hasCustomWebhook ? 'true' : 'false'}
+                  </Text>
+                )}
+              </BlockStack>
+            </Banner>
+          </Layout.Section>
+        )}
+
         {showSuccessBanner && actionData?.success && (
           <Layout.Section>
             <Banner tone="success" onDismiss={() => setShowSuccessBanner(false)}>
