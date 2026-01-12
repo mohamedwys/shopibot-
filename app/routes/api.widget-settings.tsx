@@ -9,9 +9,12 @@ import { getAPISecurityHeaders, mergeSecurityHeaders } from "../lib/security-hea
 import { logError, createLogger } from "../lib/logger.server";
 import { personalizationService } from "../services/personalization.service";
 import { getPlanLimits } from "../lib/billing.server";
+import { checkConversationLimit, getConversationUsage } from "../lib/conversation-usage.server";
+import { normalizePlanCode, PlanCode } from "../lib/plans.config";
+import type { WidgetSettings } from "../lib/types";
 
 // Default settings (same as in settings page)
-const DEFAULT_SETTINGS = {
+const DEFAULT_SETTINGS: Partial<WidgetSettings> = {
   enabled: true,
   position: "bottom-right",
   buttonText: "Ask AI Assistant",
@@ -19,6 +22,7 @@ const DEFAULT_SETTINGS = {
   welcomeMessage: "Hello! I'm your AI sales assistant. I can help you find products, answer questions about pricing, shipping, and provide personalized recommendations. How can I assist you today?",
   inputPlaceholder: "Ask me anything about our products...",
   primaryColor: "#e620e6",
+  plan: PlanCode.STARTER, // ✅ Use standardized plan code
 };
 
 // ✅ COMPREHENSIVE Intent detection system for Quick Action Buttons
@@ -238,8 +242,20 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       });
     }
 
+    // ✅ IMPROVED: Fetch conversation usage for widget display
+    let conversationUsage = null;
+    try {
+      conversationUsage = await getConversationUsage(shopDomain);
+    } catch (error) {
+      // Non-blocking error - widget will work without usage data
+      console.warn('Failed to fetch conversation usage for widget:', error);
+    }
+
     return json(
-      { settings },
+      {
+        settings,
+        conversationUsage // ✅ Now widget can show usage warnings
+      },
       {
         headers: mergeSecurityHeaders(
           getSecureCorsHeaders(request),
@@ -365,7 +381,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     // ========================================
     // CONVERSATION LIMIT ENFORCEMENT
     // ========================================
-    // Check conversation limits BEFORE processing to prevent overages
+    // ✅ IMPROVED: Use centralized conversation limit checking with proper timezone handling
     try {
       // Get shop settings to determine plan
       const shopSettings = await db.widgetSettings.findUnique({
@@ -373,82 +389,64 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         select: { plan: true }
       });
 
-      const currentPlan = shopSettings?.plan || 'BASIC';
-      const planLimits = getPlanLimits(
-        currentPlan === 'BYOK' ? 'BYOK Plan' :
-        currentPlan === 'BASIC' ? 'Starter Plan' :
-        currentPlan === 'UNLIMITED' ? 'Professional Plan' :
-        'Starter Plan'
-      );
+      const currentPlan = shopSettings?.plan || PlanCode.STARTER;
+      const normalizedPlan = normalizePlanCode(currentPlan);
 
-      // Check if plan has conversation limits (not Infinity)
-      if (planLimits.maxConversations !== Infinity) {
-        // Calculate start of current billing month (1st of the month)
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+      // Use shared utility for limit checking
+      const limitCheck = await checkConversationLimit(shopDomain, normalizedPlan);
+      const planLimits = getPlanLimits(normalizedPlan);
 
-        // Count conversations this month for this shop
-        const conversationCount = await db.conversation.count({
-          where: {
-            shop: shopDomain,
-            timestamp: {
-              gte: startOfMonth
-            }
-          }
-        });
+      routeLogger.info({
+        shop: shopDomain,
+        plan: normalizedPlan,
+        conversationCount: limitCheck.count,
+        limit: limitCheck.limit,
+        percentUsed: limitCheck.limit === Infinity ? 0 : Math.round((limitCheck.count / limitCheck.limit) * 100)
+      }, '📊 Conversation usage check');
 
-        routeLogger.info({
+      // Check if limit exceeded
+      if (limitCheck.exceeded) {
+        routeLogger.warn({
           shop: shopDomain,
-          plan: currentPlan,
-          conversationCount,
-          limit: planLimits.maxConversations,
-          percentUsed: Math.round((conversationCount / planLimits.maxConversations) * 100)
-        }, '📊 Conversation usage check');
+          plan: normalizedPlan,
+          conversationCount: limitCheck.count,
+          limit: limitCheck.limit
+        }, '🚫 Conversation limit exceeded');
 
-        // Check if limit exceeded
-        if (conversationCount >= planLimits.maxConversations) {
-          routeLogger.warn({
-            shop: shopDomain,
-            plan: currentPlan,
-            conversationCount,
-            limit: planLimits.maxConversations
-          }, '🚫 Conversation limit exceeded');
+        return json({
+          error: "conversation_limit_exceeded",
+          message: `You've reached your monthly limit of ${limitCheck.limit.toLocaleString()} conversations. Upgrade to Professional Plan for unlimited conversations!`,
+          messageType: "limit_exceeded",
+          conversationsUsed: limitCheck.count,
+          conversationLimit: limitCheck.limit,
+          currentPlan: normalizedPlan,
+          upgradeUrl: "/app/billing",
+          upgradeAvailable: true,
+          recommendations: [],
+          quickReplies: ["Upgrade to Professional", "View billing"],
+          success: false
+        }, {
+          status: 429, // 429 Too Many Requests
+          headers: mergeSecurityHeaders(
+            getSecureCorsHeaders(request),
+            getAPISecurityHeaders()
+          )
+        });
+      }
 
-          return json({
-            error: "conversation_limit_exceeded",
-            message: `You've reached your monthly limit of ${planLimits.maxConversations.toLocaleString()} conversations. Upgrade to Professional Plan for unlimited conversations!`,
-            messageType: "limit_exceeded",
-            conversationsUsed: conversationCount,
-            conversationLimit: planLimits.maxConversations,
-            currentPlan: currentPlan,
-            upgradeUrl: "/app/billing",
-            upgradeAvailable: true,
-            recommendations: [],
-            quickReplies: ["Upgrade to Professional", "View billing"],
-            success: false
-          }, {
-            status: 429, // 429 Too Many Requests
-            headers: mergeSecurityHeaders(
-              getSecureCorsHeaders(request),
-              getAPISecurityHeaders()
-            )
-          });
-        }
-
-        // Warn if approaching limit (90% or more)
-        if (conversationCount >= planLimits.maxConversations * 0.9) {
-          routeLogger.warn({
-            shop: shopDomain,
-            plan: currentPlan,
-            conversationCount,
-            limit: planLimits.maxConversations,
-            percentUsed: Math.round((conversationCount / planLimits.maxConversations) * 100)
-          }, '⚠️ Conversation limit warning (90%+)');
-        }
-      } else {
+      // Warn if approaching limit (90% or more)
+      if (limitCheck.limit !== Infinity && limitCheck.count >= limitCheck.limit * 0.9) {
+        routeLogger.warn({
+          shop: shopDomain,
+          plan: normalizedPlan,
+          conversationCount: limitCheck.count,
+          limit: limitCheck.limit,
+          percentUsed: Math.round((limitCheck.count / limitCheck.limit) * 100)
+        }, '⚠️ Conversation limit warning (90%+)');
+      } else if (limitCheck.limit === Infinity) {
         routeLogger.debug({
           shop: shopDomain,
-          plan: currentPlan
+          plan: normalizedPlan
         }, '✅ Unlimited conversations plan - no limit check');
       }
     } catch (limitCheckError) {

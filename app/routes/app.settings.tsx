@@ -227,7 +227,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     });
 
     logger.info("Settings saved to database successfully");
-    logger.info(`Final workflowType in database: ${(settings as any).workflowType}`);
+    logger.info(`Final workflowType in database: ${settings.workflowType}`);
     logger.info(`Final webhookUrl in database: ${settings.webhookUrl || '[NULL/DEFAULT]'}`);
 
     return json({
@@ -297,7 +297,7 @@ export default function SettingsPage() {
     const formData = new FormData();
 
     // ✅ IMPROVED: Determine workflow type based on webhookUrl validity
-    const webhookUrl = (settings as any).webhookUrl || "";
+    const webhookUrl = settings.webhookUrl || "";
     const isValidCustomUrl = webhookUrl &&
                            typeof webhookUrl === 'string' &&
                            webhookUrl.trim() !== '' &&
@@ -321,7 +321,7 @@ export default function SettingsPage() {
   }, [settings, submit]);
 
   const handleTestConnection = useCallback(async () => {
-    const apiKey = (settings as any).openaiApiKey;
+    const apiKey = settings.openaiApiKey;
     if (!apiKey || apiKey.trim() === "") {
       setKeyTestResult({
         valid: false,
@@ -340,7 +340,7 @@ export default function SettingsPage() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          shop: (settings as any).shop,
+          shop: settings.shop,
           apiKey: apiKey
         })
       });
@@ -514,23 +514,22 @@ export default function SettingsPage() {
               <FormLayout>
                 <Select
                   label={t("settings.pricingPlan")}
-                  value={(settings as any).plan || "BASIC"}
-                  options={[
-                    { label: t("settings.planBYOK") + " ($5/month)", value: "BYOK" },
-                    { label: t("settings.planBasic") + " ($25/month)", value: "BASIC" },
-                    { label: t("settings.planUnlimited") + " ($79/month)", value: "UNLIMITED" }
-                  ]}
+                  value={settings.plan}
+                  options={getPlanOptions().map(opt => ({
+                    label: opt.label,
+                    value: opt.value
+                  }))}
                   onChange={(value) =>
-                    setSettings((prev: any) => ({
+                    setSettings((prev) => ({
                       ...prev,
-                      plan: value,
+                      plan: normalizePlanCode(value),
                       // Clear API key if switching away from BYOK
-                      openaiApiKey: value === "BYOK" ? prev.openaiApiKey : ""
+                      openaiApiKey: value === PlanCode.BYOK ? prev.openaiApiKey : ""
                     }))
                   }
                 />
 
-                {(settings as any).plan === "BYOK" && (
+                {settings.plan === PlanCode.BYOK && (
                   <>
                     <Banner tone="info">
                       <BlockStack gap="200">
@@ -555,7 +554,7 @@ export default function SettingsPage() {
 
                     <TextField
                       label={t("settings.openaiApiKey")}
-                      value={(settings as any).openaiApiKey || ""}
+                      value={settings.openaiApiKey || ""}
                       onChange={(value) => {
                         setSettings((prev: any) => ({ ...prev, openaiApiKey: value }));
                         setKeyTestResult(null); // Clear test result when key changes
@@ -568,7 +567,7 @@ export default function SettingsPage() {
                         <Button
                           onClick={handleTestConnection}
                           loading={isTestingKey}
-                          disabled={!(settings as any).openaiApiKey || (settings as any).openaiApiKey.trim() === ""}
+                          disabled={!settings.openaiApiKey || settings.openaiApiKey.trim() === ""}
                         >
                           {t("settings.testConnection")}
                         </Button>
@@ -587,10 +586,10 @@ export default function SettingsPage() {
                       </Banner>
                     )}
 
-                    {(settings as any).apiKeyLastTested && (
+                    {settings.apiKeyLastTested && (
                       <Text as="p" variant="bodySm" tone="subdued">
-                        Last tested: {new Date((settings as any).apiKeyLastTested).toLocaleString()}
-                        {(settings as any).apiKeyStatus && ` • Status: ${(settings as any).apiKeyStatus}`}
+                        Last tested: {new Date(settings.apiKeyLastTested).toLocaleString()}
+                        {settings.apiKeyStatus && ` • Status: ${settings.apiKeyStatus}`}
                       </Text>
                     )}
                   </>
@@ -717,7 +716,7 @@ export default function SettingsPage() {
         )}
 
         {/* BYOK Usage Tracking */}
-        {(settings as any).plan === "BYOK" && (
+        {settings.plan === PlanCode.BYOK && (
           <Layout.Section>
             <Card>
               <BlockStack gap="400">
@@ -830,7 +829,7 @@ export default function SettingsPage() {
                 <Select
                   label={t("settings.workflowType")}
                   value={(() => {
-                    const url = (settings as any).webhookUrl;
+                    const url = settings.webhookUrl;
                     const isValidCustomUrl = url &&
                                            typeof url === 'string' &&
                                            url.trim() !== '' &&
@@ -860,13 +859,13 @@ export default function SettingsPage() {
 
                 <TextField
                   label={t("settings.customWebhookUrl")}
-                  value={(settings as any).webhookUrl || ""}
+                  value={settings.webhookUrl || ""}
                   onChange={(value) =>
                     setSettings((prev: any) => ({ ...prev, webhookUrl: value }))
                   }
                   placeholder={t("settings.webhookPlaceholder")}
                   helpText={(() => {
-                    const url = (settings as any).webhookUrl;
+                    const url = settings.webhookUrl;
                     const isValidCustomUrl = url &&
                                            typeof url === 'string' &&
                                            url.trim() !== '' &&
