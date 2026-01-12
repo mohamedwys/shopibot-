@@ -74,7 +74,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
 
     // Decrypt OpenAI API key if it exists
-    let decryptedSettings: WidgetSettings = { ...settings } as WidgetSettings;
+    let decryptedSettings: WidgetSettings = { ...settings } as unknown as WidgetSettings;
     if (settings.openaiApiKey) {
       try {
         decryptedSettings.openaiApiKey = decryptApiKey(settings.openaiApiKey);
