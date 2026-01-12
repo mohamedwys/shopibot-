@@ -8,6 +8,7 @@ import { rateLimit, RateLimitPresets } from "../lib/rate-limit.server";
 import { chatRequestSchema, validateData, validationErrorResponse } from "../lib/validation.server";
 import { getAPISecurityHeaders, mergeSecurityHeaders } from "../lib/security-headers.server";
 import { logError } from "../lib/logger.server";
+import { checkBillingStatus } from "../lib/billing.server";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   // Handle preflight CORS request
@@ -66,12 +67,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
     // For theme extensions, we'll try to get an existing session or use unauthenticated approach
     let admin;
+    let billing;
     try {
       // Try to get existing session for this shop
       const session = await sessionStorage.findSessionsByShop(shopDomain);
       if (session.length > 0) {
-        const { admin: sessionAdmin } = await authenticate.admin(request);
+        const { admin: sessionAdmin, billing: sessionBilling } = await authenticate.admin(request);
         admin = sessionAdmin;
+        billing = sessionBilling;
       } else {
         // Use unauthenticated approach for theme extensions
         const { admin: unauthenticatedAdmin } = await unauthenticated.admin(shopDomain);
@@ -80,6 +83,52 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     } catch (error) {
       const { admin: unauthenticatedAdmin } = await unauthenticated.admin(shopDomain);
       admin = unauthenticatedAdmin;
+    }
+
+    // ✅ CRITICAL SECURITY FIX: Verify active billing subscription before processing
+    // This prevents free usage of paid AI features
+    if (billing) {
+      try {
+        const billingStatus = await checkBillingStatus(billing);
+        if (!billingStatus.hasActivePayment) {
+          return json(
+            {
+              error: "Active subscription required",
+              message: "Please subscribe to a plan to use the AI assistant. Visit the app admin to select a plan."
+            },
+            {
+              status: 402, // Payment Required
+              headers: getSecureCorsHeaders(request)
+            }
+          );
+        }
+      } catch (billingError) {
+        logError(billingError, 'Billing verification failed for sales assistant API');
+        // If billing check fails, we should deny access to be safe
+        return json(
+          {
+            error: "Unable to verify subscription",
+            message: "We're having trouble verifying your subscription. Please try again later."
+          },
+          {
+            status: 503, // Service Unavailable
+            headers: getSecureCorsHeaders(request)
+          }
+        );
+      }
+    } else {
+      // No billing context available (unauthenticated admin)
+      // This means no active session exists, which typically means no subscription
+      return json(
+        {
+          error: "Authentication required",
+          message: "Please install and configure the app in your Shopify admin to use the AI assistant."
+        },
+        {
+          status: 401, // Unauthorized
+          headers: getSecureCorsHeaders(request)
+        }
+      );
     }
 
     // Parse the request body

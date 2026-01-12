@@ -43,6 +43,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         chatSessions: 0,
         userProfiles: 0,
         chatAnalytics: 0,
+        conversations: 0,
+        byokUsage: 0,
       };
 
       // Step 1: Delete all chat messages for this shop
@@ -91,7 +93,19 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       });
       deletionStats.chatAnalytics = deletedAnalytics.count;
 
-      // Step 7: Delete all sessions
+      // Step 7: Delete all conversation records (for usage tracking)
+      const deletedConversations = await tx.conversation.deleteMany({
+        where: { shop },
+      });
+      deletionStats.conversations = deletedConversations.count;
+
+      // Step 8: Delete all BYOK usage records
+      const deletedByokUsage = await tx.byokUsage.deleteMany({
+        where: { shop },
+      });
+      deletionStats.byokUsage = deletedByokUsage.count;
+
+      // Step 9: Delete all sessions
       // Note: This might already be done by webhooks.app.uninstalled, but we do it again to be sure
       const deletedSessionRecords = await tx.session.deleteMany({
         where: { shop },

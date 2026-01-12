@@ -41,6 +41,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         chatSessions: 0,
         userProfiles: 0,
         chatAnalytics: 0,
+        conversations: 0,
+        byokUsage: 0,
       };
 
       // Find all chat sessions first (needed for foreign key cleanup)
@@ -88,6 +90,18 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         where: { shop },
       });
       deletionStats.chatAnalytics = deletedAnalytics.count;
+
+      // Delete conversation records (for usage tracking)
+      const deletedConversations = await tx.conversation.deleteMany({
+        where: { shop },
+      });
+      deletionStats.conversations = deletedConversations.count;
+
+      // Delete BYOK usage records
+      const deletedByokUsage = await tx.byokUsage.deleteMany({
+        where: { shop },
+      });
+      deletionStats.byokUsage = deletedByokUsage.count;
 
       // Delete sessions
       const deletedSessionRecords = await tx.session.deleteMany({
