@@ -139,6 +139,9 @@
     "todayUsage": "今天",
     "thisMonthUsage": "本月",
     "noUsageData": "尚无使用数据。一旦客户开始与您的助手聊天，将开始跟踪使用情况。",
+    "conversationUsage": "会话使用情况",
+    "trackConversationUsage": "跟踪您每月的会话使用情况，并遵守您的套餐限制。",
+    "resetConversationUsage": "每月1日重置。升级到 BYOK 套餐（5 美元/月）或专业套餐（79 美元/月）即可无限制会话。",
     "widgetPreview": "小部件预览",
     "widgetPreviewPosition": "位置",
     "integration": {

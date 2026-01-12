@@ -139,6 +139,9 @@
     "thisMonthUsage": "Diesen Monat",
     "noUsageData": "Noch keine Nutzungsdaten verfügbar. Die Verfolgung beginnt, sobald Kunden mit Ihrem Assistenten chatten.",
     "workflowInfoCustom": "Benutzerdefinierter Workflow: Leitet Nachrichten an Ihren eigenen N8N-Workflow zur benutzerdefinierten KI-Verarbeitung und Antworten weiter.",
+    "conversationUsage": "Konversationsnutzung",
+    "trackConversationUsage": "Verfolgen Sie Ihre monatliche Konversationsnutzung und halten Sie sich an die Limits Ihres Plans.",
+    "resetConversationUsage": "Wird am 1. jeden Monats zurückgesetzt. Wechseln Sie zum BYOK-Plan (5 $/Monat) oder zum Pro-Plan (79 $/Monat) für unbegrenzte Gespräche.",
     "widgetPreview": "Widget-Vorschau",
     "widgetPreviewPosition": "Position",
     "integration": {

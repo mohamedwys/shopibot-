@@ -119,6 +119,7 @@
     "webhookInvalidHelp": "Saisissez l’URL complète de votre webhook N8N (doit commencer par https://)",
     "webhookEmptyHelp": "Saisissez l’URL de votre webhook N8N pour utiliser un workflow personnalisé. Laissez vide pour utiliser le workflow par défaut.",
     "workflowInfoDefault": "Workflow par défaut : utilise l’assistant IA préconfiguré du développeur avec des recommandations de produits et le contexte de la boutique.",
+    "workflowInfoCustom": "Workflow personnalisé : transfère les messages vers votre propre workflow N8N pour un traitement et des réponses IA personnalisés.",
     "pricingPlan": "Plan Tarifaire",
     "pricingPlanDesc": "Sélectionnez votre plan d'abonnement. Chaque plan offre des fonctionnalités et des tarifs différents selon vos besoins.",
     "planBYOK": "BYOK (Apportez votre propre clé)",
@@ -140,7 +141,9 @@
     "todayUsage": "Aujourd'hui",
     "thisMonthUsage": "Ce mois-ci",
     "noUsageData": "Aucune donnée d'utilisation disponible pour le moment. Le suivi commencera dès que les clients commenceront à discuter avec votre assistant.",
-    "workflowInfoCustom": "Workflow personnalisé : transfère les messages vers votre propre workflow N8N pour un traitement et des réponses IA personnalisés.",
+    "conversationUsage": "Utilisation des Conversations",
+    "trackConversationUsage": "Suivez votre utilisation mensuelle des conversations et respectez les limites de votre forfait.",
+    "resetConversationUsage":"Se réinitialise le 1er de chaque mois. Passez au forfait BYOK (5 $/mois) ou au forfait professionnel (79 $/mois) pour des conversations illimitées.",
     "widgetPreview": "Aperçu du widget",
     "widgetPreviewPosition": "Position",
     "integration": {

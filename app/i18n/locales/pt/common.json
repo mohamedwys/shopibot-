@@ -139,6 +139,9 @@
     "todayUsage": "Hoje",
     "thisMonthUsage": "Este mês",
     "noUsageData": "Ainda não há dados de uso disponíveis. O monitoramento começará quando os clientes começarem a conversar com seu assistente.",
+    "conversationUsage": "Uso de Conversas",
+    "trackConversationUsage": "Acompanhe seu uso mensal de conversas e respeite os limites do seu plano.",
+    "resetConversationUsage": "Reinicia no dia 1 de cada mês. Faça upgrade para o plano BYOK (5 $/mês) ou plano Pro (79 $/mês) para conversas ilimitadas.",
     "widgetPreview": "Visualização do widget",
     "widgetPreviewPosition": "Posição",
     "integration": {

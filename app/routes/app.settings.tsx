@@ -605,10 +605,10 @@ export default function SettingsPage() {
             <Card>
               <BlockStack gap="400">
                 <Text variant="headingMd" as="h2">
-                  Conversation Usage
+                  {t("settings.conversationUsage")}
                 </Text>
                 <Text variant="bodyMd" as="p" tone="subdued">
-                  Track your monthly conversation usage and stay within your plan limits.
+                  {t("settings.trackConversationUsage")}
                 </Text>
 
                 <BlockStack gap="300">
@@ -681,7 +681,7 @@ export default function SettingsPage() {
 
                   {conversationUsage.percentUsed < 90 && (
                     <Text variant="bodySm" as="p" tone="subdued">
-                      Resets on the 1st of each month. Upgrade to Professional Plan ($79/month) for unlimited conversations.
+                      {t("settings.resetConversationUsage")}
                     </Text>
                   )}
                 </BlockStack>

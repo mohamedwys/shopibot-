@@ -139,6 +139,9 @@
     "todayUsage": "今日",
     "thisMonthUsage": "今月",
     "noUsageData": "まだ使用データはありません。顧客がアシスタントとチャットを開始すると追跡が開始されます。",
+    "conversationUsage": "会話の利用状況",
+    "trackConversationUsage": "月ごとの会話利用状況を追跡し、プランの制限を守ってください。",
+    "resetConversationUsage": "毎月1日にリセットされます。BYOKプラン（5$/月）またはプロプラン（79$/月）にアップグレードすると無制限の会話が可能です。",
     "widgetPreview": "ウィジェットプレビュー",
     "widgetPreviewPosition": "位置",
     "integration": {

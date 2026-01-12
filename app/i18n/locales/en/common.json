@@ -141,6 +141,9 @@
     "todayUsage": "Today",
     "thisMonthUsage": "This Month",
     "noUsageData": "No usage data available yet. Usage tracking will begin once customers start chatting with your assistant.",
+    "conversationUsage": "Conversation Usage",
+    "trackConversationUsage": "Track your monthly conversation usage and stay within your plan limits.",
+    "resetConversationUsage":"Resets on the 1st of each month. Upgrade to BYOK Plan ($5/month) or Professional Plan ($79/month) for unlimited conversations.",
     "widgetPreview": "Widget Preview",
     "widgetPreviewPosition": "Position",
     "integration": {

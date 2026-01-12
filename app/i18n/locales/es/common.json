@@ -139,6 +139,9 @@
     "todayUsage": "Hoy",
     "thisMonthUsage": "Este mes",
     "noUsageData": "Aún no hay datos de uso disponibles. El seguimiento comenzará cuando los clientes empiecen a chatear con tu asistente.",
+    "conversationUsage": "Uso de Conversaciones",
+    "trackConversationUsage": "Sigue tu uso mensual de conversaciones y respeta los límites de tu plan.",
+    "resetConversationUsage": "Se restablece el día 1 de cada mes. Cambia al plan BYOK (5 $/mes) o al plan Pro (79 $/mes) para conversaciones ilimitadas.",
     "widgetPreview": "Vista previa del widget",
     "widgetPreviewPosition": "Posición",
     "integration": {
