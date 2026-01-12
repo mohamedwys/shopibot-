@@ -28,6 +28,9 @@ import { requireBilling, getPlanLimits, checkBillingStatus } from "../lib/billin
 import { prisma as db } from "../db.server";
 import { useTranslation } from "react-i18next";
 import { encryptApiKey, decryptApiKey, isValidOpenAIKey } from "../lib/encryption.server";
+import { getConversationUsage, formatResetDate } from "../lib/conversation-usage.server";
+import { PlanCode, getPlanOptions, normalizePlanCode } from "../lib/plans.config";
+import type { WidgetSettings, ConversationUsage, SettingsLoaderData, ActionData } from "../lib/types";
 
 export const handle = {
   i18n: "common",
@@ -43,7 +46,7 @@ const DEFAULT_SETTINGS = {
   inputPlaceholder: "Ask me anything about our products...",
   primaryColor: "#4c71d6ff",
   interfaceLanguage: "en",
-  plan: "BASIC",
+  plan: PlanCode.STARTER, // ✅ Use standardized plan code
   openaiApiKey: "",
 };
 
@@ -71,49 +74,38 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
 
     // Decrypt OpenAI API key if it exists
-    let decryptedSettings = { ...settings };
-    if ((settings as any).openaiApiKey) {
+    let decryptedSettings: WidgetSettings = { ...settings } as WidgetSettings;
+    if (settings.openaiApiKey) {
       try {
-        (decryptedSettings as any).openaiApiKey = decryptApiKey((settings as any).openaiApiKey);
+        decryptedSettings.openaiApiKey = decryptApiKey(settings.openaiApiKey);
       } catch (error) {
         logger.error(error, "Failed to decrypt OpenAI API key");
         // If decryption fails, clear the key to avoid showing corrupted data
-        (decryptedSettings as any).openaiApiKey = "";
+        decryptedSettings.openaiApiKey = "";
       }
     }
 
-    // ✅ NEW: Fetch conversation usage for current month
-    let conversationUsage = null;
+    // Normalize plan code to ensure consistency (handles legacy BASIC/UNLIMITED codes)
+    decryptedSettings.plan = normalizePlanCode(settings.plan);
+
+    // ✅ IMPROVED: Use shared conversation usage utility with proper timezone handling
+    let conversationUsage: ConversationUsage | null = null;
+    let planLimits = null;
+    let activePlan = null;
+
     try {
-      const now = new Date();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+      // Get conversation usage using centralized utility
+      conversationUsage = await getConversationUsage(session.shop, billing);
 
-      const conversationCount = await db.conversation.count({
-        where: {
-          shop: session.shop,
-          timestamp: {
-            gte: startOfMonth
-          }
-        }
-      });
-
-      // Get billing status to determine plan
+      // Get billing status for additional plan info
       const billingStatus = await checkBillingStatus(billing);
-      const planLimits = getPlanLimits(billingStatus.activePlan);
-
-      conversationUsage = {
-        used: conversationCount,
-        limit: planLimits.maxConversations,
-        percentUsed: planLimits.maxConversations === Infinity
-          ? 0
-          : Math.round((conversationCount / planLimits.maxConversations) * 100),
-        isUnlimited: planLimits.maxConversations === Infinity,
-        currentPlan: billingStatus.activePlan
-      };
+      planLimits = getPlanLimits(billingStatus.activePlan);
+      activePlan = billingStatus.activePlan;
 
       logger.debug({
         shop: session.shop,
-        conversationUsage
+        conversationUsage,
+        resetDate: conversationUsage.resetDate
       }, 'Fetched conversation usage');
     } catch (usageError) {
       logger.warn({
@@ -123,7 +115,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       // Continue without usage data
     }
 
-    return json({ settings: decryptedSettings, conversationUsage });
+    const loaderData: SettingsLoaderData = {
+      settings: decryptedSettings,
+      conversationUsage,
+      planLimits,
+      activePlan
+    };
+
+    return json(loaderData);
   } catch (error) {
     logger.error(error, `Database error in settings loader for shop: ${session.shop}`);
     console.error("Full database error:", error);
@@ -151,11 +150,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     ? webhookUrl.trim()
     : null;
   const workflowType = (formData.get("workflowType") as string) || "DEFAULT";
-  const plan = (formData.get("plan") as string) || "BASIC";
+  const planFromForm = (formData.get("plan") as string) || PlanCode.STARTER;
+  // ✅ Normalize plan code to handle legacy values
+  const plan = normalizePlanCode(planFromForm);
   const openaiApiKey = formData.get("openaiApiKey") as string | null;
 
   // Validation: If plan is BYOK, openaiApiKey must be provided
-  if (plan === "BYOK") {
+  if (plan === PlanCode.BYOK) {
     if (!openaiApiKey || openaiApiKey.trim() === "") {
       return json({
         success: false,
@@ -250,17 +251,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function SettingsPage() {
-  const { settings: initialSettings, conversationUsage } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
+  const { settings: initialSettings, conversationUsage, planLimits, activePlan } = useLoaderData<SettingsLoaderData>();
+  const actionData = useActionData<ActionData>();
   const submit = useSubmit();
   const { t } = useTranslation();
 
-  const [settings, setSettings] = useState(initialSettings);
+  const [settings, setSettings] = useState<WidgetSettings>(initialSettings);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
   const [isTestingKey, setIsTestingKey] = useState(false);
   const [keyTestResult, setKeyTestResult] = useState<{ valid: boolean; message: string } | null>(null);
-  const [usageData, setUsageData] = useState<any>(null);
+  const [usageData, setUsageData] = useState<any>(null); // TODO: Type this properly when BYOK usage types are defined
   const [loadingUsage, setLoadingUsage] = useState(false);
 
   // Show success banner when settings are saved
@@ -272,11 +273,11 @@ export default function SettingsPage() {
 
   // Fetch usage data for BYOK plan
   useEffect(() => {
-    if ((settings as any).plan === "BYOK") {
+    if (settings.plan === PlanCode.BYOK) {
       const fetchUsage = async () => {
         setLoadingUsage(true);
         try {
-          const response = await fetch(`/api/byok-usage?shop=${encodeURIComponent((settings as any).shop)}`);
+          const response = await fetch(`/api/byok-usage?shop=${encodeURIComponent(settings.shop)}`);
           if (response.ok) {
             const data = await response.json();
             setUsageData(data);
@@ -289,7 +290,7 @@ export default function SettingsPage() {
       };
       fetchUsage();
     }
-  }, [(settings as any).plan, (settings as any).shop]);
+  }, [settings.plan, settings.shop]);
 
   const handleSave = useCallback(() => {
     setIsSaving(true);

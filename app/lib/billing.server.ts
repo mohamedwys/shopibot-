@@ -1,5 +1,6 @@
 import { redirect } from "@remix-run/node";
 import type { AdminContext } from "@shopify/shopify-app-remix/server";
+import { getAllBillingNames, getPlanLimits as getConfigPlanLimits, type PlanLimits } from "./plans.config";
 
 /**
  * Billing utility functions for Shopify App
@@ -27,7 +28,7 @@ export async function checkBillingStatus(
   billing: BillingAPI
 ): Promise<BillingCheckResult> {
   const { hasActivePayment, appSubscriptions } = await billing.check({
-    plans: ["BYOK Plan", "Starter Plan", "Professional Plan"] as any,
+    plans: getAllBillingNames() as any,
     isTest: process.env.NODE_ENV !== "production",
   });
 
@@ -61,7 +62,7 @@ export async function requireBilling(
   }
 
   const billingCheck = await billing.require({
-    plans: ["BYOK Plan", "Starter Plan", "Professional Plan"] as any,
+    plans: getAllBillingNames() as any,
     isTest: process.env.NODE_ENV !== "production",
     onFailure: async () => {
       // No active subscription - redirect to onboarding page
@@ -109,46 +110,12 @@ export async function hasStarterPlan(
 /**
  * Get plan limits based on subscription
  *
- * @param activePlan - Name of active plan
+ * This is a wrapper around the centralized getPlanLimits from plans.config
+ * to maintain backward compatibility.
+ *
+ * @param activePlan - Name of active plan (can be billing name, plan code, or legacy code)
  * @returns Plan limits configuration
  */
-export function getPlanLimits(activePlan: string | null) {
-  switch (activePlan) {
-    case "BYOK Plan":
-      return {
-        maxConversations: Infinity,
-        hasAdvancedAnalytics: false,
-        hasCustomWebhook: false,
-        hasPrioritySupport: false,
-        hasSentimentAnalysis: false,
-      };
-
-    case "Starter Plan":
-      return {
-        maxConversations: 1000,
-        hasAdvancedAnalytics: false,
-        hasCustomWebhook: false,
-        hasPrioritySupport: false,
-        hasSentimentAnalysis: false,
-      };
-
-    case "Professional Plan":
-      return {
-        maxConversations: Infinity,
-        hasAdvancedAnalytics: true,
-        hasCustomWebhook: true,
-        hasPrioritySupport: true,
-        hasSentimentAnalysis: true,
-      };
-
-    default:
-      // No active plan - free tier (limited functionality)
-      return {
-        maxConversations: 0,
-        hasAdvancedAnalytics: false,
-        hasCustomWebhook: false,
-        hasPrioritySupport: false,
-        hasSentimentAnalysis: false,
-      };
-  }
+export function getPlanLimits(activePlan: string | null): PlanLimits {
+  return getConfigPlanLimits(activePlan);
 }
