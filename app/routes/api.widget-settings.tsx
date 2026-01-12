@@ -8,7 +8,6 @@ import { chatRequestSchema, validateData, validationErrorResponse } from "../lib
 import { getAPISecurityHeaders, mergeSecurityHeaders } from "../lib/security-headers.server";
 import { logError, createLogger } from "../lib/logger.server";
 import { personalizationService } from "../services/personalization.service";
-import { getPlanLimits } from "../lib/billing.server";
 import { checkConversationLimit, getConversationUsage } from "../lib/conversation-usage.server";
 import { normalizePlanCode, PlanCode } from "../lib/plans.config";
 import type { WidgetSettings } from "../lib/types";
