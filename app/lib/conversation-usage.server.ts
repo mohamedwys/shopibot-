@@ -70,14 +70,6 @@ export async function getConversationUsage(
   });
   planIdentifier = settings?.plan || 'STARTER';
 
-  // 🔍 DEBUG: Log plan identifier from database
-  console.log('🔍 DEBUG getConversationUsage:', {
-    shop,
-    rawPlan: settings?.plan,
-    planIdentifier,
-    settingsExists: !!settings,
-  });
-
   // Optional: Validate against billing if available (for logging/warnings)
   if (billing) {
     try {
@@ -99,15 +91,6 @@ export async function getConversationUsage(
   const planCode = normalizePlanCode(planIdentifier);
   const planLimits = getPlanLimits(planCode);
 
-  // 🔍 DEBUG: Log normalized plan and limits
-  console.log('🔍 DEBUG plan normalization:', {
-    shop,
-    planIdentifier,
-    planCode,
-    maxConversations: planLimits.maxConversations,
-    isInfinity: planLimits.maxConversations === Infinity,
-  });
-
   // Get billing period boundaries (UTC)
   const periodStart = getBillingPeriodStart();
   const periodEnd = getNextBillingPeriodStart();
@@ -128,17 +111,6 @@ export async function getConversationUsage(
   const percentUsed = isUnlimited
     ? 0
     : Math.round((conversationCount / planLimits.maxConversations) * 100);
-
-  // 🔍 DEBUG: Log final calculation
-  console.log('🔍 DEBUG usage calculation:', {
-    shop,
-    conversationCount,
-    maxConversations: planLimits.maxConversations,
-    isUnlimited,
-    percentUsed,
-    limitEqualsInfinity: planLimits.maxConversations === Infinity,
-    limitType: typeof planLimits.maxConversations,
-  });
 
   return {
     used: conversationCount,

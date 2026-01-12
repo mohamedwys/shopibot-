@@ -252,7 +252,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
             data: { plan: normalizedPlan }
           });
           settings.plan = normalizedPlan;
-          console.log(`✅ Migrated plan code for ${shopDomain}: ${originalPlan} → ${normalizedPlan}`);
         } catch (error) {
           console.warn(`Failed to migrate plan code for ${shopDomain}:`, error);
         }
@@ -391,9 +390,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
 
     routeLogger.debug({ messageLength: finalMessage.length }, 'Processing chat message');
-    console.log("========================================");
-    console.log("🔍 DEBUG: User message:", finalMessage);
-    console.log("🔍 DEBUG: Shop:", shopDomain);
 
     // ========================================
     // CONVERSATION LIMIT ENFORCEMENT
@@ -504,9 +500,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       sentiment,
       language: detectedLanguage
     }, 'Intent, sentiment, and language detected');
-    console.log("🔍 DEBUG: Detected intent:", JSON.stringify(intent));
-    console.log("🔍 DEBUG: Detected sentiment:", sentiment);
-    console.log("🔍 DEBUG: Detected language:", detectedLanguage);
 
     // ========================================
     // HANDLE SUPPORT INTENTS (NO PRODUCTS)
@@ -535,13 +528,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
     if (shouldFetchProducts && !isSupportIntent) {
       try {
-        console.log('🔍 STEP 1: Getting admin context for shop:', shopDomain);
         // Use unauthenticated admin (uses offline token, works in production)
         const { admin: shopAdmin } = await unauthenticated.admin(shopDomain);
-        console.log('✅ STEP 2: Admin context obtained successfully');
-
-        console.log('🛍️ DEBUG: Product intent detected, fetching from Shopify...');
-        console.log('🔍 DEBUG: Intent type:', intent.type);
 
         // ✅ CRITICAL FIX: Build GraphQL query based on SPECIFIC intent
         let graphqlQuery = `
@@ -676,19 +664,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
           variables.query = "status:active";
         }
 
-        console.log('🔍 STEP 3: Building GraphQL query with:', {
-          intentType: intent.type,
-          graphqlQuery: variables.query || 'sortKey-based query',
-          message: finalMessage
-        });
-
         routeLogger.info({
           intentType: intent.type,
           graphqlQuery: variables.query || 'sortKey-based query',
           message: finalMessage
         }, '🔍 Query being sent to GraphQL');
-
-        console.log('🔍 STEP 4: Sending GraphQL query...');
 
         // ✅ PERFORMANCE FIX: Add 15-second timeout to prevent hanging GraphQL requests
         const graphqlPromise = shopAdmin.graphql(graphqlQuery, { variables });
@@ -705,16 +685,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
             productsFetchFailed = true;
             products = [];
             // Continue with empty products rather than failing
-            console.log('⏱️ STEP 5: GraphQL timeout - continuing with empty products');
           } else {
             throw timeoutError; // Re-throw other errors
           }
         }
 
         if (response) {
-          console.log('✅ STEP 5: GraphQL response received, parsing...');
           const responseData = (await response.json()) as any;
-          console.log('🔍 STEP 6: Response data:', JSON.stringify(responseData).substring(0, 500));
 
           // ✅ CHECK FOR GRAPHQL ERRORS
           if (responseData.errors) {
@@ -726,9 +703,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
             productsFetchFailed = true;
             products = [];
           } else {
-            console.log('✅ STEP 8: No GraphQL errors, mapping products...');
-            console.log('🔍 Edges count:', responseData?.data?.products?.edges?.length || 0);
-            console.log('📦 DEBUG: Raw GraphQL response:', JSON.stringify(responseData, null, 2).substring(0, 1000));
             products = responseData?.data?.products?.edges?.map((edge: any) => ({
               id: edge.node.id,
               title: edge.node.title,
@@ -743,8 +717,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
               reviewCount: 0 // Add if you have review apps
             })) || [];
 
-            console.log('✅ STEP 9: Products mapped successfully. Count:', products.length);
-            console.log('🎯 DEBUG: First 3 products:', JSON.stringify(products.slice(0, 3), null, 2));
             routeLogger.info({ count: products.length, shop: shopDomain, intent: intent.type }, '✅ Fetched products');
           }
         }
@@ -776,8 +748,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         products = [];
       }
     } else {
-      console.log('ℹ️ Support intent or non-product intent, skipping product fetch');
-      console.log('🔍 Intent type:', intent.type);
       routeLogger.info({ intent: intent.type }, 'Skipping product fetch for support intent');
     }
 
@@ -977,16 +947,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       }
     }
 
-    // ✅ LOG WHICH WORKFLOW IS BEING USED
-    console.log('========================================');
-    console.log(`🔄 WORKFLOW: ${workflowDescription}`);
-    console.log(`📍 Shop: ${shopDomain}`);
-    console.log(`💎 Plan: ${plan}`);
-    console.log(`🎯 Intent: ${intent.type}`);
-    console.log(`🌐 Language: ${enhancedContext.locale || 'auto-detect'}`);
-    console.log(`🔗 Webhook: ${webhookUrl ? webhookUrl.substring(0, 30) + '...' : 'NOT SET'}`);
-    console.log('========================================');
-
     routeLogger.info({
       workflow: workflowDescription,
       workflowType,
@@ -1021,7 +981,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         let shopPolicies: any = null;
 
         try {
-          console.log('📋 Fetching shop policies from Shopify...');
           const { admin: shopAdmin } = await unauthenticated.admin(shopDomain);
 
           const policiesQuery = `
@@ -1047,7 +1006,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
             policiesResponse = await Promise.race([policiesPromise, policiesTimeoutPromise]) as any;
           } catch (timeoutError: any) {
             if (timeoutError.message === 'Policies GraphQL query timeout') {
-              console.log('⏱️ Shop policies fetch timed out - continuing without policies');
               routeLogger.warn({ shop: shopDomain }, 'Shop policies GraphQL query timed out after 10 seconds');
               // Continue without policies rather than failing
               shopPolicies = null;
@@ -1066,12 +1024,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
                 shipping: policiesData.data.shop.shippingPolicy?.body || null,
                 privacy: policiesData.data.shop.privacyPolicy?.body || null
               };
-              console.log('✅ Shop policies fetched:', {
-                shopName: shopPolicies.shopName,
-                hasReturns: !!shopPolicies.returns,
-                hasShipping: !!shopPolicies.shipping,
-                hasPrivacy: !!shopPolicies.privacy
-              });
             }
           }
         } catch (policyError) {
@@ -1228,11 +1180,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         // Limit to 8 products for display
         recommendations = products.slice(0, 8);
 
-        console.log('🎯 DEBUG: Products available for recommendations:', products.length);
-        console.log('🎯 DEBUG: Recommendations to show:', recommendations.length);
-
         // Try N8N first, but have fallback ready
-        console.log('🤖 DEBUG: Calling N8N service for AI response...');
         try {
           const { N8NService } = await import("../services/n8n.service.server");
           const customN8NService = new N8NService(webhookUrl);
@@ -1242,23 +1190,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
             context: enhancedContext
           });
 
-          console.log('🤖 DEBUG: Received N8N response:', n8nResponse.message.substring(0, 200));
-          console.log('🤖 DEBUG: N8N recommendations count:', n8nResponse.recommendations?.length || 0);
-
           // ✅ TRUST THE AI: Use N8N's response and recommendations as-is
           // The AI knows best what to recommend based on the user's query
           if (n8nResponse.recommendations && n8nResponse.recommendations.length > 0) {
             recommendations = n8nResponse.recommendations;
-            console.log('✅ DEBUG: Using N8N recommendations:', recommendations.length);
             routeLogger.info({ count: recommendations.length }, 'Using N8N recommendations');
           } else if (products.length > 0) {
             // Only use fallback products if N8N didn't provide any but products are available
             recommendations = recommendations;
-            console.log('✅ DEBUG: Using fallback recommendations:', recommendations.length);
             routeLogger.info({ count: recommendations.length }, 'Using fallback recommendations');
           }
         } catch (error) {
-          console.log('❌ DEBUG: N8N service failed:', (error as Error).message);
           routeLogger.warn({ error: (error as Error).message }, 'N8N failed, using fallback');
           // Use fallback response
           n8nResponse = {
@@ -1272,8 +1214,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       }
       // ✅ NEW: Handle product intent when NO products found
       else if (isProductIntent && products.length === 0) {
-        console.log('📭 DEBUG: Product intent but no products found - asking N8N for help');
-
         // Get language for localized message
         const lang: string = (enhancedContext.locale?.toLowerCase().split('-')[0] || 'en');
 
@@ -1292,11 +1232,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
           });
 
           recommendations = [];
-          console.log('✅ DEBUG: N8N handled no-products scenario');
           routeLogger.info({ intent: intent.type }, 'N8N handled product search with no results');
         } catch (error) {
-          console.log('❌ DEBUG: N8N failed for no-products scenario, using fallback');
-
           // Fallback messages by language
           const noProductMessages: Record<string, string> = {
             fr: "Je suis désolé, nous n'avons pas de produits correspondant à votre recherche pour le moment. Puis-je vous aider à trouver autre chose ?",
@@ -1327,8 +1264,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         }
       } else {
         // General chat - use N8N
-        console.log('💬 DEBUG: General chat intent - calling N8N...');
-        console.log('📦 DEBUG: Sending', products.length, 'products to N8N for context');
         try {
           const { N8NService } = await import("../services/n8n.service.server");
           const customN8NService = new N8NService(webhookUrl);
@@ -1337,9 +1272,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
             products: products, // ✅ BYOK FIX: Always send products so AI knows actual inventory
             context: enhancedContext
           });
-
-          console.log('💬 DEBUG: N8N response for general chat:', n8nResponse.message ? n8nResponse.message.substring(0, 200) : '[no message]');
-          console.log('💬 DEBUG: N8N recommendations count:', n8nResponse.recommendations?.length || 0);
 
           // ✅ TRUST THE AI: Use N8N's response as-is
           // The AI knows best how to respond to general chat queries
@@ -1364,13 +1296,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
 
     const responseTime = Date.now() - startTime;
-
-    console.log('📨 DEBUG: Final response being returned:');
-    console.log('  - Message:', n8nResponse.message ? n8nResponse.message.substring(0, 100) : '[no message]');
-    console.log('  - Recommendations count:', recommendations.length);
-    console.log('  - Confidence:', n8nResponse.confidence);
-    console.log('  - Response time:', responseTime, 'ms');
-    console.log("========================================");
 
     routeLogger.info({
       hasRecommendations: recommendations.length > 0,
