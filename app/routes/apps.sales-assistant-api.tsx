@@ -164,7 +164,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const customerId = context.customerId;
 
     // Get products for context
-    const response = await admin.graphql(`
+    // ✅ PERFORMANCE FIX: Add 15-second timeout to prevent hanging GraphQL requests
+    const graphqlPromise = admin.graphql(`
       #graphql
       query getProducts($first: Int!) {
         products(first: $first) {
@@ -191,6 +192,31 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     `, {
       variables: { first: 50 }
     });
+
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('GraphQL timeout')), 15000)
+    );
+
+    let response;
+    try {
+      response = await Promise.race([graphqlPromise, timeoutPromise]) as any;
+    } catch (timeoutError: any) {
+      if (timeoutError.message === 'GraphQL timeout') {
+        logError(timeoutError, 'GraphQL query timed out in sales assistant API');
+        // Return empty product array if timeout occurs
+        return json({
+          error: "Request timeout",
+          message: "The request took too long to process. Please try again."
+        }, {
+          status: 504, // Gateway Timeout
+          headers: mergeSecurityHeaders(
+            getSecureCorsHeaders(request),
+            getAPISecurityHeaders()
+          )
+        });
+      }
+      throw timeoutError;
+    }
 
     const responseData = (response as any).data;
     const products = responseData?.products?.edges?.map((edge: any) => ({

@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { logger } from "../lib/logger.server";
 import { json } from "@remix-run/node";
-import { useActionData, useLoaderData, useSubmit } from "@remix-run/react";
+import { useActionData, useLoaderData, useSubmit, useNavigate } from "@remix-run/react";
 import {
   Page,
   Layout,
@@ -314,6 +314,7 @@ export default function SettingsPage() {
   const { settings: initialSettings, conversationUsage, planLimits, activePlan } = useLoaderData<SettingsLoaderData>();
   const actionData = useActionData<ActionData>();
   const submit = useSubmit();
+  const navigate = useNavigate();
   const { t } = useTranslation();
 
   const [settings, setSettings] = useState<WidgetSettings>(initialSettings);
@@ -758,7 +759,7 @@ export default function SettingsPage() {
                         <Button
                           variant="primary"
                           tone="critical"
-                          onClick={() => window.location.href = '/app/billing'}
+                          onClick={() => navigate('/app/billing')}
                         >
                           Upgrade Now
                         </Button>
@@ -1008,7 +1009,7 @@ export default function SettingsPage() {
                 <Text variant="bodyMd" as="p">
                   Connect your own n8n workflow or custom AI endpoint to fully customize the chatbot behavior.
                 </Text>
-                <Button onClick={() => window.location.href = '/app/billing'}>
+                <Button onClick={() => navigate('/app/billing')}>
                   Upgrade to Professional
                 </Button>
               </BlockStack>
