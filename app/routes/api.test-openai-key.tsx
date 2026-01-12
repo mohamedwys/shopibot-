@@ -45,13 +45,35 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     // Test the API key by making a simple request to OpenAI
     logger.info({ shop }, "Testing OpenAI API key");
 
-    const testResponse = await fetch("https://api.openai.com/v1/models", {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
+    // ✅ PERFORMANCE FIX: Add 10-second timeout to prevent hanging requests
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 seconds
+
+    let testResponse;
+    try {
+      testResponse = await fetch("https://api.openai.com/v1/models", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json"
+        },
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+    } catch (fetchError: any) {
+      clearTimeout(timeoutId);
+      if (fetchError.name === 'AbortError') {
+        logger.error({ shop }, "OpenAI API request timed out after 10 seconds");
+        return json({
+          valid: false,
+          message: "Request timed out. OpenAI API is not responding. Please try again later.",
+          details: {
+            error: "timeout"
+          }
+        }, { status: 504 }); // Gateway Timeout
       }
-    });
+      throw fetchError; // Re-throw other errors
+    }
 
     const now = new Date();
 
