@@ -137,17 +137,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       shop,
       error: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined
-    }, "Error deleting shop data - manual cleanup required");
+    }, "Error deleting shop data - Shopify will retry");
 
-    // Return success to Shopify to prevent retries
-    // Manual investigation will be needed if this fails
+    // ✅ GDPR COMPLIANCE FIX: Return 500 to allow webhook retries for transient errors
+    // Shopify will retry failed webhooks automatically
+    // This ensures data deletion completes even if temporary issues occur
     return new Response(JSON.stringify({
       error: "Error deleting shop data",
       message: error instanceof Error ? error.message : 'Unknown error',
       shop_domain: shop,
-      // Return 200 to prevent retries - manual cleanup may be needed
     }), {
-      status: 200,
+      status: 500,
       headers: { "Content-Type": "application/json", ...getWebhookSecurityHeaders() }
     });
   }

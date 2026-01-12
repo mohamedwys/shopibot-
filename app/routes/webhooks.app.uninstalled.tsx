@@ -132,15 +132,16 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       shop,
       error: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined
-    }, "Error during app uninstall cleanup - shop/redact webhook will retry in 48 hours");
+    }, "Error during app uninstall cleanup - Shopify will retry");
 
-    // Return success to prevent webhook retries
-    // The shop/redact webhook (48 hours later) will catch any missed data
+    // ✅ GDPR COMPLIANCE FIX: Return 500 to allow webhook retries for transient errors
+    // Shopify will retry failed webhooks automatically
+    // The shop/redact webhook (48 hours later) provides additional backup
     return new Response(JSON.stringify({
       error: "Cleanup error",
       message: error instanceof Error ? error.message : 'Unknown error',
     }), {
-      status: 200,
+      status: 500,
       headers: { "Content-Type": "application/json", ...getWebhookSecurityHeaders() }
     });
   }
