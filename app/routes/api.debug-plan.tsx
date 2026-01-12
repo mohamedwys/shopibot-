@@ -10,6 +10,11 @@ import { normalizePlanCode, getPlanLimits, getPlanConfig } from "../lib/plans.co
 import { getConversationUsage } from "../lib/conversation-usage.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
+  // ✅ SECURITY FIX: Block access to debug API in production
+  if (process.env.NODE_ENV === 'production') {
+    return json({ error: "Not Found" }, { status: 404 });
+  }
+
   const url = new URL(request.url);
   const shop = url.searchParams.get("shop");
 

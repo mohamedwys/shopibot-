@@ -16,6 +16,11 @@ import { getConversationUsage } from "../lib/conversation-usage.server";
 import { normalizePlanCode, PlanCode, CODE_TO_BILLING_NAME } from "../lib/plans.config";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
+  // ✅ SECURITY FIX: Block access to debug routes in production
+  if (process.env.NODE_ENV === 'production') {
+    throw new Response("Not Found", { status: 404 });
+  }
+
   const { billing, session } = await authenticate.admin(request);
 
   // Step 1: Get database settings

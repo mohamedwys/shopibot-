@@ -6,6 +6,11 @@ import { prisma as db } from "../db.server";
 import { Page, Card, BlockStack, Text, Layout } from "@shopify/polaris";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
+  // ✅ SECURITY FIX: Block access to debug routes in production
+  if (process.env.NODE_ENV === 'production') {
+    throw new Response("Not Found", { status: 404 });
+  }
+
   const { session } = await authenticate.admin(request);
   const shop = session.shop;
 

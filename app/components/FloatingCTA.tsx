@@ -18,7 +18,7 @@ export function FloatingCTA() {
       <div className="floating-cta-content">
         <div className="floating-cta-text">
           <div className="floating-cta-title">Ready to transform your store?</div>
-          <div className="floating-cta-subtitle">Start your 14-day free trial today</div>
+          <div className="floating-cta-subtitle">Start your 7-day free trial today</div>
         </div>
         <a href="#pricing" className="floating-cta-button">
           Get Started Free

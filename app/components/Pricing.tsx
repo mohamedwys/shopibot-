@@ -61,7 +61,7 @@ export function Pricing() {
             <span className="pricing-highlight"> Pricing</span>
           </h2>
           <p className="pricing-subtitle">
-            Start free for 14 days. No credit card required. Cancel anytime.
+            Start free for 7 days. No credit card required. Cancel anytime.
           </p>
         </div>
 

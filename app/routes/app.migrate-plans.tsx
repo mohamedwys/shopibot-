@@ -15,6 +15,11 @@ import { authenticate } from "../shopify.server";
 import { migratePlanCodes } from "../lib/migrate-plans.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
+  // ✅ SECURITY FIX: Block access to migration tool in production
+  if (process.env.NODE_ENV === 'production') {
+    throw new Response("Not Found", { status: 404 });
+  }
+
   await authenticate.admin(request);
 
   try {
