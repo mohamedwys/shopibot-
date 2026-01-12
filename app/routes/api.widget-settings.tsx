@@ -1,8 +1,8 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { authenticate, unauthenticated, sessionStorage } from "../shopify.server";
+import { unauthenticated } from "../shopify.server";
 import { prisma as db } from "../db.server";
-import { getSecureCorsHeaders, createCorsPreflightResponse, isOriginAllowed, logCorsViolation } from "../lib/cors.server";
+import { getSecureCorsHeaders, createCorsPreflightResponse, isOriginAllowed } from "../lib/cors.server";
 import { rateLimit, RateLimitPresets } from "../lib/rate-limit.server";
 import { chatRequestSchema, validateData, validationErrorResponse } from "../lib/validation.server";
 import { getAPISecurityHeaders, mergeSecurityHeaders } from "../lib/security-headers.server";
@@ -115,12 +115,12 @@ function analyzeSentiment(message: string): string {
   const lower = message.toLowerCase();
 
   // Positive indicators
-  if (/(love|great|amazing|excellent|perfect|awesome|thank|thanks|happy|good)/.test(lower)) {
+  if (/(love|great|amazing|excellent|perfect|awesome|thank|thanks|happy|good)/i.test(lower)) {
     return "positive";
   }
 
   // Negative indicators
-  if (/(hate|bad|terrible|awful|disappointed|angry|problem|issue|wrong)/.test(lower)) {
+  if (/(hate|bad|terrible|awful|disappointed|angry|problem|issue|wrong)/i.test(lower)) {
     return "negative";
   }
 
@@ -139,7 +139,7 @@ function getLanguageFromLocale(locale: string | undefined): string | null {
 
   // Validate against supported languages
   const supportedLanguages = ['fr', 'es', 'de', 'pt', 'it', 'en'];
-  if (supportedLanguages.includes(languageCode)) {
+  if (languageCode && supportedLanguages.includes(languageCode)) {
     return languageCode;
   }
 
@@ -165,27 +165,27 @@ function detectLanguage(message: string): string {
   const lower = message.toLowerCase();
 
   // French detection - expanded with more common words including very short messages
-  if (/(bonjour|salut|merci|montre|produit|cherche|voudrais|pourrais|nouveauté|meilleures?|vente|jaimerais|j'aimerais|parler|quelqu'un|quelqun|comment|faire|avec|pour|suis|être|avoir|puis|peux|peut|dois|doit|besoin|aide|aidez|s'il vous plaît|svp|oui|non|vous|avez|des|chaussures|chaussure|je|veux|voir|bien|super|parfait|d'accord|ok|quoi|quel|quelle|tous|toutes|aussi)/i.test(message)) {
+  if (/(bonjour|salut|merci|montre|produit|cherche|voudrais|pourrais|nouveauté|meilleures?|vente|jaimerais|j'aimerais|parler|quelqu'un|quelqun|comment|faire|avec|pour|suis|être|avoir|puis|peux|peut|dois|doit|besoin|aide|aidez|s'il vous plaît|svp|oui|non|vous|avez|des|chaussures|chaussure|je|veux|voir|bien|super|parfait|d'accord|ok|quoi|quel|quelle|tous|toutes|aussi)/i.test(lower)) {
     return 'fr';
   }
 
   // Spanish detection
-  if (/(hola|gracias|producto|busco|quiero|puedo|nuevo|hablar|cómo|hacer|ayuda|necesito)/i.test(message)) {
+  if (/(hola|gracias|producto|busco|quiero|puedo|nuevo|hablar|cómo|hacer|ayuda|necesito)/i.test(lower)) {
     return 'es';
   }
 
   // German detection
-  if (/(hallo|danke|produkt|suche|möchte|kann|sprechen|wie|machen|hilfe|brauche)/i.test(message)) {
+  if (/(hallo|danke|produkt|suche|möchte|kann|sprechen|wie|machen|hilfe|brauche)/i.test(lower)) {
     return 'de';
   }
 
   // Portuguese detection
-  if (/(olá|obrigado|produto|procuro|gostaria|posso|falar|como|fazer|ajuda|preciso)/i.test(message)) {
+  if (/(olá|obrigado|produto|procuro|gostaria|posso|falar|como|fazer|ajuda|preciso)/i.test(lower)) {
     return 'pt';
   }
 
   // Italian detection
-  if (/(ciao|grazie|prodotto|cerco|vorrei|posso|parlare|come|fare|aiuto|bisogno)/i.test(message)) {
+  if (/(ciao|grazie|prodotto|cerco|vorrei|posso|parlare|come|fare|aiuto|bisogno)/i.test(lower)) {
     return 'it';
   }
 
@@ -473,7 +473,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     // 3. If locale is invalid/missing, we fallback to detecting from message content
     // 4. Language is passed to N8N in both context.locale and context.languageInstruction
     // 5. N8N workflow uses context.locale to determine response language
-    const localeLanguage = getLanguageFromLocale(context.locale);
+    const localeLanguage = getLanguageFromLocale(context.locale as string | undefined);
     const messageLanguage = detectLanguage(finalMessage);
     const detectedLanguage = localeLanguage || messageLanguage; // Use locale first, fallback to message detection
 
@@ -765,7 +765,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     // ✅ CRITICAL FIX: Fetch conversation history to prevent repeated greetings
     // This must happen BEFORE calling N8N so AI knows it's not the first message
     let conversationHistory: Array<{ role: string; content: string }> = [];
-    let chatSessionId: string | null = null;
     let isFirstMessage = true;
 
     try {
@@ -807,7 +806,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
         if (chatSession && chatSession.messages.length > 0) {
           isFirstMessage = false;
-          chatSessionId = chatSession.id;
 
           // Convert messages to conversation history format
           conversationHistory = chatSession.messages.map(msg => ({
@@ -923,14 +921,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
           plan,
           hasByokWebhook: !!process.env.N8N_WEBHOOK_BYOK
         }, '🔑 Using BYOK plan webhook');
-      } else if (plan === 'BASIC') {
+      } else if (plan === 'Starter') {
         // BASIC Plan ($25/month): Use default webhook
         webhookUrl = process.env.N8N_WEBHOOK_URL;
-        workflowDescription = 'BASIC Plan Workflow ($25/month)';
-      } else if (plan === 'UNLIMITED') {
+        workflowDescription = 'Starter Plan Workflow ($25/month)';
+      } else if (plan === 'Pro') {
         // UNLIMITED Plan ($79/month): Use default webhook (or could be a separate one)
         webhookUrl = process.env.N8N_WEBHOOK_URL;
-        workflowDescription = 'UNLIMITED Plan Workflow ($79/month)';
+        workflowDescription = 'Pro Plan Workflow ($79/month)';
       } else {
         // Fallback for unknown plans
         webhookUrl = process.env.N8N_WEBHOOK_URL;
@@ -1033,8 +1031,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
           products: [], // NO PRODUCTS - support questions don't need inventory
           context: {
             ...enhancedContext,
-            intentType: "customer_support",
-            supportCategory: intent.type, // SHIPPING_INFO, RETURNS, TRACK_ORDER, or HELP_FAQ
+            ...(({ supportCategory: intent.type }) as any), // SHIPPING_INFO, RETURNS, TRACK_ORDER, or HELP_FAQ
             // ✅ Pass REAL shop policies from Shopify (or defaults if not available)
             storePolicies: {
               shopName: shopPolicies?.shopName || shopDomain,
@@ -1220,7 +1217,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         console.log('📭 DEBUG: Product intent but no products found - asking N8N for help');
 
         // Get language for localized message
-        const lang = enhancedContext.locale?.toLowerCase().split('-')[0] || 'en';
+        const lang: string = (enhancedContext.locale?.toLowerCase().split('-')[0] || 'en');
 
         // Try N8N to generate a helpful response even without products
         try {
