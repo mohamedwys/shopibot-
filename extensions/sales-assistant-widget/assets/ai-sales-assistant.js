@@ -300,7 +300,7 @@ function showLoading(show) {
     if (loadingDiv) loadingDiv.remove();
 
     // Inject keyframes if not present
-    if (!document.getElementById('bounce-keyframes')) {
+    if (!document.getElementById('bounce-keyframes') && document.head) {
       const style = document.createElement('style');
       style.id = 'bounce-keyframes';
       style.textContent = '@keyframes bounce{0%,60%,100%{transform:translateY(0) scale(1);opacity:.7}30%{transform:translateY(-12px) scale(1.2);opacity:1}}';
@@ -351,7 +351,7 @@ function showNotification(message, type = 'success') {
     animation: slideInRight 0.3s ease;
   `;
   notification.innerHTML = `<span>${type === 'success' ? '✅' : '❌'}</span><span>${message}</span>`;
-  document.body.appendChild(notification);
+  if (document.body) document.body.appendChild(notification);
   setTimeout(() => {
     notification.style.animation = 'slideOutRight 0.3s ease';
     setTimeout(() => notification.remove(), 300);
@@ -709,7 +709,7 @@ function displayHumanEscalationPrompt() {
 function applySentimentStyling(sentiment) {
   const chatHeader = document.querySelector('.ai-chat-header');
   const messagesContainer = document.getElementById('ai-chat-messages');
-  if (!chatHeader) return;
+  if (!chatHeader || !messagesContainer) return;
   const sentimentStyles = {
     positive: {
       headerGradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
@@ -748,6 +748,7 @@ function applySentimentStyling(sentiment) {
 
 function displayProductRecommendations(recommendations) {
   const messagesContainer = document.getElementById('ai-chat-messages');
+  if (!messagesContainer) return;
   const productsContainer = document.createElement('div');
   productsContainer.className = 'ai-message assistant-message products-grid-container';
   productsContainer.style.marginBottom = '16px';
@@ -1186,9 +1187,10 @@ function updateCartCount() {
     .then(cart => {
       const cartCountElements = document.querySelectorAll('[data-cart-count], .cart-count, #cart-count');
       cartCountElements.forEach(el => {
-        el.textContent = cart.item_count;
+        if (el) el.textContent = cart.item_count;
       });
-    });
+    })
+    .catch(() => {}); // Silently fail if cart endpoint not available
 }
 
 function handleSuggestedAction(action) {
@@ -1275,7 +1277,8 @@ function handleChatKeyPress(event) {
 }
 
 function sendAIMessage() {
-  const message = elements.inputField?.value.trim();
+  if (!elements.inputField) return;
+  const message = elements.inputField.value.trim();
   if (!message) return;
 
   trackAnalytics(analyticsEvents.MESSAGE_SENT, {
@@ -1312,7 +1315,7 @@ function createWidget() {
   }
 
   // Set CSS variables for theming
-  if (widgetSettings.primaryColor) {
+  if (widgetSettings.primaryColor && document.documentElement) {
     document.documentElement.style.setProperty('--ai-primary-color', widgetSettings.primaryColor);
     const rgb = hexToRgb(widgetSettings.primaryColor);
     if (rgb) {
