@@ -780,7 +780,7 @@ function displayProductRecommendations(recommendations) {
     scrollHint.style.color = '#6b7280';
     scrollHint.style.marginBottom = '8px';
     scrollHint.style.fontWeight = '500';
-    scrollHint.innerHTML = '👈 Swipe to see more 👉';
+    scrollHint.innerHTML = '👈  👉';
     productsContainer.appendChild(scrollHint);
   }
   recommendations.forEach((product, index) => {
