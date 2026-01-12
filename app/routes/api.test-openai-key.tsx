@@ -1,7 +1,7 @@
 import { json, type ActionFunctionArgs } from "@remix-run/node";
 import { logger } from "../lib/logger.server";
 import { prisma as db } from "../db.server";
-import { encryptApiKey, isValidOpenAIKey } from "../lib/encryption.server";
+import { isValidOpenAIKey } from "../lib/encryption.server";
 
 /**
  * API endpoint to test OpenAI API key validity

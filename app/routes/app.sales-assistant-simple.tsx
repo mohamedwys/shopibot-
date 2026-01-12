@@ -151,7 +151,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function SalesAssistantSimple() {
-  const { products } = useLoaderData<typeof loader>();
+  useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
   const [messages, setMessages] = useState<Message[]>([
     {
