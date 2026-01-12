@@ -234,10 +234,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     
     if (!settings) {
       // Create default settings if none exist
+      const { id, ...defaultSettingsWithoutId } = DEFAULT_SETTINGS as any;
       settings = await db.widgetSettings.create({
         data: {
           shop: shopDomain,
-          ...DEFAULT_SETTINGS
+          ...defaultSettingsWithoutId
         }
       });
     } else {
@@ -407,7 +408,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
       // Use shared utility for limit checking
       const limitCheck = await checkConversationLimit(shopDomain, normalizedPlan);
-      const planLimits = getPlanLimits(normalizedPlan);
 
       routeLogger.info({
         shop: shopDomain,
@@ -1149,7 +1149,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       // ✅ IMPROVED: Handle ALL product intents with appropriate messages
       else if (isProductIntent && products.length > 0) {
         // Direct product recommendation with intent-specific messages
-        let responseText = "";
+        let responseText: string = "";
         let quickReplies: string[] = [];
 
         if (intent.type === "BESTSELLERS") {
@@ -1228,7 +1228,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
               ...enhancedContext,
               noProductsFound: true,
               intentType: "product_search_no_results"
-            }
+            } as any
           });
 
           recommendations = [];
@@ -1407,7 +1407,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         data: {
           sessionId: chatSession.id,
           role: 'assistant',
-          content: n8nResponse.message,
+          content: n8nResponse.message || "",
           intent: intent.type,
           sentiment: 'neutral', // Assistant messages are neutral
           confidence: n8nResponse.confidence || 0.7,
