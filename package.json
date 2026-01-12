@@ -14,6 +14,7 @@
     "setup": "prisma generate && prisma migrate deploy",
     "setup-ai": "bash scripts/setup-ai-features.sh",
     "generate-embeddings": "tsx scripts/generate-embeddings.ts",
+    "migrate-plans": "tsx scripts/migrate-plan-codes.ts",
     "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
     "typecheck": "tsc --noEmit",
     "validate": "npm run typecheck && npm run lint",
