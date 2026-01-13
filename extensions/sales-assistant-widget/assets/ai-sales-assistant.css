@@ -1095,102 +1095,222 @@
   font-weight: 500;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
+  /* ========================================
+     FULL-SCREEN MOBILE LAYOUT (768px and below)
+     ======================================== */
+
   .ai-chat-window {
-    width: calc(100vw - 32px);
-    height: calc(100vh - 120px);
-    max-height: calc(100vh - 120px);
-    position: fixed;
-    bottom: 80px;
-    left: 16px;
-    right: 16px;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    min-height: 100vh !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: 0 !important;
+    border-radius: 0 !important;
+    border: none !important;
   }
+
+  /* Override all position variants to be full-screen */
   .ai-sales-assistant-widget.position-bottom-left .ai-chat-window,
   .ai-sales-assistant-widget.position-top-left .ai-chat-window,
   .ai-sales-assistant-widget.position-center-left .ai-chat-window,
   .ai-sales-assistant-widget.position-bottom-right .ai-chat-window,
   .ai-sales-assistant-widget.position-top-right .ai-chat-window,
   .ai-sales-assistant-widget.position-center-right .ai-chat-window {
-    left: 16px;
-    right: 16px;
-    transform: none;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    transform: none !important;
+    border-radius: 0 !important;
   }
+
+  /* Mobile-specific slide-in animation */
+  .ai-chat-window {
+    transform: translateY(100%) !important;
+  }
+
+  .ai-chat-window.ai-chat-open {
+    transform: translateY(0) !important;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* ========================================
+     HEADER - Mobile Optimization
+     ======================================== */
+
+  .ai-chat-header {
+    padding: 16px 16px 12px 16px;
+    min-height: 80px;
+    border-radius: 0 !important;
+    /* Add safe area for notch */
+    padding-top: max(16px, env(safe-area-inset-top));
+  }
+
+  .header-info h3 {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .header-status {
+    font-size: 12px;
+  }
+
+  /* Close button - Larger tap target */
+  .ai-chat-close {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+  }
+
+  .ai-chat-close svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* ========================================
+     WELCOME MESSAGE - Better Spacing
+     ======================================== */
+
+  .ai-welcome-screen {
+    padding: 20px 16px !important;
+    gap: 20px;
+  }
+
+  .welcome-header {
+    padding: 0 !important;
+    margin-bottom: 4px;
+  }
+
+  .welcome-title {
+    font-size: 16px;
+    line-height: 1.6;
+    font-weight: 600;
+    padding: 0 8px;
+  }
+
+  /* ========================================
+     QUICK REPLY BUTTONS - Mobile Optimized
+     ======================================== */
+
+  .quick-actions-section {
+    margin-bottom: 16px;
+    padding: 0 !important;
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  .quick-actions-grid {
+    gap: 8px !important;
+    justify-content: center !important;
+  }
+
+  .quick-action-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+    gap: 6px;
+    border-radius: 20px;
+    min-height: 38px;
+  }
+
+  .quick-action-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 13px;
+  }
+
+  /* ========================================
+     INPUT FIELD - Safe Area & Mobile Keyboard
+     ======================================== */
+
+  .ai-chat-input {
+    padding: 12px 16px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    min-height: 80px;
+  }
+
+  .ai-chat-input input {
+    padding: 12px 16px;
+    font-size: 16px; /* Prevents iOS zoom on focus */
+    min-height: 44px;
+    border-radius: 24px;
+  }
+
+  /* Send button - Apple minimum tap target */
+  .ai-chat-input button {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    flex-shrink: 0;
+  }
+
+  .ai-chat-input button svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* ========================================
+     FOOTER - Safe Area for Home Indicator
+     ======================================== */
+
+  .ai-powered-footer {
+    padding-bottom: max(0px, calc(env(safe-area-inset-bottom) - 12px));
+    font-size: 11px;
+  }
+  /* ========================================
+     TOGGLE BUTTON - Hide text on mobile
+     ======================================== */
+
   .ai-chat-toggle {
     padding: var(--space-3) var(--space-4);
   }
+
   .ai-chat-toggle .button-text {
     display: none;
   }
-  .ai-chat-header {
-    padding: var(--space-4);
-    min-height: 64px;
-  }
-  .header-info h3 {
-    font-size: var(--font-size-base);
-  }
+
+  /* ========================================
+     MESSAGES - Better mobile sizing
+     ======================================== */
+
   .ai-message {
     max-width: 90%;
   }
+
   .message-content {
-    font-size: var(--font-size-sm);
-    padding: var(--space-3);
+    font-size: 14px;
+    padding: 10px 14px;
+    line-height: 1.6;
   }
-  .ai-welcome-screen {
-    padding: 16px;
-    gap: 16px;
-  }
-  .quick-actions-grid {
-    gap: 6px !important;
-  }
-  
-  .quick-action-btn {
-    padding: 6px 12px;
-    font-size: 13px;
-    gap: 5px;
-  }
-  
-  .quick-action-icon {
-    width: 14px;
-    height: 14px;
-    font-size: 12px;
-  }
-  
-  .welcome-title {
-    font-size: 18px;
-  }
-  .section-label {
-    font-size: 12px;
-    margin-bottom: 10px;
-  }
-  .ai-chat-input {
-    padding: var(--space-3) var(--space-4);
-    min-height: 72px;
-  }
-  .ai-chat-input input {
-    padding: var(--space-3);
-    font-size: var(--font-size-sm);
-  }
-  .ai-chat-input button {
-    width: 44px;
-    height: 44px;
-  }
-  .suggestion-btn {
-    font-size: var(--font-size-xs);
-    padding: var(--space-3) var(--space-4);
-  }
-  .ai-welcome-header h3 {
-    font-size: 17px;
-  }
-  .ai-avatar-container {
-    width: 56px !important;
-    height: 56px !important;
-  }
+
+  /* ========================================
+     PRODUCT CARDS - Mobile scrollable
+     ======================================== */
+
   .products-grid {
     display: flex !important;
     overflow-x: auto !important;
     gap: 10px !important;
     scroll-snap-type: x mandatory !important;
   }
+
   .product-card {
     min-width: 160px !important;
     max-width: 160px !important;
@@ -1199,79 +1319,63 @@
     flex-direction: column !important;
     height: auto !important;
   }
+
   .product-image {
     width: 100% !important;
     height: 100px !important;
   }
+
   .product-details {
     padding: 10px;
     flex-grow: 1;
   }
+
   .product-title {
     font-size: 13px;
     -webkit-line-clamp: 2;
     margin-bottom: 4px;
     min-height: 32px;
   }
+
   .product-price {
     font-size: 16px;
   }
+
   .product-description {
     font-size: 11px;
     -webkit-line-clamp: 2;
     margin-bottom: 6px;
   }
+
   .product-action-button {
     padding: 8px;
     font-size: 12px;
   }
+
   .relevance-badge {
     top: 4px;
     right: 4px;
     padding: 2px 6px;
     font-size: 10px;
   }
+
   .product-category {
     font-size: 10px;
     padding: 1px 6px;
   }
+
   .product-tag {
     font-size: 9px;
     padding: 1px 4px;
   }
-}
-@media (max-width: 768px) and (min-width: 481px) {
-  .ai-chat-window {
-    width: 380px;
-    height: 580px;
-    max-height: 580px;
-  }
-  .products-grid {
-    display: flex !important;
-    overflow-x: auto !important;
-    gap: 12px !important;
-    scroll-snap-type: x mandatory !important;
-  }
-  .product-card {
-    min-width: 180px !important;
-    max-width: 180px !important;
-    flex-shrink: 0 !important;
-    scroll-snap-align: start !important;
-  }
-  .product-image {
-    height: 110px;
-  }
-  .product-title {
-    font-size: 13.5px;
-  }
-  .product-price {
-    font-size: 17px;
-  }
-  .ai-chat-input input {
-    font-size: 14px;
-  }
+
+  /* ========================================
+     SUGGESTION BUTTONS
+     ======================================== */
+
   .suggestion-btn {
-    font-size: 14px;
+    font-size: 12px;
+    padding: 10px 16px;
   }
 }
 @media (min-width: 1025px) {
