@@ -304,9 +304,11 @@ function shouldShowRatingPopup() {
     return false;
   }
 
-  // Check if rating popup has already been shown this session
+  // Check if this specific chat session has already been rated
   try {
-    return !sessionStorage.getItem('ai_rating_shown') && conversationHistory.length >= 4;
+    const ratedSessions = JSON.parse(sessionStorage.getItem('ai_rated_sessions') || '[]');
+    const currentSessionId = currentChatSessionId || sessionId;
+    return !ratedSessions.includes(currentSessionId) && conversationHistory.length >= 4;
   } catch (e) {
     // Fallback if sessionStorage unavailable
     return conversationHistory.length >= 4;
@@ -460,6 +462,18 @@ function showSuccessConfirmation(overlay) {
   const modal = overlay.querySelector('#ai-rating-modal');
   if (!modal) return;
 
+  // ✅ Mark this session as rated in sessionStorage
+  try {
+    const ratedSessions = JSON.parse(sessionStorage.getItem('ai_rated_sessions') || '[]');
+    const currentSessionId = currentChatSessionId || sessionId;
+    if (!ratedSessions.includes(currentSessionId)) {
+      ratedSessions.push(currentSessionId);
+      sessionStorage.setItem('ai_rated_sessions', JSON.stringify(ratedSessions));
+    }
+  } catch (e) {
+    console.warn('Could not mark session as rated:', e);
+  }
+
   // Replace content with success message
   modal.innerHTML = '';
   modal.style.cssText = 'background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-radius: 20px; padding: 40px 28px; box-shadow: 0 20px 60px rgba(16, 185, 129, 0.25); max-width: 360px; width: calc(100% - 40px); box-sizing: border-box;';
@@ -600,6 +614,11 @@ async function sendMessageToServer(message) {
     if (data.response || data.message) {
       const responseMessage = data.response || data.message;
       addMessageToChat('assistant', responseMessage);
+
+      // ✅ FIX: Capture chatSessionId for rating tracking
+      if (data.chatSessionId) {
+        currentChatSessionId = data.chatSessionId;
+      }
 
       // Show product recommendations when backend sends them
       // Backend already filters when to send recommendations

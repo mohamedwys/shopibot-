@@ -1482,6 +1482,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       // Session info
       timestamp: new Date().toISOString(),
       sessionId: context.sessionId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      chatSessionId: chatSession.id, // ✅ FIX: Return chatSessionId for rating tracking
 
       // Analytics
       analytics: {
