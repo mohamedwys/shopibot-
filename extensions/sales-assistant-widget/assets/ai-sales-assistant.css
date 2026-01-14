@@ -339,12 +339,25 @@
 /* Accessibility - Reduce motion */
 @media (prefers-reduced-motion: reduce) {
   .status-dot,
-  .ai-chat-toggle,
-  * {
+  .ai-chat-toggle {
     animation: none !important;
     transition: none !important;
   }
+
+  /* Show static dots when reduced motion is enabled */
+  .ai-loading-dot {
+    animation: none !important;
+    opacity: 0.7 !important;
+    transform: none !important;
+  }
 }
+
+/* Loading dot animation - Ensure proper rendering */
+.ai-loading-dot {
+  display: inline-block !important;
+  will-change: transform, opacity;
+}
+
 .ai-chat-close {
   min-width: var(--touch-target-min);
   min-height: var(--touch-target-min);

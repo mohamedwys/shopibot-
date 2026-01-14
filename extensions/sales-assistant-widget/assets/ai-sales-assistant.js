@@ -597,7 +597,8 @@ function showLoading(show) {
     // Create 3 dots
     [0, 0.2, 0.4].forEach(delay => {
       const dot = document.createElement('div');
-      dot.style.cssText = `width:10px;height:10px;background:${primaryColor};border-radius:50%;animation:bounce 1.4s ease-in-out infinite;animation-delay:${delay}s;`;
+      dot.className = 'ai-loading-dot';
+      dot.style.cssText = `width:10px;height:10px;background:${primaryColor};border-radius:50%;display:inline-block;animation:bounce 1.4s ease-in-out infinite;animation-delay:${delay}s;`;
       loadingDiv.appendChild(dot);
     });
 
