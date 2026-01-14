@@ -1031,9 +1031,10 @@ function applySentimentStyling(sentiment) {
 function displayProductRecommendations(recommendations) {
   const messagesContainer = document.getElementById('ai-chat-messages');
   if (!messagesContainer) return;
+
   const productsContainer = document.createElement('div');
-  productsContainer.className = 'ai-message assistant-message products-grid-container';
-  productsContainer.style.marginBottom = '16px';
+  productsContainer.className = 'ai-message assistant-message products-list-container';
+  productsContainer.style.marginBottom = '12px';
   productsContainer.style.maxWidth = '100%';
   productsContainer.style.width = '100%';
   productsContainer.style.backgroundColor = 'transparent';
@@ -1041,56 +1042,43 @@ function displayProductRecommendations(recommendations) {
   productsContainer.style.boxShadow = 'none';
   productsContainer.style.padding = '0';
   productsContainer.style.display = 'block';
-  productsContainer.style.marginLeft = '0';
-  productsContainer.style.marginRight = '0';
-  const gridContent = document.createElement('div');
-  gridContent.className = 'products-grid';
-  gridContent.style.display = 'flex';
-  gridContent.style.overflowX = 'auto';
-  gridContent.style.overflowY = 'hidden';
-  gridContent.style.gap = '12px';
-  gridContent.style.padding = '12px 0';
-  gridContent.style.scrollSnapType = 'x mandatory';
-  gridContent.style.webkitOverflowScrolling = 'touch';
-  gridContent.style.scrollbarWidth = 'thin';
-  gridContent.style.scrollbarColor = `${widgetSettings.primaryColor} #f3f4f6`;
-  gridContent.style.width = '100%';
-  gridContent.style.boxSizing = 'border-box';
-  if (recommendations.length > 1) {
-    const scrollHint = document.createElement('div');
-    scrollHint.style.textAlign = 'center';
-    scrollHint.style.fontSize = '12px';
-    scrollHint.style.color = '#6b7280';
-    scrollHint.style.marginBottom = '8px';
-    scrollHint.style.fontWeight = '500';
-    scrollHint.innerHTML = '👈  👉';
-    productsContainer.appendChild(scrollHint);
-  }
+
+  const listContent = document.createElement('div');
+  listContent.className = 'products-list';
+  listContent.style.display = 'flex';
+  listContent.style.flexDirection = 'column';
+  listContent.style.gap = '8px';
+  listContent.style.width = '100%';
+
   recommendations.forEach((product, index) => {
     const productCard = document.createElement('div');
-    productCard.className = 'product-card clickable-product';
+    productCard.className = 'product-card-compact clickable-product';
     productCard.style.backgroundColor = '#fff';
     productCard.style.border = '1px solid #e5e7eb';
-    productCard.style.borderRadius = '12px';
-    productCard.style.overflow = 'hidden';
+    productCard.style.borderRadius = '8px';
     productCard.style.cursor = 'pointer';
-    productCard.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-    productCard.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.08)';
-    productCard.style.position = 'relative';
-    productCard.style.minWidth = '200px';
-    productCard.style.maxWidth = '200px';
-    productCard.style.flexShrink = '0';
-    productCard.style.scrollSnapAlign = 'start';
+    productCard.style.transition = 'all 0.2s ease';
+    productCard.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.06)';
     productCard.style.display = 'flex';
-    productCard.style.flexDirection = 'column';
-    productCard.style.height = 'auto';
+    productCard.style.flexDirection = 'row';
+    productCard.style.alignItems = 'center';
+    productCard.style.padding = '8px';
+    productCard.style.gap = '10px';
+    productCard.style.minHeight = '86px';
+    productCard.style.maxHeight = '86px';
+
+    // Image section - compact thumbnail
     if (product.image) {
       const imageDiv = document.createElement('div');
-      imageDiv.className = 'product-image';
-      imageDiv.style.width = '100%';
-      imageDiv.style.height = '140px';
+      imageDiv.className = 'product-image-compact';
+      imageDiv.style.width = '70px';
+      imageDiv.style.minWidth = '70px';
+      imageDiv.style.height = '70px';
       imageDiv.style.position = 'relative';
       imageDiv.style.overflow = 'hidden';
+      imageDiv.style.borderRadius = '6px';
+      imageDiv.style.flexShrink = '0';
+
       const sanitizedImageUrl = sanitizeUrl(product.image);
       if (sanitizedImageUrl) {
         const escapedUrl = sanitizedImageUrl.replace(/'/g, "\\'");
@@ -1098,125 +1086,65 @@ function displayProductRecommendations(recommendations) {
       }
       imageDiv.style.backgroundSize = 'cover';
       imageDiv.style.backgroundPosition = 'center';
-      imageDiv.style.backgroundColor = '#f8f9fa';
-      const overlayDiv = document.createElement('div');
-      overlayDiv.style.position = 'absolute';
-      overlayDiv.style.bottom = '0';
-      overlayDiv.style.left = '0';
-      overlayDiv.style.right = '0';
-      overlayDiv.style.height = '50%';
-      overlayDiv.style.background = 'linear-gradient(to top, rgba(0,0,0,0.3), transparent)';
-      overlayDiv.style.pointerEvents = 'none';
-      imageDiv.appendChild(overlayDiv);
-      const badgesContainer = document.createElement('div');
-      badgesContainer.style.position = 'absolute';
-      badgesContainer.style.top = '10px';
-      badgesContainer.style.left = '10px';
-      badgesContainer.style.display = 'flex';
-      badgesContainer.style.flexDirection = 'column';
-      badgesContainer.style.gap = '6px';
-      badgesContainer.style.zIndex = '2';
+      imageDiv.style.backgroundColor = '#f9fafb';
+
+      // Only show discount badge if applicable - small pill style
       if (product.badge || product.discountPercent) {
         const discountBadge = document.createElement('div');
-        discountBadge.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+        discountBadge.style.position = 'absolute';
+        discountBadge.style.top = '4px';
+        discountBadge.style.left = '4px';
+        discountBadge.style.background = '#ef4444';
         discountBadge.style.color = 'white';
-        discountBadge.style.padding = '6px 12px';
-        discountBadge.style.borderRadius = '8px';
-        discountBadge.style.fontSize = '12px';
+        discountBadge.style.padding = '2px 6px';
+        discountBadge.style.borderRadius = '4px';
+        discountBadge.style.fontSize = '9px';
         discountBadge.style.fontWeight = '700';
-        discountBadge.style.boxShadow = '0 2px 8px rgba(239, 68, 68, 0.4)';
-        discountBadge.style.letterSpacing = '0.5px';
-        discountBadge.textContent = product.badge || `${product.discountPercent}% OFF`;
-        badgesContainer.appendChild(discountBadge);
+        discountBadge.style.lineHeight = '1';
+        discountBadge.textContent = product.badge || `-${product.discountPercent}%`;
+        imageDiv.appendChild(discountBadge);
       }
-      if (product.isLowStock && product.inventory) {
-        const stockBadge = document.createElement('div');
-        stockBadge.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
-        stockBadge.style.color = 'white';
-        stockBadge.style.padding = '5px 10px';
-        stockBadge.style.borderRadius = '8px';
-        stockBadge.style.fontSize = '11px';
-        stockBadge.style.fontWeight = '600';
-        stockBadge.style.boxShadow = '0 2px 6px rgba(245, 158, 11, 0.3)';
-        stockBadge.textContent = `⚡ Only ${product.inventory} left!`;
-        badgesContainer.appendChild(stockBadge);
-      }
-      if (badgesContainer.children.length > 0) {
-        imageDiv.appendChild(badgesContainer);
-      }
-      if (product.relevanceScore) {
-        const matchBadge = document.createElement('div');
-        matchBadge.style.position = 'absolute';
-        matchBadge.style.top = '10px';
-        matchBadge.style.right = '10px';
-        matchBadge.style.background = 'rgba(0, 0, 0, 0.75)';
-        matchBadge.style.backdropFilter = 'blur(8px)';
-        matchBadge.style.webkitBackdropFilter = 'blur(8px)';
-        matchBadge.style.color = 'white';
-        matchBadge.style.padding = '5px 10px';
-        matchBadge.style.borderRadius = '12px';
-        matchBadge.style.fontSize = '11px';
-        matchBadge.style.fontWeight = '700';
-        matchBadge.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.3)';
-        matchBadge.style.zIndex = '2';
-        matchBadge.innerHTML = `<span style="color: #10b981;">●</span> ${product.relevanceScore}% match`;
-        imageDiv.appendChild(matchBadge);
-      }
+
       productCard.appendChild(imageDiv);
     }
-    const detailsDiv = document.createElement('div');
-    detailsDiv.style.padding = '12px';
-    detailsDiv.style.display = 'flex';
-    detailsDiv.style.flexDirection = 'column';
-    detailsDiv.style.flexGrow = '1';
-    detailsDiv.style.gap = '6px';
-    const titleH4 = document.createElement('h4');
-    titleH4.style.margin = '0';
-    titleH4.style.fontSize = '14px';
-    titleH4.style.fontWeight = '700';
-    titleH4.style.color = '#111827';
-    titleH4.style.lineHeight = '1.3';
-    titleH4.style.display = '-webkit-box';
-    titleH4.style.webkitLineClamp = '2';
-    titleH4.style.webkitBoxOrient = 'vertical';
-    titleH4.style.overflow = 'hidden';
-    titleH4.style.minHeight = '36px';
-    titleH4.textContent = product.title || 'Untitled Product';
-    detailsDiv.appendChild(titleH4);
-    if (product.rating || product.reviewCount) {
-      const ratingDiv = document.createElement('div');
-      ratingDiv.style.display = 'flex';
-      ratingDiv.style.alignItems = 'center';
-      ratingDiv.style.gap = '6px';
-      const rating = product.rating || 0;
-      const fullStars = Math.floor(rating);
-      const hasHalfStar = rating % 1 >= 0.5;
-      const starsSpan = document.createElement('span');
-      starsSpan.style.color = '#fbbf24';
-      starsSpan.style.fontSize = '14px';
-      starsSpan.style.letterSpacing = '1px';
-      starsSpan.textContent = '★'.repeat(fullStars) + (hasHalfStar ? '⯨' : '') + '☆'.repeat(5 - fullStars - (hasHalfStar ? 1 : 0));
-      ratingDiv.appendChild(starsSpan);
-      if (product.reviewCount) {
-        const reviewSpan = document.createElement('span');
-        reviewSpan.style.fontSize = '12px';
-        reviewSpan.style.color = '#6b7280';
-        reviewSpan.style.fontWeight = '500';
-        reviewSpan.textContent = `(${product.reviewCount})`;
-        ratingDiv.appendChild(reviewSpan);
-      }
-      detailsDiv.appendChild(ratingDiv);
-    }
+
+    // Content section - title and price only
+    const contentDiv = document.createElement('div');
+    contentDiv.style.flex = '1';
+    contentDiv.style.display = 'flex';
+    contentDiv.style.flexDirection = 'column';
+    contentDiv.style.justifyContent = 'center';
+    contentDiv.style.gap = '4px';
+    contentDiv.style.minWidth = '0';
+    contentDiv.style.overflow = 'hidden';
+
+    // Title - single line with ellipsis
+    const titleDiv = document.createElement('div');
+    titleDiv.style.fontSize = '14px';
+    titleDiv.style.fontWeight = '600';
+    titleDiv.style.color = '#111827';
+    titleDiv.style.lineHeight = '1.3';
+    titleDiv.style.whiteSpace = 'nowrap';
+    titleDiv.style.overflow = 'hidden';
+    titleDiv.style.textOverflow = 'ellipsis';
+    titleDiv.textContent = product.title || 'Untitled Product';
+    contentDiv.appendChild(titleDiv);
+
+    // Price row - subtle but clear
     const priceRow = document.createElement('div');
     priceRow.style.display = 'flex';
-    priceRow.style.justifyContent = 'space-between';
-    priceRow.style.alignItems = 'flex-start';
-    priceRow.style.gap = '8px';
-    priceRow.style.marginTop = '4px';
-    const priceContainer = document.createElement('div');
-    priceContainer.style.display = 'flex';
-    priceContainer.style.flexDirection = 'column';
-    priceContainer.style.gap = '2px';
+    priceRow.style.alignItems = 'center';
+    priceRow.style.gap = '6px';
+
+    // Current price
+    const priceDiv = document.createElement('div');
+    priceDiv.style.fontSize = '15px';
+    priceDiv.style.fontWeight = '700';
+    priceDiv.style.color = widgetSettings.primaryColor;
+    priceDiv.textContent = product.priceFormatted || `$${parseFloat(product.price || '0').toFixed(2)}`;
+    priceRow.appendChild(priceDiv);
+
+    // Original price if on sale
     if (product.compareAtPrice && parseFloat(product.compareAtPrice) > parseFloat(product.price)) {
       const originalPriceSpan = document.createElement('span');
       originalPriceSpan.style.fontSize = '12px';
@@ -1224,128 +1152,31 @@ function displayProductRecommendations(recommendations) {
       originalPriceSpan.style.textDecoration = 'line-through';
       originalPriceSpan.style.fontWeight = '500';
       originalPriceSpan.textContent = `$${parseFloat(product.compareAtPrice).toFixed(2)}`;
-      priceContainer.appendChild(originalPriceSpan);
+      priceRow.appendChild(originalPriceSpan);
     }
-    const priceDiv = document.createElement('div');
-    priceDiv.style.fontSize = '18px';
-    priceDiv.style.fontWeight = '800';
-    priceDiv.style.letterSpacing = '-0.3px';
-    if (product.compareAtPrice && parseFloat(product.compareAtPrice) > parseFloat(product.price)) {
-      priceDiv.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
-      priceDiv.style.webkitBackgroundClip = 'text';
-      priceDiv.style.webkitTextFillColor = 'transparent';
-      priceDiv.style.backgroundClip = 'text';
-    } else {
-      priceDiv.style.color = widgetSettings.primaryColor;
-    }
-    priceDiv.textContent = product.priceFormatted || `$${parseFloat(product.price || '0').toFixed(2)}`;
-    priceContainer.appendChild(priceDiv);
-    priceRow.appendChild(priceContainer);
-    if (product.category) {
-      const categoryDiv = document.createElement('div');
-      categoryDiv.style.background = 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)';
-      categoryDiv.style.color = '#4b5563';
-      categoryDiv.style.padding = '4px 10px';
-      categoryDiv.style.borderRadius = '8px';
-      categoryDiv.style.fontSize = '11px';
-      categoryDiv.style.fontWeight = '600';
-      categoryDiv.style.whiteSpace = 'nowrap';
-      categoryDiv.style.textTransform = 'uppercase';
-      categoryDiv.style.letterSpacing = '0.5px';
-      categoryDiv.textContent = product.category;
-      priceRow.appendChild(categoryDiv);
-    }
-    detailsDiv.appendChild(priceRow);
-    if (product.description) {
-      const descP = document.createElement('p');
-      descP.style.margin = '0';
-      descP.style.fontSize = '13px';
-      descP.style.color = '#6b7280';
-      descP.style.lineHeight = '1.5';
-      descP.style.display = '-webkit-box';
-      descP.style.webkitLineClamp = '2';
-      descP.style.webkitBoxOrient = 'vertical';
-      descP.style.overflow = 'hidden';
-      descP.textContent = product.description || 'No description available';
-      detailsDiv.appendChild(descP);
-    }
-    if (product.urgencyMessage) {
-      const urgencyDiv = document.createElement('div');
-      urgencyDiv.style.display = 'flex';
-      urgencyDiv.style.alignItems = 'center';
-      urgencyDiv.style.gap = '8px';
-      urgencyDiv.style.background = 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)';
-      urgencyDiv.style.color = '#92400e';
-      urgencyDiv.style.padding = '8px 12px';
-      urgencyDiv.style.borderRadius = '10px';
-      urgencyDiv.style.fontSize = '12px';
-      urgencyDiv.style.fontWeight = '700';
-      urgencyDiv.style.border = '1.5px solid #fbbf24';
-      urgencyDiv.style.boxShadow = '0 2px 6px rgba(251, 191, 36, 0.2)';
-      const iconSpan = document.createElement('span');
-      iconSpan.textContent = '⚡';
-      iconSpan.style.fontSize = '16px';
-      urgencyDiv.appendChild(iconSpan);
-      const textSpan = document.createElement('span');
-      textSpan.textContent = product.urgencyMessage;
-      urgencyDiv.appendChild(textSpan);
-      detailsDiv.appendChild(urgencyDiv);
-    }
-    if (product.tags && product.tags.length > 0) {
-      const tagsDiv = document.createElement('div');
-      tagsDiv.style.display = 'flex';
-      tagsDiv.style.flexWrap = 'wrap';
-      tagsDiv.style.gap = '4px';
-      tagsDiv.style.marginTop = '4px';
-      product.tags.slice(0, 3).forEach(tag => {
-        const tagSpan = document.createElement('span');
-        tagSpan.style.display = 'inline-block';
-        tagSpan.style.background = '#f3f4f6';
-        tagSpan.style.color = '#4b5563';
-        tagSpan.style.padding = '3px 8px';
-        tagSpan.style.borderRadius = '6px';
-        tagSpan.style.fontSize = '10px';
-        tagSpan.style.fontWeight = '600';
-        tagSpan.style.textTransform = 'uppercase';
-        tagSpan.style.letterSpacing = '0.3px';
-        tagSpan.textContent = tag;
-        tagsDiv.appendChild(tagSpan);
-      });
-      detailsDiv.appendChild(tagsDiv);
-    }
-    const actionButton = document.createElement('button');
-    actionButton.style.background = `linear-gradient(135deg, ${widgetSettings.primaryColor} 0%, ${adjustColor(widgetSettings.primaryColor, -15)} 100%)`;
-    actionButton.style.color = 'white';
-    actionButton.style.border = 'none';
-    actionButton.style.textAlign = 'center';
-    actionButton.style.padding = '12px 16px';
-    actionButton.style.borderRadius = '10px';
-    actionButton.style.fontSize = '15px';
-    actionButton.style.fontWeight = '700';
-    actionButton.style.marginTop = 'auto';
-    actionButton.style.cursor = 'pointer';
-    actionButton.style.transition = 'all 0.2s ease';
-    actionButton.style.boxShadow = `0 4px 12px rgba(${hexToRgb(widgetSettings.primaryColor).r}, ${hexToRgb(widgetSettings.primaryColor).g}, ${hexToRgb(widgetSettings.primaryColor).b}, 0.3)`;
-    actionButton.style.display = 'flex';
-    actionButton.style.alignItems = 'center';
-    actionButton.style.justifyContent = 'center';
-    actionButton.style.gap = '8px';
-    actionButton.innerHTML = `<span>View Details</span><span style="font-size: 18px;">→</span>`;
-    actionButton.addEventListener('mouseenter', function() {
-      this.style.transform = 'translateY(-2px)';
-      this.style.boxShadow = `0 6px 20px rgba(${hexToRgb(widgetSettings.primaryColor).r}, ${hexToRgb(widgetSettings.primaryColor).g}, ${hexToRgb(widgetSettings.primaryColor).b}, 0.4)`;
-    });
-    actionButton.addEventListener('mouseleave', function() {
-      this.style.transform = 'translateY(0)';
-      this.style.boxShadow = `0 4px 12px rgba(${hexToRgb(widgetSettings.primaryColor).r}, ${hexToRgb(widgetSettings.primaryColor).g}, ${hexToRgb(widgetSettings.primaryColor).b}, 0.3)`;
-    });
-    detailsDiv.appendChild(actionButton);
-    productCard.appendChild(detailsDiv);
+
+    contentDiv.appendChild(priceRow);
+    productCard.appendChild(contentDiv);
+
+    // Action - small text link style
+    const actionLink = document.createElement('div');
+    actionLink.style.color = widgetSettings.primaryColor;
+    actionLink.style.fontSize = '13px';
+    actionLink.style.fontWeight = '600';
+    actionLink.style.whiteSpace = 'nowrap';
+    actionLink.style.display = 'flex';
+    actionLink.style.alignItems = 'center';
+    actionLink.style.gap = '4px';
+    actionLink.style.paddingRight = '4px';
+    actionLink.innerHTML = `<span>View</span><span style="font-size: 14px;">→</span>`;
+    productCard.appendChild(actionLink);
+
+    // Click handler
     productCard.addEventListener('click', async function(e) {
       e.preventDefault();
       e.stopPropagation();
 
-      // Track analytics (Google Analytics, Facebook Pixel, etc.)
+      // Track analytics
       trackAnalytics(analyticsEvents.PRODUCT_CLICKED, {
         productTitle: product.title,
         productHandle: product.handle,
@@ -1354,7 +1185,7 @@ function displayProductRecommendations(recommendations) {
         position: index + 1
       });
 
-      // ✅ FIX: Send product click to backend for analytics dashboard
+      // Backend tracking
       try {
         const productId = product.id || product.handle;
         await fetch('https://shopibot.vercel.app/api/track-product-click', {
@@ -1371,7 +1202,6 @@ function displayProductRecommendations(recommendations) {
           })
         }).catch(err => console.debug('Product click tracking failed:', err));
       } catch (error) {
-        // Silently fail - don't block user navigation
         console.debug('Product click tracking error:', error);
       }
 
@@ -1380,70 +1210,72 @@ function displayProductRecommendations(recommendations) {
       if (safeUrl) {
         window.open(safeUrl, '_blank', 'noopener,noreferrer');
       }
-      this.style.transform = 'scale(0.98)';
-      setTimeout(() => {
-        this.style.transform = 'scale(1)';
-      }, 150);
     });
+
+    // Hover effects - subtle
     productCard.addEventListener('mouseenter', function() {
       this.style.borderColor = widgetSettings.primaryColor;
-      this.style.transform = 'translateY(-6px)';
-      this.style.boxShadow = `0 12px 28px rgba(0, 0, 0, 0.15), 0 0 0 2px ${widgetSettings.primaryColor}20`;
+      this.style.boxShadow = `0 2px 8px rgba(0, 0, 0, 0.1)`;
+      this.style.backgroundColor = '#fafafa';
     });
+
     productCard.addEventListener('mouseleave', function() {
       this.style.borderColor = '#e5e7eb';
-      this.style.transform = 'translateY(0)';
-      this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
+      this.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.06)';
+      this.style.backgroundColor = '#fff';
     });
-    gridContent.appendChild(productCard);
+
+    listContent.appendChild(productCard);
   });
-  productsContainer.appendChild(gridContent);
+
+  productsContainer.appendChild(listContent);
   messagesContainer.appendChild(productsContainer);
+
+  // Browse all button - only if 3+ products
   if (recommendations.length > 2) {
     const browseMoreDiv = document.createElement('div');
     browseMoreDiv.className = 'ai-message assistant-message';
-    browseMoreDiv.style.marginTop = '12px';
+    browseMoreDiv.style.marginTop = '8px';
     browseMoreDiv.style.textAlign = 'center';
     browseMoreDiv.style.backgroundColor = 'transparent';
     browseMoreDiv.style.border = 'none';
     browseMoreDiv.style.boxShadow = 'none';
     browseMoreDiv.style.padding = '0';
+
     const browseButton = document.createElement('button');
-    browseButton.style.background = 'white';
-    browseButton.style.border = `2px solid ${widgetSettings.primaryColor}`;
+    browseButton.style.background = 'transparent';
+    browseButton.style.border = 'none';
     browseButton.style.color = widgetSettings.primaryColor;
-    browseButton.style.padding = '12px 24px';
-    browseButton.style.borderRadius = '30px';
-    browseButton.style.fontSize = '15px';
-    browseButton.style.fontWeight = '700';
+    browseButton.style.padding = '8px 16px';
+    browseButton.style.borderRadius = '6px';
+    browseButton.style.fontSize = '13px';
+    browseButton.style.fontWeight = '600';
     browseButton.style.cursor = 'pointer';
-    browseButton.style.transition = 'all 0.3s ease';
-    browseButton.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+    browseButton.style.transition = 'all 0.2s ease';
     browseButton.style.display = 'inline-flex';
     browseButton.style.alignItems = 'center';
-    browseButton.style.gap = '8px';
-    browseButton.innerHTML = `<span>Browse All Products</span><span style="font-size: 18px;">🛍️</span>`;
+    browseButton.style.gap = '4px';
+    browseButton.innerHTML = `<span>Browse all</span><span style="font-size: 14px;">→</span>`;
+
     browseButton.addEventListener('click', function() {
       const safeUrl = sanitizeUrl('/collections/all');
       if (safeUrl) {
         window.open(safeUrl, '_blank', 'noopener,noreferrer');
       }
     });
+
     browseButton.addEventListener('mouseenter', function() {
-      this.style.backgroundColor = widgetSettings.primaryColor;
-      this.style.color = 'white';
-      this.style.transform = 'translateY(-2px)';
-      this.style.boxShadow = `0 4px 12px rgba(${hexToRgb(widgetSettings.primaryColor).r}, ${hexToRgb(widgetSettings.primaryColor).g}, ${hexToRgb(widgetSettings.primaryColor).b}, 0.3)`;
+      this.style.backgroundColor = `${widgetSettings.primaryColor}10`;
     });
+
     browseButton.addEventListener('mouseleave', function() {
-      this.style.backgroundColor = 'white';
-      this.style.color = widgetSettings.primaryColor;
-      this.style.transform = 'translateY(0)';
-      this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+      this.style.backgroundColor = 'transparent';
     });
+
     browseMoreDiv.appendChild(browseButton);
     messagesContainer.appendChild(browseMoreDiv);
   }
+
   scrollToBottom();
 }
 
