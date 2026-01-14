@@ -601,23 +601,22 @@ function showLoading(show) {
     [0, 0.2, 0.4].forEach(delay => {
       const dot = document.createElement('div');
       dot.className = 'ai-loading-dot';
-      // Set styles explicitly to override any CSS rules
-      dot.style.cssText = `
-        width: 10px;
-        height: 10px;
-        background: ${primaryColor};
-        border-radius: 50%;
-        display: inline-block;
-      `;
+
+      // Set base styles
+      dot.style.width = '10px';
+      dot.style.height = '10px';
+      dot.style.background = primaryColor;
+      dot.style.borderRadius = '50%';
+      dot.style.display = 'inline-block';
 
       // Only apply animation if reduced motion is NOT enabled
       if (!prefersReducedMotion) {
-        // Use setProperty with 'important' to override CSS !important rules
-        dot.style.setProperty('animation-name', 'bounce', 'important');
-        dot.style.setProperty('animation-duration', '1.4s', 'important');
-        dot.style.setProperty('animation-timing-function', 'ease-in-out', 'important');
-        dot.style.setProperty('animation-iteration-count', 'infinite', 'important');
-        dot.style.setProperty('animation-delay', `${delay}s`, 'important');
+        // Use the same approach that works in console
+        dot.style.animationName = 'bounce';
+        dot.style.animationDuration = '1.4s';
+        dot.style.animationTimingFunction = 'ease-in-out';
+        dot.style.animationIterationCount = 'infinite';
+        dot.style.animationDelay = `${delay}s`;
       } else {
         // Show static dots with reduced opacity for accessibility
         dot.style.opacity = '0.7';
