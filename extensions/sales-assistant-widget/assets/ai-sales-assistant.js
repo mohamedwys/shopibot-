@@ -1079,16 +1079,17 @@ function displayProductRecommendations(recommendations) {
     imageDiv.style.flexShrink = '0';
     imageDiv.style.backgroundColor = '#f3f4f6';
 
-    if (product.image) {
-      const sanitizedImageUrl = sanitizeUrl(product.image);
-      if (sanitizedImageUrl) {
-        const escapedUrl = sanitizedImageUrl.replace(/'/g, "\\'");
-        imageDiv.style.backgroundImage = `url('${escapedUrl}')`;
-        imageDiv.style.backgroundSize = 'cover';
-        imageDiv.style.backgroundPosition = 'center';
-      }
+    // Sanitize and check if we have a valid image URL
+    const sanitizedImageUrl = product.image ? sanitizeUrl(product.image) : '';
+
+    if (sanitizedImageUrl) {
+      // Show product image
+      const escapedUrl = sanitizedImageUrl.replace(/'/g, "\\'");
+      imageDiv.style.backgroundImage = `url('${escapedUrl}')`;
+      imageDiv.style.backgroundSize = 'cover';
+      imageDiv.style.backgroundPosition = 'center';
     } else {
-      // Placeholder icon when no image available
+      // Placeholder icon when no image available or sanitization fails
       imageDiv.style.display = 'flex';
       imageDiv.style.alignItems = 'center';
       imageDiv.style.justifyContent = 'center';
