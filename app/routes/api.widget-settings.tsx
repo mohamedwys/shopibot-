@@ -1317,6 +1317,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     // ========================================
     // Save chat data to database for dashboard analytics
     // IMPORTANT: This is non-blocking - errors won't break the chatbot
+
+    // Declare variables outside try block so they're accessible in return statement
+    let chatSession: any = undefined;
+
     try {
       const sessionId = context.sessionId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
@@ -1346,7 +1350,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       }
 
       // Step 2: Get or create ChatSession
-      let chatSession = await db.chatSession.findFirst({
+      chatSession = await db.chatSession.findFirst({
         where: {
           shop: shopDomain,
           userProfileId: userProfile.id,
@@ -1482,7 +1486,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       // Session info
       timestamp: new Date().toISOString(),
       sessionId: context.sessionId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      chatSessionId: chatSession.id, // ✅ FIX: Return chatSessionId for rating tracking
+      chatSessionId: chatSession?.id, // ✅ FIX: Return chatSessionId for rating tracking (optional chaining in case of DB error)
 
       // Analytics
       analytics: {
