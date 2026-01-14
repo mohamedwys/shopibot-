@@ -510,7 +510,8 @@ export default function AnalyticsPage() {
                           #{index + 1}
                         </Text>
                         <Text variant="bodyMd" as="p">
-                          {product.productId.split("/").pop()}
+                          {/* ✅ FIX: Display product title if available, otherwise show product ID */}
+                          {product.title || product.productId.split("/").pop()}
                         </Text>
                       </InlineStack>
                       <Badge tone="info">{`${formatNumber(product.clicks)} ${t("analytics.clicks")}`}</Badge>

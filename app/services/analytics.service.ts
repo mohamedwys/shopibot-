@@ -340,8 +340,8 @@ export class AnalyticsService {
         try {
           // FIX: Add fallback for empty/null values
           const products = JSON.parse(record.topProducts || '{}');
-          Object.entries(products).forEach(([productId, clicks]) => {
-            productClicks[productId] = (productClicks[productId] || 0) + (clicks as number);
+          Object.entries(products).forEach(([productKey, clicks]) => {
+            productClicks[productKey] = (productClicks[productKey] || 0) + (clicks as number);
           });
         } catch (error) {
           // Skip malformed product data
@@ -350,11 +350,20 @@ export class AnalyticsService {
       });
 
       // Convert to array and sort
+      // ✅ FIX: Extract product title from stored key (format: "productId|||productTitle")
       const topProducts = Object.entries(productClicks)
-        .map(([productId, clicks]) => ({
-          productId,
-          clicks,
-        }))
+        .map(([productKey, clicks]) => {
+          // Split by separator to extract ID and title
+          const parts = productKey.split('|||');
+          const productId = parts[0];
+          const title = parts[1] || undefined; // Extract title if present
+
+          return {
+            productId,
+            clicks,
+            title, // Include title for display in dashboard
+          };
+        })
         .sort((a, b) => b.clicks - a.clicks)
         .slice(0, limit);
 

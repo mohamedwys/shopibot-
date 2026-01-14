@@ -65,13 +65,15 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     logger.info({
       shop,
       productId,
+      productTitle,
       productHandle,
       sessionId: sessionId ? `${sessionId.substring(0, 10)}...` : undefined,
     }, "Product click tracked");
 
-    // Update analytics with the product click
+    // Update analytics with the product click (including title for display)
     await personalizationService.updateAnalytics(shop, {
       productClicked: productId,
+      productTitle: productTitle, // ✅ FIX: Pass product title for better analytics
     });
 
     // Return success response with CORS headers

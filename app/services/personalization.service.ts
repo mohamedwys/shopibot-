@@ -498,6 +498,7 @@ Respond with just the category name.`,
       intent?: string;
       sentiment?: string;
       productClicked?: string;
+      productTitle?: string; // ✅ FIX: Add product title for analytics display
       responseTime?: number;
       confidence?: number;
       workflowType?: 'default' | 'custom';
@@ -592,9 +593,17 @@ Respond with just the category name.`,
       }
 
       // Update top products
+      // ✅ FIX: Store product title along with ID for better analytics display
       if (data.productClicked) {
         const products = JSON.parse(analytics.topProducts);
-        products[data.productClicked] = (products[data.productClicked] || 0) + 1;
+
+        // Use format: "productId|||productTitle" to store both ID and title
+        // This allows displaying product names in analytics dashboard
+        const productKey = data.productTitle
+          ? `${data.productClicked}|||${data.productTitle}`
+          : data.productClicked; // Fallback for backward compatibility
+
+        products[productKey] = (products[productKey] || 0) + 1;
 
         await db.chatAnalytics.update({
           where: { id: analytics.id },
