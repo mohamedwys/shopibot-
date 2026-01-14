@@ -328,7 +328,7 @@ function showRatingModal() {
   // Create modal overlay
   const overlay = document.createElement('div');
   overlay.id = 'ai-rating-modal-overlay';
-  overlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 999999; backdrop-filter: blur(4px);';
+  overlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.4); display: flex; align-items: center; justify-content: center; z-index: 999999; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);';
   overlay.setAttribute('role', 'dialog');
   overlay.setAttribute('aria-modal', 'true');
   overlay.setAttribute('aria-labelledby', 'rating-modal-title');
@@ -336,7 +336,8 @@ function showRatingModal() {
   // Create modal popup
   const modal = document.createElement('div');
   modal.id = 'ai-rating-modal';
-  modal.style.cssText = 'background: white; border-radius: 20px; padding: 32px 28px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); max-width: 360px; width: calc(100% - 40px); box-sizing: border-box; position: relative;';
+  modal.style.cssText = 'background: #ffffff; border-radius: 16px; padding: 36px 32px 32px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08); max-width: 400px; width: calc(100% - 48px); box-sizing: border-box; position: relative;';
+  modal.setAttribute('tabindex', '-1');
 
   // Title - use custom text if provided, otherwise use translation
   const title = document.createElement('h2');
@@ -344,15 +345,17 @@ function showRatingModal() {
   title.textContent = (widgetSettings && widgetSettings.ratingCustomTitle)
     ? widgetSettings.ratingCustomTitle
     : t('ratingTitle');
-  title.style.cssText = 'margin: 0 0 24px 0; font-size: 20px; font-weight: 600; color: #111827; text-align: center; line-height: 1.3;';
+  title.style.cssText = 'margin: 0 0 28px 0; font-size: 19px; font-weight: 500; color: #1f2937; text-align: center; line-height: 1.4; letter-spacing: -0.01em;';
   modal.appendChild(title);
 
   // Stars container
   const starsContainer = document.createElement('div');
-  starsContainer.style.cssText = 'display: flex; gap: 8px; justify-content: center; align-items: center; margin-bottom: 0;';
+  starsContainer.style.cssText = 'display: flex; gap: 6px; justify-content: center; align-items: center; margin-bottom: 0;';
+  starsContainer.setAttribute('role', 'radiogroup');
+  starsContainer.setAttribute('aria-label', 'Rate your experience from 1 to 5 stars');
 
-  // SVG star helper
-  const starSVG = (filled) => `<svg width="44" height="44" viewBox="0 0 24 24" fill="${filled ? '#FCD34D' : 'none'}" stroke="${filled ? '#F59E0B' : '#D1D5DB'}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
+  // SVG star helper - refined colors for premium look
+  const starSVG = (filled) => `<svg width="40" height="40" viewBox="0 0 24 24" fill="${filled ? '#FBBF24' : 'none'}" stroke="${filled ? '#F59E0B' : '#E5E7EB'}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
 
   let selectedRating = 0;
   let isSubmitting = false;
@@ -361,20 +364,29 @@ function showRatingModal() {
   for (let i = 1; i <= 5; i++) {
     const starBtn = document.createElement('button');
     starBtn.innerHTML = starSVG(false);
-    starBtn.style.cssText = 'background: none; border: none; cursor: pointer; padding: 4px; transition: all 0.2s ease; flex-shrink: 0; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border-radius: 12px;';
+    starBtn.style.cssText = 'background: transparent; border: none; cursor: pointer; padding: 6px; transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease; flex-shrink: 0; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 10px;';
     starBtn.setAttribute('aria-label', t('ratingAriaLabel').replace('{{stars}}', i));
+    starBtn.setAttribute('role', 'radio');
+    starBtn.setAttribute('aria-checked', 'false');
     starBtn.dataset.rating = i;
     starBtn.type = 'button';
 
-    // Hover effect
+    // Hover effect - only scale the current star
     starBtn.addEventListener('mouseenter', function() {
       if (isSubmitting) return;
       const rating = parseInt(this.dataset.rating);
+      this.style.transform = 'scale(1.08)';
+      this.style.backgroundColor = 'rgba(251, 191, 36, 0.08)';
       for (let j = 1; j <= 5; j++) {
         const btn = starsContainer.children[j - 1];
         btn.innerHTML = j <= rating ? starSVG(true) : starSVG(false);
-        btn.style.transform = 'scale(1.15)';
       }
+    });
+
+    starBtn.addEventListener('mouseleave', function() {
+      if (isSubmitting) return;
+      this.style.transform = 'scale(1)';
+      this.style.backgroundColor = 'transparent';
     });
 
     starsContainer.addEventListener('mouseleave', function() {
@@ -382,7 +394,6 @@ function showRatingModal() {
       for (let j = 1; j <= 5; j++) {
         const btn = starsContainer.children[j - 1];
         btn.innerHTML = j <= selectedRating ? starSVG(true) : starSVG(false);
-        btn.style.transform = 'scale(1)';
       }
     });
 
@@ -392,12 +403,15 @@ function showRatingModal() {
       isSubmitting = true;
       selectedRating = parseInt(this.dataset.rating);
 
-      // Show selected stars
+      // Update ARIA and visual state
       for (let j = 1; j <= 5; j++) {
         const btn = starsContainer.children[j - 1];
         btn.innerHTML = j <= selectedRating ? starSVG(true) : starSVG(false);
         btn.style.cursor = 'default';
+        btn.style.transform = 'scale(1)';
+        btn.style.backgroundColor = 'transparent';
         btn.disabled = true;
+        btn.setAttribute('aria-checked', j <= selectedRating ? 'true' : 'false');
       }
 
       // Submit rating
@@ -413,14 +427,57 @@ function showRatingModal() {
   // Add to body (outside chat container)
   document.body.appendChild(overlay);
 
-  // Fade in animation
+  // Improved fade in + slide up animation
   overlay.style.opacity = '0';
-  modal.style.transform = 'scale(0.9)';
+  modal.style.transform = 'translateY(20px) scale(0.96)';
   requestAnimationFrame(() => {
-    overlay.style.transition = 'opacity 0.3s ease';
-    modal.style.transition = 'transform 0.3s ease';
+    overlay.style.transition = 'opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
+    modal.style.transition = 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
     overlay.style.opacity = '1';
-    modal.style.transform = 'scale(1)';
+    modal.style.transform = 'translateY(0) scale(1)';
+  });
+
+  // Focus management and keyboard navigation
+  setTimeout(() => {
+    modal.focus();
+    const firstStar = starsContainer.querySelector('button');
+    if (firstStar) firstStar.focus();
+  }, 100);
+
+  // Keyboard navigation for stars (arrow keys)
+  starsContainer.addEventListener('keydown', function(e) {
+    if (isSubmitting) return;
+    const stars = Array.from(starsContainer.querySelectorAll('button'));
+    const currentIndex = stars.indexOf(document.activeElement);
+
+    if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const nextIndex = Math.min(currentIndex + 1, stars.length - 1);
+      stars[nextIndex].focus();
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      const prevIndex = Math.max(currentIndex - 1, 0);
+      stars[prevIndex].focus();
+    } else if (e.key === 'Escape' && !isSubmitting) {
+      closeRatingModal(overlay);
+    }
+  });
+
+  // Focus trap - keep focus within modal
+  overlay.addEventListener('keydown', function(e) {
+    if (e.key === 'Tab') {
+      const focusableElements = modal.querySelectorAll('button:not([disabled])');
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      if (e.shiftKey && document.activeElement === firstElement) {
+        e.preventDefault();
+        lastElement.focus();
+      } else if (!e.shiftKey && document.activeElement === lastElement) {
+        e.preventDefault();
+        firstElement.focus();
+      }
+    }
   });
 
   // Close on overlay click (optional - user requested no skip, but this doesn't block)
@@ -474,13 +531,13 @@ function showSuccessConfirmation(overlay) {
     console.warn('Could not mark session as rated:', e);
   }
 
-  // Replace content with success message
+  // Replace content with success message - refined, calmer design
   modal.innerHTML = '';
-  modal.style.cssText = 'background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-radius: 20px; padding: 40px 28px; box-shadow: 0 20px 60px rgba(16, 185, 129, 0.25); max-width: 360px; width: calc(100% - 40px); box-sizing: border-box;';
+  modal.style.cssText = 'background: #ffffff; border: 1px solid #d1fae5; border-radius: 16px; padding: 40px 32px 36px; box-shadow: 0 8px 32px rgba(16, 185, 129, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06); max-width: 400px; width: calc(100% - 48px); box-sizing: border-box;';
 
-  // Success icon
+  // Success icon - smaller, more subtle
   const icon = document.createElement('div');
-  icon.innerHTML = '<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 16px; display: block;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+  icon.innerHTML = '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 20px; display: block;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
   modal.appendChild(icon);
 
   // Thank you message - use custom text if provided, otherwise use translation
@@ -488,7 +545,7 @@ function showSuccessConfirmation(overlay) {
   message.textContent = (widgetSettings && widgetSettings.ratingCustomThankYou)
     ? widgetSettings.ratingCustomThankYou
     : t('ratingThankYou');
-  message.style.cssText = 'font-size: 18px; font-weight: 600; color: #059669; text-align: center; line-height: 1.4;';
+  message.style.cssText = 'font-size: 17px; font-weight: 500; color: #065f46; text-align: center; line-height: 1.5; letter-spacing: -0.01em;';
   modal.appendChild(message);
 
   // Auto-close after 2 seconds
@@ -499,10 +556,12 @@ function showSuccessConfirmation(overlay) {
 
 function closeRatingModal(overlay) {
   if (!overlay) return;
+  overlay.style.transition = 'opacity 0.2s cubic-bezier(0.4, 0, 1, 1)';
   overlay.style.opacity = '0';
   const modal = overlay.querySelector('#ai-rating-modal');
   if (modal) {
-    modal.style.transform = 'scale(0.9)';
+    modal.style.transition = 'transform 0.2s cubic-bezier(0.4, 0, 1, 1)';
+    modal.style.transform = 'translateY(10px) scale(0.95)';
   }
   setTimeout(() => {
     if (overlay.parentNode) {
