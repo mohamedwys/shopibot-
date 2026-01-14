@@ -1106,7 +1106,7 @@ function displayProductRecommendations(recommendations) {
       imageDiv.style.backgroundImage = bgImageStyle;
       imageDiv.style.backgroundSize = 'cover';
       imageDiv.style.backgroundPosition = 'center';
-      imageDiv.style.display = 'block'; // Ensure element displays
+      imageDiv.style.setProperty('display', 'block', 'important'); // Force display with !important to override any CSS
 
       // 🐛 DEBUG: Verify style was applied
       console.log('🐛 DEBUG: Applied backgroundImage style:', bgImageStyle);
@@ -1119,7 +1119,7 @@ function displayProductRecommendations(recommendations) {
     } else {
       // Placeholder icon when no image available or sanitization fails
       console.log('🐛 DEBUG: Showing placeholder for', product.title);
-      imageDiv.style.display = 'flex';
+      imageDiv.style.setProperty('display', 'flex', 'important'); // Force display with !important
       imageDiv.style.alignItems = 'center';
       imageDiv.style.justifyContent = 'center';
       imageDiv.style.fontSize = '28px';
