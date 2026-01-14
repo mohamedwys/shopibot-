@@ -10,7 +10,6 @@ let currentSuggestedActions = [];
 let messageQueue = [];
 let isOnline = navigator.onLine;
 let translations = null; // Store loaded translations
-let ratingShown = false; // Track if rating prompt has been displayed
 let currentChatSessionId = null; // Track current chat session for rating
 
 // ✅ FIX: Persist sessionId in localStorage to prevent repeated greetings
@@ -296,64 +295,81 @@ function scrollToBottom() {
 }
 
 // ======================
-// Rating Functions
+// Rating Modal Popup
 // ======================
 
-function shouldShowRating() {
-  // Show rating if:
-  // 1. Not shown yet this session
-  // 2. Has at least 3 messages in conversation
-  // 3. Chat is about to close
-  return !ratingShown && conversationHistory.length >= 3;
+function shouldShowRatingPopup() {
+  // Check if rating popup has already been shown this session
+  try {
+    return !sessionStorage.getItem('ai_rating_shown') && conversationHistory.length >= 4;
+  } catch (e) {
+    // Fallback if sessionStorage unavailable
+    return conversationHistory.length >= 4;
+  }
 }
 
-function showRatingPrompt() {
-  if (!elements.messagesContainer || !shouldShowRating()) return;
+function showRatingModal() {
+  if (!shouldShowRatingPopup()) return;
 
-  ratingShown = true; // Mark as shown
+  // Mark as shown in sessionStorage
+  try {
+    sessionStorage.setItem('ai_rating_shown', 'true');
+  } catch (e) {
+    // Ignore if sessionStorage unavailable
+  }
 
-  // Create rating container with modern, minimal design
-  const ratingDiv = document.createElement('div');
-  ratingDiv.id = 'ai-rating-prompt';
-  ratingDiv.className = 'ai-message assistant-message';
-  ratingDiv.style.cssText = 'padding: 24px 20px; background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%); border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin: 20px 12px; max-width: min(340px, calc(100% - 24px)); box-sizing: border-box;';
+  // Create modal overlay
+  const overlay = document.createElement('div');
+  overlay.id = 'ai-rating-modal-overlay';
+  overlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 999999; backdrop-filter: blur(4px);';
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.setAttribute('aria-labelledby', 'rating-modal-title');
 
-  // Rating prompt text with better hierarchy
-  const promptText = document.createElement('div');
-  promptText.textContent = t('ratingTitle');
-  promptText.style.cssText = 'font-weight: 600; margin-bottom: 16px; font-size: 16px; color: #111827; line-height: 1.4; text-align: center;';
-  ratingDiv.appendChild(promptText);
+  // Create modal popup
+  const modal = document.createElement('div');
+  modal.id = 'ai-rating-modal';
+  modal.style.cssText = 'background: white; border-radius: 20px; padding: 32px 28px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); max-width: 360px; width: calc(100% - 40px); box-sizing: border-box; position: relative;';
 
-  // Star rating container with proper constraints
+  // Title
+  const title = document.createElement('h2');
+  title.id = 'rating-modal-title';
+  title.textContent = t('ratingTitle');
+  title.style.cssText = 'margin: 0 0 24px 0; font-size: 20px; font-weight: 600; color: #111827; text-align: center; line-height: 1.3;';
+  modal.appendChild(title);
+
+  // Stars container
   const starsContainer = document.createElement('div');
-  starsContainer.style.cssText = 'display: flex; gap: 4px; margin-bottom: 16px; justify-content: center; align-items: center; flex-wrap: nowrap;';
+  starsContainer.style.cssText = 'display: flex; gap: 8px; justify-content: center; align-items: center; margin-bottom: 0;';
 
-  // Create 5 star buttons with SVG for consistency
-  const starSVG = (filled) => `<svg width="36" height="36" viewBox="0 0 24 24" fill="${filled ? '#FCD34D' : 'none'}" stroke="${filled ? '#F59E0B' : '#D1D5DB'}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
+  // SVG star helper
+  const starSVG = (filled) => `<svg width="44" height="44" viewBox="0 0 24 24" fill="${filled ? '#FCD34D' : 'none'}" stroke="${filled ? '#F59E0B' : '#D1D5DB'}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
 
   let selectedRating = 0;
+  let isSubmitting = false;
 
+  // Create 5 stars
   for (let i = 1; i <= 5; i++) {
     const starBtn = document.createElement('button');
     starBtn.innerHTML = starSVG(false);
-    starBtn.style.cssText = 'background: none; border: none; cursor: pointer; padding: 2px; transition: all 0.2s ease; flex-shrink: 0; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px;';
+    starBtn.style.cssText = 'background: none; border: none; cursor: pointer; padding: 4px; transition: all 0.2s ease; flex-shrink: 0; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border-radius: 12px;';
     starBtn.setAttribute('aria-label', t('ratingAriaLabel').replace('{{stars}}', i));
     starBtn.dataset.rating = i;
-    starBtn.type = 'button'; // Prevent form submission
+    starBtn.type = 'button';
 
     // Hover effect
     starBtn.addEventListener('mouseenter', function() {
-      // Highlight all stars up to this one
+      if (isSubmitting) return;
       const rating = parseInt(this.dataset.rating);
       for (let j = 1; j <= 5; j++) {
         const btn = starsContainer.children[j - 1];
         btn.innerHTML = j <= rating ? starSVG(true) : starSVG(false);
-        btn.style.transform = j <= rating ? 'scale(1.1)' : 'scale(1)';
+        btn.style.transform = 'scale(1.15)';
       }
     });
 
     starsContainer.addEventListener('mouseleave', function() {
-      // Reset to selected rating
+      if (isSubmitting) return;
       for (let j = 1; j <= 5; j++) {
         const btn = starsContainer.children[j - 1];
         btn.innerHTML = j <= selectedRating ? starSVG(true) : starSVG(false);
@@ -361,134 +377,115 @@ function showRatingPrompt() {
       }
     });
 
-    // Click handler
-    starBtn.addEventListener('click', function() {
+    // Click handler - submit immediately
+    starBtn.addEventListener('click', async function() {
+      if (isSubmitting) return;
+      isSubmitting = true;
       selectedRating = parseInt(this.dataset.rating);
-      // Update stars to show selected rating
+
+      // Show selected stars
       for (let j = 1; j <= 5; j++) {
         const btn = starsContainer.children[j - 1];
         btn.innerHTML = j <= selectedRating ? starSVG(true) : starSVG(false);
+        btn.style.cursor = 'default';
+        btn.disabled = true;
       }
-      // Submit after short delay to show selection
-      setTimeout(() => {
-        handleRatingSubmission(selectedRating);
-      }, 400);
+
+      // Submit rating
+      await submitRatingToBackend(selectedRating, overlay);
     });
 
     starsContainer.appendChild(starBtn);
   }
 
-  ratingDiv.appendChild(starsContainer);
+  modal.appendChild(starsContainer);
+  overlay.appendChild(modal);
 
-  // Optional feedback textarea with modern styling
-  const feedbackInput = document.createElement('textarea');
-  feedbackInput.id = 'ai-rating-feedback';
-  feedbackInput.placeholder = t('ratingFeedbackPlaceholder');
-  feedbackInput.style.cssText = 'width: 100%; min-height: 70px; padding: 12px; border: 1.5px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-family: inherit; resize: vertical; margin-bottom: 12px; box-sizing: border-box; transition: all 0.2s ease; background: white;';
-  feedbackInput.addEventListener('focus', function() {
-    this.style.borderColor = widgetSettings.primaryColor || '#3b82f6';
-    this.style.boxShadow = `0 0 0 3px ${widgetSettings.primaryColor || '#3b82f6'}15`;
-  });
-  feedbackInput.addEventListener('blur', function() {
-    this.style.borderColor = '#e5e7eb';
-    this.style.boxShadow = 'none';
-  });
-  ratingDiv.appendChild(feedbackInput);
+  // Add to body (outside chat container)
+  document.body.appendChild(overlay);
 
-  // Skip button with modern styling
-  const skipBtn = document.createElement('button');
-  skipBtn.textContent = t('ratingSkip');
-  skipBtn.type = 'button';
-  skipBtn.style.cssText = 'width: 100%; padding: 10px 16px; background: transparent; border: 1.5px solid #e5e7eb; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 500; color: #6b7280; transition: all 0.2s ease; box-sizing: border-box;';
-  skipBtn.addEventListener('mouseenter', function() {
-    this.style.background = '#f9fafb';
-    this.style.borderColor = '#d1d5db';
-  });
-  skipBtn.addEventListener('mouseleave', function() {
-    this.style.background = 'transparent';
-    this.style.borderColor = '#e5e7eb';
-  });
-  skipBtn.addEventListener('click', function() {
-    ratingDiv.style.opacity = '0';
-    ratingDiv.style.transform = 'scale(0.95)';
-    ratingDiv.style.transition = 'all 0.2s ease';
-    setTimeout(() => ratingDiv.remove(), 200);
-  });
-  ratingDiv.appendChild(skipBtn);
-
-  // Smooth fade-in animation
-  ratingDiv.style.opacity = '0';
-  ratingDiv.style.transform = 'scale(0.95)';
-  elements.messagesContainer.appendChild(ratingDiv);
-
-  // Trigger animation after DOM insertion
+  // Fade in animation
+  overlay.style.opacity = '0';
+  modal.style.transform = 'scale(0.9)';
   requestAnimationFrame(() => {
-    ratingDiv.style.transition = 'all 0.3s ease';
-    ratingDiv.style.opacity = '1';
-    ratingDiv.style.transform = 'scale(1)';
+    overlay.style.transition = 'opacity 0.3s ease';
+    modal.style.transition = 'transform 0.3s ease';
+    overlay.style.opacity = '1';
+    modal.style.transform = 'scale(1)';
   });
 
-  scrollToBottom();
+  // Close on overlay click (optional - user requested no skip, but this doesn't block)
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay && !isSubmitting) {
+      closeRatingModal(overlay);
+    }
+  });
 }
 
-async function handleRatingSubmission(rating) {
-  const feedbackInput = document.getElementById('ai-rating-feedback');
-  const ratingComment = feedbackInput ? feedbackInput.value.trim() : '';
-
+async function submitRatingToBackend(rating, overlay) {
   try {
-    // Use currentChatSessionId if available, otherwise use sessionId as fallback
     const chatSessionId = currentChatSessionId || sessionId;
-
-    // Submit rating to backend
-    const url = `https://shopibot.vercel.app/api/submit-rating`;
-    const response = await fetch(url, {
+    const response = await fetch('https://shopibot.vercel.app/api/submit-rating', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         shop: widgetSettings.shopDomain,
         chatSessionId: chatSessionId,
-        rating: rating,
-        ratingComment: ratingComment || undefined
+        rating: rating
       })
     });
 
     const data = await response.json();
 
     if (data.success) {
-      // Show thank you message with modern design
-      const ratingPrompt = document.getElementById('ai-rating-prompt');
-      if (ratingPrompt) {
-        ratingPrompt.innerHTML = '';
-        ratingPrompt.style.cssText = 'padding: 32px 20px; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-radius: 16px; border: 1px solid #10b981; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15); margin: 20px 12px; max-width: min(340px, calc(100% - 24px)); box-sizing: border-box;';
-
-        // Success icon
-        const iconDiv = document.createElement('div');
-        iconDiv.innerHTML = '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 12px; display: block;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
-        ratingPrompt.appendChild(iconDiv);
-
-        const thankYouText = document.createElement('div');
-        thankYouText.textContent = t('ratingThankYou');
-        thankYouText.style.cssText = 'font-weight: 600; color: #059669; font-size: 16px; text-align: center; line-height: 1.4;';
-        ratingPrompt.appendChild(thankYouText);
-
-        // Remove after 2.5 seconds with fade out
-        setTimeout(() => {
-          ratingPrompt.style.opacity = '0';
-          ratingPrompt.style.transform = 'scale(0.95)';
-          ratingPrompt.style.transition = 'all 0.3s ease';
-          setTimeout(() => ratingPrompt.remove(), 300);
-        }, 2500);
-      }
-
-      console.log('⭐ Rating submitted successfully:', rating);
+      showSuccessConfirmation(overlay);
     } else {
-      console.error('Failed to submit rating:', data.error);
+      console.error('Rating submission failed:', data.error);
+      closeRatingModal(overlay);
     }
   } catch (error) {
     console.error('Error submitting rating:', error);
+    closeRatingModal(overlay);
   }
+}
+
+function showSuccessConfirmation(overlay) {
+  const modal = overlay.querySelector('#ai-rating-modal');
+  if (!modal) return;
+
+  // Replace content with success message
+  modal.innerHTML = '';
+  modal.style.cssText = 'background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-radius: 20px; padding: 40px 28px; box-shadow: 0 20px 60px rgba(16, 185, 129, 0.25); max-width: 360px; width: calc(100% - 40px); box-sizing: border-box;';
+
+  // Success icon
+  const icon = document.createElement('div');
+  icon.innerHTML = '<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 16px; display: block;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+  modal.appendChild(icon);
+
+  // Thank you message
+  const message = document.createElement('div');
+  message.textContent = t('ratingThankYou');
+  message.style.cssText = 'font-size: 18px; font-weight: 600; color: #059669; text-align: center; line-height: 1.4;';
+  modal.appendChild(message);
+
+  // Auto-close after 2 seconds
+  setTimeout(() => {
+    closeRatingModal(overlay);
+  }, 2000);
+}
+
+function closeRatingModal(overlay) {
+  if (!overlay) return;
+  overlay.style.opacity = '0';
+  const modal = overlay.querySelector('#ai-rating-modal');
+  if (modal) {
+    modal.style.transform = 'scale(0.9)';
+  }
+  setTimeout(() => {
+    if (overlay.parentNode) {
+      overlay.remove();
+    }
+  }, 300);
 }
 
 function showLoading(show) {
@@ -1483,17 +1480,16 @@ function toggleAIChat() {
       }, 200);
       scrollToBottom();
     } else {
-      // Show rating prompt before closing (if eligible)
-      showRatingPrompt();
+      // Close chat window immediately
+      elements.chatWindow.classList.remove('ai-chat-open');
 
-      // Close chat window after a short delay to allow rating prompt to display
+      // Show rating modal popup (outside chat container)
+      showRatingModal();
+
+      // Return focus to toggle button after closing
       setTimeout(() => {
-        elements.chatWindow.classList.remove('ai-chat-open');
-        // Return focus to toggle button after closing
-        setTimeout(() => {
-          elements.toggleBtn?.focus();
-        }, 100);
-      }, 300);
+        elements.toggleBtn?.focus();
+      }, 100);
     }
   }
 }
