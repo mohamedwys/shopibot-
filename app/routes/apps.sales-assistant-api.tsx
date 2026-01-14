@@ -365,7 +365,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     // Process message through the appropriate workflow
     const n8nResponse = await serviceToUse.processUserMessage({
       userMessage: finalMessage,
-      products,
+      products: products,
       context: {
         ...enhancedContext,
         languageInstruction // Add explicit instruction for N8N workflow
