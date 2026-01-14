@@ -594,11 +594,24 @@ function showLoading(show) {
 
     const primaryColor = widgetSettings.primaryColor || '#3b82f6';
 
-    // Create 3 dots
+    // Create 3 dots with explicit animation properties
     [0, 0.2, 0.4].forEach(delay => {
       const dot = document.createElement('div');
       dot.className = 'ai-loading-dot';
-      dot.style.cssText = `width:10px;height:10px;background:${primaryColor};border-radius:50%;display:inline-block;animation:bounce 1.4s ease-in-out infinite;animation-delay:${delay}s;`;
+      // Set styles explicitly to override any CSS rules
+      dot.style.cssText = `
+        width: 10px;
+        height: 10px;
+        background: ${primaryColor};
+        border-radius: 50%;
+        display: inline-block;
+      `;
+      // Set animation properties separately to ensure they apply
+      dot.style.animationName = 'bounce';
+      dot.style.animationDuration = '1.4s';
+      dot.style.animationTimingFunction = 'ease-in-out';
+      dot.style.animationIterationCount = 'infinite';
+      dot.style.animationDelay = `${delay}s`;
       loadingDiv.appendChild(dot);
     });
 

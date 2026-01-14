@@ -1382,7 +1382,7 @@
   height: 10px;
   background: var(--ai-primary-color, #3b82f6);
   border-radius: 50%;
-  animation: modernDotBounce 1.4s ease-in-out infinite;
+  /* animation removed - now set via inline JS to avoid conflicts */
   box-shadow: 0 2px 4px rgba(var(--ai-primary-color-rgb, 59, 130, 246), 0.3);
 }
 
@@ -1410,10 +1410,4 @@
   }
 }
 
-/* Respect reduced motion preferences */
-@media (prefers-reduced-motion: reduce) {
-  .ai-loading-dot {
-    animation: none;
-    opacity: 0.7;
-  }
-}
+/* Respect reduced motion preferences - consolidated with main media query above */
