@@ -104,8 +104,10 @@ export class AnalyticsService {
       // Aggregate current period
       const totalSessions = currentData.reduce((sum: any, d: any) => sum + d.totalSessions, 0);
       const totalMessages = currentData.reduce((sum: any, d: any) => sum + d.totalMessages, 0);
-      const avgResponseTime = currentData.length > 0
-        ? currentData.reduce((sum: any, d: any) => sum + d.avgResponseTime, 0) / currentData.length
+      // FIX: Use weighted average based on message count instead of simple average of daily averages
+      // This ensures days with more messages have proportional weight in the overall average
+      const avgResponseTime = totalMessages > 0
+        ? currentData.reduce((sum: any, d: any) => sum + (d.avgResponseTime * d.totalMessages), 0) / totalMessages
         : 0;
       const avgConfidence = currentData.length > 0
         ? currentData.reduce((sum: any, d: any) => sum + d.avgConfidence, 0) / currentData.length
