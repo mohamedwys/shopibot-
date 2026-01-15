@@ -11,6 +11,7 @@ let messageQueue = [];
 let isOnline = navigator.onLine;
 let translations = null; // Store loaded translations
 let currentChatSessionId = null; // Track current chat session for rating
+let conversationId = null; // Unique ID per conversation for rating tracking (resets on chat open)
 
 // ✅ FIX: Persist sessionId in localStorage to prevent repeated greetings
 // Try to retrieve existing sessionId from localStorage, or create a new one
@@ -305,18 +306,18 @@ function shouldShowRatingPopup() {
     return false;
   }
 
-  // Check if this specific chat session has already been rated
+  // Check if this specific conversation has already been rated
   try {
-    const ratedSessions = JSON.parse(sessionStorage.getItem('ai_rated_sessions') || '[]');
-    const currentSessionId = currentChatSessionId || sessionId;
+    const ratedConversations = JSON.parse(sessionStorage.getItem('ai_rated_conversations') || '[]');
+    const currentConversationId = conversationId || 'no-conversation-id';
     const hasMinMessages = conversationHistory.length >= 4;
-    const notRated = !ratedSessions.includes(currentSessionId);
+    const notRated = !ratedConversations.includes(currentConversationId);
 
     console.log('[Rating Debug] Popup check:', {
       conversationLength: conversationHistory.length,
       hasMinMessages,
-      currentSessionId,
-      ratedSessions,
+      conversationId: currentConversationId,
+      ratedConversations,
       notRated,
       shouldShow: notRated && hasMinMessages
     });
@@ -533,16 +534,17 @@ function showSuccessConfirmation(overlay) {
   const modal = overlay.querySelector('#ai-rating-modal');
   if (!modal) return;
 
-  // ✅ Mark this session as rated in sessionStorage
+  // ✅ Mark this conversation as rated in sessionStorage
   try {
-    const ratedSessions = JSON.parse(sessionStorage.getItem('ai_rated_sessions') || '[]');
-    const currentSessionId = currentChatSessionId || sessionId;
-    if (!ratedSessions.includes(currentSessionId)) {
-      ratedSessions.push(currentSessionId);
-      sessionStorage.setItem('ai_rated_sessions', JSON.stringify(ratedSessions));
+    const ratedConversations = JSON.parse(sessionStorage.getItem('ai_rated_conversations') || '[]');
+    const currentConversationId = conversationId || 'no-conversation-id';
+    if (!ratedConversations.includes(currentConversationId)) {
+      ratedConversations.push(currentConversationId);
+      sessionStorage.setItem('ai_rated_conversations', JSON.stringify(ratedConversations));
+      console.log('[Rating Debug] Marked conversation as rated:', currentConversationId);
     }
   } catch (e) {
-    console.warn('Could not mark session as rated:', e);
+    console.warn('Could not mark conversation as rated:', e);
   }
 
   // Replace content with success message - refined, calmer design
@@ -1672,6 +1674,10 @@ function toggleAIChat() {
   // Show or hide chat window
   if (elements.chatWindow) {
     if (chatOpen) {
+      // Generate new conversation ID for rating tracking (independent of backend session)
+      conversationId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      console.log('[Rating Debug] New conversation started, ID:', conversationId);
+
       elements.chatWindow.classList.add('ai-chat-open');
       // Focus input after opening
       setTimeout(() => {
