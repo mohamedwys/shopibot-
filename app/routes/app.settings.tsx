@@ -48,6 +48,8 @@ const DEFAULT_SETTINGS = {
   interfaceLanguage: "en",
   plan: PlanCode.STARTER, // ✅ Use standardized plan code
   openaiApiKey: "",
+  welcomePopupEnabled: true,
+  welcomePopupMessage: null,
 };
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -265,6 +267,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     webhookUrl: normalizedWebhookUrl,
     plan: plan,
     openaiApiKey: encryptedApiKey,
+    // Welcome popup settings
+    welcomePopupEnabled: formData.get("welcomePopupEnabled") === "true",
+    welcomePopupMessage: (formData.get("welcomePopupMessage") as string) || null,
   };
 
   // Update apiKeyLastUpdated if API key was changed
@@ -910,6 +915,58 @@ export default function SettingsPage() {
             </Card>
           </Layout.Section>
         )}
+
+        {/* Welcome Popup Settings */}
+        <Layout.Section>
+          <Card>
+            <BlockStack gap="400">
+              <Text variant="headingMd" as="h2">
+                Welcome Popup
+              </Text>
+              <Text variant="bodyMd" as="p" tone="subdued">
+                Configure the welcome message popup that appears when visitors arrive on your store.
+              </Text>
+
+              <FormLayout>
+                <Select
+                  label="Enable Welcome Popup"
+                  value={settings.welcomePopupEnabled ? "true" : "false"}
+                  options={[
+                    { label: "Enabled", value: "true" },
+                    { label: "Disabled", value: "false" }
+                  ]}
+                  onChange={(value) =>
+                    setSettings((prev: any) => ({ ...prev, welcomePopupEnabled: value === "true" }))
+                  }
+                  helpText="Show a friendly greeting popup near the chat button (appears 3 seconds after page load, shown once per session)"
+                />
+
+                <TextField
+                  label="Welcome Popup Message (optional)"
+                  value={settings.welcomePopupMessage || ""}
+                  onChange={(value) =>
+                    setSettings((prev: any) => ({ ...prev, welcomePopupMessage: value }))
+                  }
+                  placeholder="Leave empty to use translated text based on interface language"
+                  helpText="Custom message for the welcome popup. Leave empty to use default translations (e.g., '👋 I'm here to help' in English, '👋 Je suis là pour vous aider' in French)"
+                  multiline={2}
+                  autoComplete="off"
+                />
+
+                <Banner tone="info">
+                  <BlockStack gap="200">
+                    <Text variant="bodyMd" as="p">
+                      The welcome popup appears 3 seconds after page load and is shown only once per browser session. It automatically dismisses after 10 seconds or when clicked.
+                    </Text>
+                    <Text variant="bodyMd" as="p">
+                      <strong>Tip:</strong> Leave the message empty to use automatic translations in 8 languages based on your Interface Language setting.
+                    </Text>
+                  </BlockStack>
+                </Banner>
+              </FormLayout>
+            </BlockStack>
+          </Card>
+        </Layout.Section>
 
         {/* AI Workflow Settings - Only for Professional Plan */}
         {planLimits && planLimits.hasCustomWebhook && (
