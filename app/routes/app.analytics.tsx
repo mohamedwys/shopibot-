@@ -17,6 +17,7 @@ import {
   Divider,
   ProgressBar,
   Icon,
+  Banner,
 } from "@shopify/polaris";
 import {
   ArrowUpIcon,
@@ -211,6 +212,13 @@ export default function AnalyticsPage() {
   );
 };
 
+  // Helper to get confidence tone
+  const getConfidenceTone = (confidence: number): "success" | "warning" | "critical" => {
+    if (confidence >= 80) return "success";
+    if (confidence >= 70) return "warning";
+    return "critical";
+  };
+
   // Calculate sentiment colors
   const getSentimentColor = (sentiment: string) => {
     const colors: Record<string, string> = {
@@ -255,32 +263,46 @@ export default function AnalyticsPage() {
         <Layout>
           <Layout.Section variant="oneThird">
             <Card>
-              <BlockStack gap="200">
+              <BlockStack gap="300">
                 <InlineStack align="space-between">
                   <Text variant="bodyMd" as="p" tone="subdued">
                     {t("analytics.totalMessages")}
                   </Text>
-                  <Icon source={ChartVerticalIcon} tone="base" />
+                  <Box
+                    background="bg-surface-secondary"
+                    padding="200"
+                    borderRadius="100"
+                  >
+                    <Icon source={ChartVerticalIcon} tone="base" />
+                  </Box>
                 </InlineStack>
                 <Text variant="heading2xl" as="h3">
                   {formatNumber(data.overview.totalMessages)}
                 </Text>
-                {getChangeBadge(data.overview.periodComparison.messagesChange)}
-                <Text variant="bodySm" as="p" tone="subdued">
-                  {t("analytics.vsPrevious")}
-                </Text>
+                <InlineStack gap="200" blockAlign="center">
+                  {getChangeBadge(data.overview.periodComparison.messagesChange)}
+                  <Text variant="bodySm" as="p" tone="subdued">
+                    {t("analytics.vsPrevious")}
+                  </Text>
+                </InlineStack>
               </BlockStack>
             </Card>
           </Layout.Section>
 
           <Layout.Section variant="oneThird">
             <Card>
-              <BlockStack gap="200">
+              <BlockStack gap="300">
                 <InlineStack align="space-between">
                   <Text variant="bodyMd" as="p" tone="subdued">
                     {t("analytics.activeUsers")}
                   </Text>
-                  <Icon source={PersonIcon} tone="base" />
+                  <Box
+                    background="bg-surface-secondary"
+                    padding="200"
+                    borderRadius="100"
+                  >
+                    <Icon source={PersonIcon} tone="base" />
+                  </Box>
                 </InlineStack>
                 <Text variant="heading2xl" as="h3">
                   {formatNumber(data.activeUsers ?? 0)}
@@ -294,20 +316,32 @@ export default function AnalyticsPage() {
 
           <Layout.Section variant="oneThird">
             <Card>
-              <BlockStack gap="200">
+              <BlockStack gap="300">
                 <InlineStack align="space-between">
                   <Text variant="bodyMd" as="p" tone="subdued">
                     {t("analytics.aiConfidence")}
                   </Text>
-                  <Icon source={ChartVerticalIcon} tone="base" />
+                  <Box
+                    background="bg-surface-secondary"
+                    padding="200"
+                    borderRadius="100"
+                  >
+                    <Icon source={ChartVerticalIcon} tone="base" />
+                  </Box>
                 </InlineStack>
-                <Text variant="heading2xl" as="h3">
+                <Text
+                  variant="heading2xl"
+                  as="h3"
+                  tone={getConfidenceTone(data.overview?.avgConfidence ?? 0)}
+                >
                   {(data.overview?.avgConfidence ?? 0).toFixed(1)}%
                 </Text>
-                {getChangeBadge(data.overview.periodComparison.confidenceChange)}
-                <Text variant="bodySm" as="p" tone="subdued">
-                  {t("analytics.avgAccuracy")}
-                </Text>
+                <InlineStack gap="200" blockAlign="center">
+                  {getChangeBadge(data.overview.periodComparison.confidenceChange)}
+                  <Text variant="bodySm" as="p" tone="subdued">
+                    {t("analytics.avgAccuracy")}
+                  </Text>
+                </InlineStack>
               </BlockStack>
             </Card>
           </Layout.Section>
@@ -330,32 +364,38 @@ export default function AnalyticsPage() {
                 </Text>
               </BlockStack>
 
-              <BlockStack gap="200">
-                <Text variant="bodyMd" as="p" tone="subdued">
-                  {t("analytics.avgSessionDuration")}
-                </Text>
-                <Text variant="headingLg" as="h3">
-                  {Math.round((data.engagement?.avgSessionDuration ?? 0) / 60)}m
-                </Text>
-              </BlockStack>
+              <Box borderInlineStartWidth="025" borderColor="border" paddingInlineStart="400">
+                <BlockStack gap="200">
+                  <Text variant="bodyMd" as="p" tone="subdued">
+                    {t("analytics.avgSessionDuration")}
+                  </Text>
+                  <Text variant="headingLg" as="h3">
+                    {Math.round((data.engagement?.avgSessionDuration ?? 0) / 60)}m
+                  </Text>
+                </BlockStack>
+              </Box>
 
-              <BlockStack gap="200">
-                <Text variant="bodyMd" as="p" tone="subdued">
-                  {t("analytics.avgResponseTime")}
-                </Text>
-                <Text variant="headingLg" as="h3">
-                  {((data.overview?.avgResponseTime ?? 0) / 1000).toFixed(1)}s
-                </Text>
-              </BlockStack>
+              <Box borderInlineStartWidth="025" borderColor="border" paddingInlineStart="400">
+                <BlockStack gap="200">
+                  <Text variant="bodyMd" as="p" tone="subdued">
+                    {t("analytics.avgResponseTime")}
+                  </Text>
+                  <Text variant="headingLg" as="h3">
+                    {((data.overview?.avgResponseTime ?? 0) / 1000).toFixed(1)}s
+                  </Text>
+                </BlockStack>
+              </Box>
 
-              <BlockStack gap="200">
-                <Text variant="bodyMd" as="p" tone="subdued">
-                  {t("analytics.totalSessions")}
-                </Text>
-                <Text variant="headingLg" as="h3">
-                  {formatNumber(data.engagement?.totalSessions ?? 0)}
-                </Text>
-              </BlockStack>
+              <Box borderInlineStartWidth="025" borderColor="border" paddingInlineStart="400">
+                <BlockStack gap="200">
+                  <Text variant="bodyMd" as="p" tone="subdued">
+                    {t("analytics.totalSessions")}
+                  </Text>
+                  <Text variant="headingLg" as="h3">
+                    {formatNumber(data.engagement?.totalSessions ?? 0)}
+                  </Text>
+                </BlockStack>
+              </Box>
             </InlineGrid>
           </BlockStack>
         </Card>
@@ -368,41 +408,37 @@ export default function AnalyticsPage() {
             </Text>
 
            {(data.intents && data.intents.length > 0) ? (
-            <BlockStack gap="300">
+            <BlockStack gap="400">
               {data.intents.map((intent, index) => (
-                <Box key={index}>
-                  <BlockStack gap="200">
-                    <InlineStack align="space-between">
-                      <Text variant="bodyMd" as="p">
-                        {intent.intent?.replace(/_/g, " ") ?? "Unknown"}
+                <BlockStack gap="200" key={index}>
+                  <InlineStack align="space-between" blockAlign="center">
+                    <Text variant="bodyMd" as="p" fontWeight="medium">
+                      {intent.intent?.replace(/_/g, " ") ?? "Unknown"}
+                    </Text>
+                    <InlineStack gap="300" blockAlign="center">
+                      <Text variant="bodySm" as="p" tone="subdued">
+                        {formatNumber(intent.count ?? 0)}
                       </Text>
-                      <InlineStack gap="200">
-                        <Text variant="bodyMd" as="p" tone="subdued">
-                          {formatNumber(intent.count ?? 0)}
-                        </Text>
-                        <Text variant="bodyMd" as="p">
-                          {(intent.percentage ?? 0).toFixed(1)}%
-                        </Text>
-                      </InlineStack>
+                      <Text variant="bodyMd" as="p" fontWeight="semibold">
+                        {(intent.percentage ?? 0).toFixed(1)}%
+                      </Text>
                     </InlineStack>
-                    <ProgressBar
-                      progress={intent.percentage ?? 0}
-                      size="small"
-                      tone="primary"
-                    />
-                  </BlockStack>
-                    {index < data.intents.length - 1 && (
-                      <Box paddingBlockStart="300">
-                        <Divider />
-                      </Box>
-                    )}
-                  </Box>
-                ))}
-              </BlockStack>
+                  </InlineStack>
+                  <ProgressBar
+                    progress={intent.percentage ?? 0}
+                    size="small"
+                    tone="primary"
+                  />
+                  {index < data.intents.length - 1 && <Divider />}
+                </BlockStack>
+              ))}
+            </BlockStack>
             ) : (
-              <Text variant="bodyMd" as="p" tone="subdued">
-                {t("analytics.noIntentData")}
-              </Text>
+              <Box background="bg-surface-secondary" padding="400" borderRadius="200">
+                <Text variant="bodyMd" as="p" tone="subdued" alignment="center">
+                  {t("analytics.noIntentData")}
+                </Text>
+              </Box>
             )}
           </BlockStack>
         </Card>
@@ -416,36 +452,38 @@ export default function AnalyticsPage() {
 
             {data.sentiments.length > 0 ? (
               <InlineGrid columns={3} gap="400">
-                {data.sentiments.map((sentiment, index) => (
-                  <Card key={index}>
-                    <BlockStack gap="300">
-                      <InlineStack align="space-between">
-                        <Text variant="headingMd" as="h3">
+                {data.sentiments.map((sentiment, index) => {
+                  const sentimentTone = sentiment.sentiment === "Positive" ? "success" :
+                                       sentiment.sentiment === "Negative" ? "critical" : undefined;
+
+                  return (
+                    <Box
+                      key={index}
+                      background="bg-surface-secondary"
+                      padding="400"
+                      borderRadius="200"
+                    >
+                      <BlockStack gap="300">
+                        <Text variant="headingSm" as="h3" tone="subdued">
                           {sentiment.sentiment}
                         </Text>
-                        <div
-                          style={{
-                            width: "12px",
-                            height: "12px",
-                            borderRadius: "50%",
-                            backgroundColor: getSentimentColor(sentiment.sentiment),
-                          }}
-                        />
-                      </InlineStack>
-                      <Text variant="heading2xl" as="h4">
-                        {sentiment.percentage}%
-                      </Text>
-                      <Text variant="bodySm" as="p" tone="subdued">
-                        {formatNumber(sentiment.count)} {t("analytics.messages")}
-                      </Text>
-                    </BlockStack>
-                  </Card>
-                ))}
+                        <Text variant="heading2xl" as="h4" tone={sentimentTone}>
+                          {sentiment.percentage}%
+                        </Text>
+                        <Text variant="bodySm" as="p" tone="subdued">
+                          {formatNumber(sentiment.count)} {t("analytics.messages")}
+                        </Text>
+                      </BlockStack>
+                    </Box>
+                  );
+                })}
               </InlineGrid>
             ) : (
-              <Text variant="bodyMd" as="p" tone="subdued">
-                {t("analytics.noSentimentData")}
-              </Text>
+              <Box background="bg-surface-secondary" padding="400" borderRadius="200">
+                <Text variant="bodyMd" as="p" tone="subdued" alignment="center">
+                  {t("analytics.noSentimentData")}
+                </Text>
+              </Box>
             )}
           </BlockStack>
         </Card>
@@ -460,21 +498,16 @@ export default function AnalyticsPage() {
             {data.workflowUsage && data.workflowUsage.length > 0 ? (
               <InlineGrid columns={2} gap="400">
                 {data.workflowUsage.map((workflow: any, index: number) => (
-                  <Card key={index}>
+                  <Box
+                    key={index}
+                    background="bg-surface-secondary"
+                    padding="400"
+                    borderRadius="200"
+                  >
                     <BlockStack gap="300">
-                      <InlineStack align="space-between">
-                        <Text variant="headingMd" as="h3">
-                          {workflow.workflow} Workflow
-                        </Text>
-                        <div
-                          style={{
-                            width: "12px",
-                            height: "12px",
-                            borderRadius: "50%",
-                            backgroundColor: workflow.workflow === 'Default' ? "#5C6AC4" : "#47C1BF",
-                          }}
-                        />
-                      </InlineStack>
+                      <Text variant="headingSm" as="h3" tone="subdued">
+                        {workflow.workflow} Workflow
+                      </Text>
                       <Text variant="heading2xl" as="h4">
                         {workflow.percentage}%
                       </Text>
@@ -482,13 +515,15 @@ export default function AnalyticsPage() {
                         {formatNumber(workflow.count)} messages
                       </Text>
                     </BlockStack>
-                  </Card>
+                  </Box>
                 ))}
               </InlineGrid>
             ) : (
-              <Text variant="bodyMd" as="p" tone="subdued">
-                No workflow data available for this period
-              </Text>
+              <Box background="bg-surface-secondary" padding="400" borderRadius="200">
+                <Text variant="bodyMd" as="p" tone="subdued" alignment="center">
+                  No workflow data available for this period
+                </Text>
+              </Box>
             )}
           </BlockStack>
         </Card>
@@ -525,9 +560,11 @@ export default function AnalyticsPage() {
                 ))}
               </BlockStack>
             ) : (
-              <Text variant="bodyMd" as="p" tone="subdued">
-                {t("analytics.noProductData")}
-              </Text>
+              <Box background="bg-surface-secondary" padding="400" borderRadius="200">
+                <Text variant="bodyMd" as="p" tone="subdued" alignment="center">
+                  {t("analytics.noProductData")}
+                </Text>
+              </Box>
             )}
           </BlockStack>
         </Card>
@@ -586,50 +623,63 @@ export default function AnalyticsPage() {
                 </Box>
               </Box>
             ) : (
-              <Text variant="bodyMd" as="p" tone="subdued">
-                {t("analytics.noTrendData")}
-              </Text>
+              <Box background="bg-surface-secondary" padding="400" borderRadius="200">
+                <Text variant="bodyMd" as="p" tone="subdued" alignment="center">
+                  {t("analytics.noTrendData")}
+                </Text>
+              </Box>
             )}
           </BlockStack>
         </Card>
 
-        {/* Info Banner */}
-        <Card>
-          <BlockStack gap="200">
-            <Text variant="headingMd" as="h2">
-              {t("analytics.insights")}
-            </Text>
-            <BlockStack gap="100">
-              {data.overview.avgConfidence < 70 && (
-                <Text variant="bodyMd" as="p">
-                  • {t("analytics.insightLowConfidence")}
-                </Text>
-              )}
-              {((data.sentiments?.find((s) => s.sentiment === "Negative")?.percentage ?? 0) > 20) && (
-                <Text variant="bodyMd" as="p">
-                  • {t("analytics.insightNegativeSentiment")}
-                </Text>
-              )}
-              {(data.engagement?.avgMessagesPerSession ?? 0) < 2 && (
-                <Text variant="bodyMd" as="p">
-                  • {t("analytics.insightLowEngagement")}
-                </Text>
-              )}
-              {data.intents && data.intents.length > 0 &&
-                data.intents[0]?.intent === "OTHER" &&
-                (data.intents[0]?.percentage ?? 0) > 30 && (
-                  <Text variant="bodyMd" as="p">
-                    • {t("analytics.insightOtherIntent")}
-                  </Text>
-                )}
-              {(data.overview?.totalMessages ?? 0) === 0 && (
-                <Text variant="bodyMd" as="p">
-                  • {t("analytics.insightNoData")}
-                </Text>
-              )}
-            </BlockStack>
-          </BlockStack>
-        </Card>
+        {/* Insights */}
+        <BlockStack gap="400">
+          <Text variant="headingMd" as="h2">
+            {t("analytics.insights")}
+          </Text>
+
+          {data.overview.avgConfidence < 70 && (
+            <Banner tone="warning">
+              {t("analytics.insightLowConfidence")}
+            </Banner>
+          )}
+
+          {((data.sentiments?.find((s) => s.sentiment === "Negative")?.percentage ?? 0) > 20) && (
+            <Banner tone="critical">
+              {t("analytics.insightNegativeSentiment")}
+            </Banner>
+          )}
+
+          {(data.engagement?.avgMessagesPerSession ?? 0) < 2 && (
+            <Banner tone="info">
+              {t("analytics.insightLowEngagement")}
+            </Banner>
+          )}
+
+          {data.intents && data.intents.length > 0 &&
+            data.intents[0]?.intent === "OTHER" &&
+            (data.intents[0]?.percentage ?? 0) > 30 && (
+              <Banner tone="warning">
+                {t("analytics.insightOtherIntent")}
+              </Banner>
+            )}
+
+          {(data.overview?.totalMessages ?? 0) === 0 && (
+            <Banner tone="info">
+              {t("analytics.insightNoData")}
+            </Banner>
+          )}
+
+          {/* Show success message when everything looks good */}
+          {data.overview.avgConfidence >= 70 &&
+            ((data.sentiments?.find((s) => s.sentiment === "Negative")?.percentage ?? 0) <= 20) &&
+            (data.engagement?.avgMessagesPerSession ?? 0) >= 2 &&
+            (data.overview?.totalMessages ?? 0) > 0 && (
+              <Banner tone="success">
+                Analytics are looking healthy! Your AI assistant is performing well.
+              </Banner>
+            )}
+        </BlockStack>
       </BlockStack>
     </Page>
   );
