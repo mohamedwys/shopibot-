@@ -751,7 +751,7 @@ export default function SettingsPage() {
                         </Text>
                         <Text variant="bodyMd" as="p">
                           You've reached your {conversationUsage.limit?.toLocaleString() ?? 0} conversation limit for this month.
-                          Upgrade to Professional Plan for unlimited conversations.
+                          Upgrade to BYOK Plan ($5/month) or Professional Plan ($79/month) for unlimited conversations.
                         </Text>
                         <InlineStack gap="200">
                           <Button
