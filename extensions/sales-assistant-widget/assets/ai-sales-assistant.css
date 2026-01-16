@@ -1363,6 +1363,35 @@
   }
 }
 
+/* ========================================
+   DESKTOP READABILITY IMPROVEMENTS
+   Tablet and Desktop (769px and above)
+   ======================================== */
+@media (min-width: 769px) {
+  /* Improved message text readability */
+  .message-content {
+    font-size: 0.9375rem; /* 15px - up from 14px */
+  }
+
+  /* Improved product card text */
+  .product-title {
+    font-size: 0.9375rem; /* 15px - up from 14px */
+  }
+
+  .product-price {
+    font-size: 1rem; /* 16px - up from 15px */
+  }
+
+  /* Improved button text */
+  .suggestion-btn {
+    font-size: 0.9375rem; /* 15px - up from 14px */
+  }
+
+  .quick-action-btn {
+    font-size: 0.9375rem; /* 15px - up from 14px */
+  }
+}
+
 /* Modern Loading Animation Styles */
 .ai-loading-dots-container {
   display: flex;
