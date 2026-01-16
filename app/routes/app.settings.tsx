@@ -328,14 +328,14 @@ export default function SettingsPage() {
   const getUsageTone = (percent: number): "success" | "attention" | "warning" | "critical" => {
     if (percent >= 100) return 'critical';
     if (percent >= 90) return 'warning';
-    if (percent >= 75) return 'attention';
+    if (percent >= 80) return 'attention';
     return 'success';
   };
 
   const getProgressColor = (percent: number) => {
     if (percent >= 100) return 'bg-fill-critical-active';
     if (percent >= 90) return 'bg-fill-warning-active';
-    if (percent >= 75) return 'bg-fill-caution-active';
+    if (percent >= 80) return 'bg-fill-caution-active';
     return 'bg-fill-success-active';
   };
 
