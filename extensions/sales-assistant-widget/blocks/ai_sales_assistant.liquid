@@ -24,46 +24,6 @@
       "default": "bottom-right"
     },
     {
-      "type": "header",
-      "content": "General Settings"
-    },
-    {
-      "type": "text",
-      "id": "button_text",
-      "label": "Button Text",
-      "default": "Ask AI Assistant"
-    },
-    {
-      "type": "text",
-      "id": "chat_title",
-      "label": "Chat Title",
-      "default": "AI Sales Assistant"
-    },
-    {
-      "type": "text",
-      "id": "status_text",
-      "label": "Status Text",
-      "default": "Online"
-    },
-    {
-      "type": "text",
-      "id": "close_button_label",
-      "label": "Close Button Label",
-      "default": "Close"
-    },
-    {
-      "type": "textarea",
-      "id": "welcome_message",
-      "label": "Welcome Message",
-      "default": "Hello! I'm your AI sales assistant. I can help you find products, answer questions, and provide personalized recommendations."
-    },
-    {
-      "type": "text",
-      "id": "input_placeholder",
-      "label": "Input Placeholder (Leave empty to use language setting)",
-      "info": "Custom placeholder text. Leave empty to use translated text based on interface language."
-    },
-    {
       "type": "color",
       "id": "primary_color",
       "label": "Primary Color",
@@ -72,8 +32,8 @@
     {
       "type": "select",
       "id": "interface_language",
-      "label": "Chatbot Interface Language",
-      "info": "Language for chatbot UI elements (buttons, labels, etc.). AI responses will auto-detect customer language.",
+      "label": "Interface Language",
+      "info": "Language for chatbot UI. AI responses auto-detect customer language.",
       "options": [
         { "value": "en", "label": "English" },
         { "value": "es", "label": "Español" },
@@ -87,149 +47,83 @@
       "default": "en"
     },
     {
-      "type": "header",
-      "content": "Welcome Popup"
+      "type": "textarea",
+      "id": "welcome_message",
+      "label": "Welcome Message",
+      "default": "Hello! I'm your AI sales assistant. I can help you find products, answer questions, and provide personalized recommendations."
     },
     {
-      "type": "paragraph",
-      "content": "A subtle popup that appears 3 seconds after page load to greet visitors. Shown once per session."
+      "type": "text",
+      "id": "button_text",
+      "label": "Launcher Button Text",
+      "default": "Ask AI Assistant"
+    },
+    {
+      "type": "header",
+      "content": "Welcome Popup"
     },
     {
       "type": "checkbox",
       "id": "welcome_popup_enabled",
       "label": "Enable Welcome Popup",
       "default": true,
-      "info": "Show a friendly greeting popup near the chat button"
-    },
-    {
-      "type": "text",
-      "id": "welcome_popup_message",
-      "label": "Welcome Popup Message (optional)",
-      "info": "Leave empty to use translated text based on interface language (e.g., 'I'm here to help' in English, 'Je suis là pour vous aider' in French)"
+      "info": "Shows a greeting popup 3 seconds after page load"
     },
     {
       "type": "header",
       "content": "Product Discovery Buttons"
     },
     {
-      "type": "paragraph",
-      "content": "Toggle visibility and customize labels for product discovery quick actions."
-    },
-    {
-      "type": "text",
-      "id": "section_discovery_label",
-      "label": "Section Label (optional)",
-      "info": "Leave empty to use translated text"
-    },
-    {
       "type": "checkbox",
       "id": "best_sellers_visible",
-      "label": "Show Best Sellers Button",
+      "label": "Show Best Sellers",
       "default": true
-    },
-    {
-      "type": "text",
-      "id": "best_sellers_text",
-      "label": "Best Sellers Button Text (optional)",
-      "info": "Leave empty to use translated text"
     },
     {
       "type": "checkbox",
       "id": "new_arrivals_visible",
-      "label": "Show New Arrivals Button",
+      "label": "Show New Arrivals",
       "default": true
-    },
-    {
-      "type": "text",
-      "id": "new_arrivals_text",
-      "label": "New Arrivals Button Text (optional)",
-      "info": "Leave empty to use translated text"
     },
     {
       "type": "checkbox",
       "id": "on_sale_visible",
-      "label": "Show On Sale Button",
+      "label": "Show On Sale",
       "default": true
-    },
-    {
-      "type": "text",
-      "id": "on_sale_text",
-      "label": "On Sale Button Text (optional)",
-      "info": "Leave empty to use translated text"
     },
     {
       "type": "checkbox",
       "id": "recommendations_visible",
-      "label": "Show Recommendations Button",
+      "label": "Show Recommendations",
       "default": true
-    },
-    {
-      "type": "text",
-      "id": "recommendations_text",
-      "label": "Recommendations Button Text (optional)",
-      "info": "Leave empty to use translated text"
     },
     {
       "type": "header",
       "content": "Customer Support Buttons"
     },
     {
-      "type": "paragraph",
-      "content": "Toggle visibility and customize labels for customer support quick actions."
-    },
-    {
-      "type": "text",
-      "id": "section_support_label",
-      "label": "Section Label (optional)",
-      "info": "Leave empty to use translated text"
-    },
-    {
       "type": "checkbox",
       "id": "shipping_visible",
-      "label": "Show Shipping Button",
+      "label": "Show Shipping",
       "default": true
-    },
-    {
-      "type": "text",
-      "id": "shipping_text",
-      "label": "Shipping Button Text (optional)",
-      "info": "Leave empty to use translated text"
     },
     {
       "type": "checkbox",
       "id": "returns_visible",
-      "label": "Show Returns Button",
+      "label": "Show Returns",
       "default": true
-    },
-    {
-      "type": "text",
-      "id": "returns_text",
-      "label": "Returns Button Text (optional)",
-      "info": "Leave empty to use translated text"
     },
     {
       "type": "checkbox",
       "id": "track_order_visible",
-      "label": "Show Track Order Button",
+      "label": "Show Track Order",
       "default": true
-    },
-    {
-      "type": "text",
-      "id": "track_order_text",
-      "label": "Track Order Button Text (optional)",
-      "info": "Leave empty to use translated text"
     },
     {
       "type": "checkbox",
       "id": "help_visible",
-      "label": "Show Help Button",
+      "label": "Show Help",
       "default": true
-    },
-    {
-      "type": "text",
-      "id": "help_text",
-      "label": "Help Button Text (optional)",
-      "info": "Leave empty to use translated text"
     }
   ]
 }
@@ -247,29 +141,17 @@
     enabled: {{ block.settings.enabled | default: true | json }},
     position: {{ block.settings.position | default: "bottom-right" | json }},
     buttonText: {{ block.settings.button_text | default: "Ask AI Assistant" | json }},
-    chatTitle: {{ block.settings.chat_title | default: "AI Sales Assistant" | json }},
-    statusText: {{ block.settings.status_text | default: "Online" | json }},
-    closeButtonLabel: {{ block.settings.close_button_label | default: "Close" | json }},
+    chatTitle: "AI Sales Assistant",
+    statusText: "Online",
+    closeButtonLabel: "Close",
     welcomeMessage: {{ block.settings.welcome_message | default: "Hello! I'm your AI sales assistant. How can I help you today?" | json }},
-    inputPlaceholder: {{ block.settings.input_placeholder | json }},
+    inputPlaceholder: null,
     primaryColor: {{ block.settings.primary_color | default: "#ee5cee" | json }},
     interfaceLanguage: {{ block.settings.interface_language | default: "en" | json }},
 
     // Welcome popup settings
     welcomePopupEnabled: {{ block.settings.welcome_popup_enabled | default: true | json }},
-    welcomePopupMessage: {{ block.settings.welcome_popup_message | json }},
-
-    // Quick action labels - empty by default to use translations
-    sectionDiscoveryLabel: {{ block.settings.section_discovery_label | json }},
-    bestSellersText: {{ block.settings.best_sellers_text | json }},
-    newArrivalsText: {{ block.settings.new_arrivals_text | json }},
-    onSaleText: {{ block.settings.on_sale_text | json }},
-    recommendationsText: {{ block.settings.recommendations_text | json }},
-    sectionSupportLabel: {{ block.settings.section_support_label | json }},
-    shippingText: {{ block.settings.shipping_text | json }},
-    returnsText: {{ block.settings.returns_text | json }},
-    trackOrderText: {{ block.settings.track_order_text | json }},
-    helpText: {{ block.settings.help_text | json }},
+    welcomePopupMessage: null,
 
     // Quick button visibility - controlled from Theme Editor
     bestSellersVisible: {{ block.settings.best_sellers_visible | default: true | json }},
