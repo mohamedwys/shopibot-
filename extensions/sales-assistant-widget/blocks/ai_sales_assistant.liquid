@@ -168,10 +168,80 @@
     shopDomain: {{ shop.permanent_domain | json }},
     currency: {{ shop.currency | json }}
   };
+
+  // Inline visibility handler - runs after widget loads to hide/show buttons
+  (function() {
+    const settings = window.aiSalesAssistantSettings;
+
+    // Map button prompts to visibility settings
+    const buttonVisibilityMap = {
+      'bestSellersPrompt': settings.bestSellersVisible,
+      'newArrivalsPrompt': settings.newArrivalsVisible,
+      'onSalePrompt': settings.onSaleVisible,
+      'recommendedPrompt': settings.recommendationsVisible,
+      'shippingPrompt': settings.shippingVisible,
+      'returnsPrompt': settings.returnsVisible,
+      'trackOrderPrompt': settings.trackOrderVisible,
+      'I need help with something': settings.helpVisible
+    };
+
+    function applyVisibility() {
+      const buttons = document.querySelectorAll('.quick-action-btn');
+      buttons.forEach(btn => {
+        const prompt = btn.getAttribute('data-prompt');
+        // Check each visibility setting
+        let shouldHide = false;
+
+        if (prompt && prompt.includes('popular') && settings.bestSellersVisible === false) shouldHide = true;
+        if (prompt && prompt.includes('new arrivals') && settings.newArrivalsVisible === false) shouldHide = true;
+        if (prompt && prompt.includes('sale') && settings.onSaleVisible === false) shouldHide = true;
+        if (prompt && prompt.includes('recommendation') && settings.recommendationsVisible === false) shouldHide = true;
+        if (prompt && prompt.includes('shipping') && settings.shippingVisible === false) shouldHide = true;
+        if (prompt && prompt.includes('return') && settings.returnsVisible === false) shouldHide = true;
+        if (prompt && prompt.includes('track') && settings.trackOrderVisible === false) shouldHide = true;
+        if (prompt && prompt.includes('help') && settings.helpVisible === false) shouldHide = true;
+
+        if (shouldHide) {
+          btn.style.display = 'none';
+        }
+      });
+
+      // Hide section labels if all buttons in section are hidden
+      document.querySelectorAll('.quick-actions-section').forEach(section => {
+        const visibleButtons = section.querySelectorAll('.quick-action-btn:not([style*="display: none"])');
+        if (visibleButtons.length === 0) {
+          section.style.display = 'none';
+        }
+      });
+    }
+
+    // Run when DOM is ready and again after a delay (for dynamic content)
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(applyVisibility, 500);
+        setTimeout(applyVisibility, 1500);
+      });
+    } else {
+      setTimeout(applyVisibility, 500);
+      setTimeout(applyVisibility, 1500);
+    }
+
+    // Also observe for dynamic changes
+    const observer = new MutationObserver(() => {
+      applyVisibility();
+    });
+
+    setTimeout(() => {
+      const container = document.getElementById('ai-sales-assistant-container');
+      if (container) {
+        observer.observe(container, { childList: true, subtree: true });
+      }
+    }, 100);
+  })();
 </script>
 
-<!-- 3. Load widget assets from extension -->
-{{ 'ai-sales-assistant.css' | asset_url | stylesheet_tag }}
-<script src="{{ 'ai-sales-assistant.js' | asset_url }}" defer></script>
+<!-- 3. Load widget assets from Vercel (production) -->
+<link rel="stylesheet" href="https://shopibot.vercel.app/widget.css">
+<script src="https://shopibot.vercel.app/widget.js" defer></script>
 
 {% endif %}
