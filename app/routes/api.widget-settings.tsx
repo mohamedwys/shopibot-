@@ -490,7 +490,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
     try {
       const { admin: policyAdmin } = await unauthenticated.admin(shopDomain);
-      const cachedPolicies = await fetchShopPolicies(shopDomain, (query) => policyAdmin.graphql(query));
+      // Use REST API for policies (GraphQL doesn't expose policy fields)
+      const cachedPolicies = await fetchShopPolicies(shopDomain, policyAdmin.rest);
       shopPolicies = toShopPoliciesFormat(cachedPolicies);
 
       routeLogger.debug({

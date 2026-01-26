@@ -119,14 +119,15 @@ export function getPolicyCacheStats(): { size: number; shops: string[] } {
 }
 
 /**
- * Fetch shop policies from Shopify GraphQL API
+ * Fetch shop policies from Shopify REST Admin API
  * This function should be called from the route handler
  *
- * Note: Shopify's Admin API uses `shopPolicies` array instead of individual policy fields
+ * Note: Uses REST API /admin/api/2024-01/policies.json as GraphQL doesn't expose policies
  */
 export async function fetchShopPolicies(
   shopDomain: string,
-  adminGraphql: (query: string) => Promise<any>
+  adminRest: { get: (params: { path: string }) => Promise<any> },
+  shopName?: string
 ): Promise<CachedShopPolicies | null> {
   // Check cache first
   const cached = getCachedPolicies(shopDomain);
@@ -135,69 +136,64 @@ export async function fetchShopPolicies(
   }
 
   try {
-    logger.info({ shop: shopDomain }, 'Fetching shop policies from Shopify');
-
-    // ✅ FIXED: Use correct Shopify Admin API query format
-    // shopPolicies returns an array of ShopPolicy objects with type and body
-    const policiesQuery = `
-      #graphql
-      query getShopPolicies {
-        shop {
-          name
-          email
-          contactEmail
-          description
-        }
-        shopPolicies {
-          type
-          body
-          url
-        }
-      }
-    `;
+    logger.info({ shop: shopDomain }, 'Fetching shop policies from Shopify REST API');
 
     // Add timeout to prevent hanging
     const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('Policy fetch timeout')), 10000)
     );
 
+    // Use REST API endpoint for policies
+    const responsePromise = adminRest.get({
+      path: 'policies',
+    });
+
     const response = await Promise.race([
-      adminGraphql(policiesQuery),
+      responsePromise,
       timeoutPromise,
     ]) as any;
 
     const data = await response.json();
 
-    // Check for GraphQL errors
+    // Check for errors
     if (data?.errors) {
       logger.error({
         shop: shopDomain,
         errors: data.errors,
-      }, 'GraphQL errors when fetching shop policies');
+      }, 'REST API errors when fetching shop policies');
       return null;
     }
 
-    // Parse shop info and policies
-    const shop = data?.data?.shop;
-    const shopPoliciesArray = data?.data?.shopPolicies || [];
+    // Parse policies array
+    // Each policy has: id, title, body, url, created_at, updated_at
+    const policiesArray = data?.policies || [];
 
-    // Map policy types to our structure
-    // Shopify policy types: REFUND_POLICY, PRIVACY_POLICY, TERMS_OF_SERVICE, SHIPPING_POLICY, etc.
+    // Map policy titles to our structure
     const policyMap: Record<string, string | null> = {};
-    for (const policy of shopPoliciesArray) {
-      if (policy?.type && policy?.body) {
-        policyMap[policy.type] = policy.body;
+    for (const policy of policiesArray) {
+      if (policy?.title && policy?.body) {
+        // Normalize title to match our keys
+        const normalizedTitle = policy.title.toLowerCase();
+        if (normalizedTitle.includes('refund') || normalizedTitle.includes('return')) {
+          policyMap['returns'] = policy.body;
+        } else if (normalizedTitle.includes('shipping') || normalizedTitle.includes('delivery')) {
+          policyMap['shipping'] = policy.body;
+        } else if (normalizedTitle.includes('privacy')) {
+          policyMap['privacy'] = policy.body;
+        } else if (normalizedTitle.includes('terms') || normalizedTitle.includes('service')) {
+          policyMap['termsOfService'] = policy.body;
+        }
       }
     }
 
     const policies: Omit<CachedShopPolicies, 'fetchedAt'> = {
-      shopName: shop?.name || null,
-      returns: policyMap['REFUND_POLICY'] || null,
-      shipping: policyMap['SHIPPING_POLICY'] || null,
-      privacy: policyMap['PRIVACY_POLICY'] || null,
-      termsOfService: policyMap['TERMS_OF_SERVICE'] || null,
-      contactEmail: shop?.contactEmail || shop?.email || null,
-      contactPhone: null, // Shopify API doesn't provide phone directly
+      shopName: shopName || shopDomain,
+      returns: policyMap['returns'] || null,
+      shipping: policyMap['shipping'] || null,
+      privacy: policyMap['privacy'] || null,
+      termsOfService: policyMap['termsOfService'] || null,
+      contactEmail: null, // Will be fetched separately if needed
+      contactPhone: null,
     };
 
     // Cache the policies
@@ -208,7 +204,7 @@ export async function fetchShopPolicies(
       hasReturns: !!policies.returns,
       hasShipping: !!policies.shipping,
       hasPrivacy: !!policies.privacy,
-      policiesFound: shopPoliciesArray.length,
+      policiesFound: policiesArray.length,
     }, 'Shop policies fetched and cached');
 
     return {
