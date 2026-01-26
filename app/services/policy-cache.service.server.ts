@@ -121,6 +121,8 @@ export function getPolicyCacheStats(): { size: number; shops: string[] } {
 /**
  * Fetch shop policies from Shopify GraphQL API
  * This function should be called from the route handler
+ *
+ * Note: Shopify's Admin API uses `shopPolicies` array instead of individual policy fields
  */
 export async function fetchShopPolicies(
   shopDomain: string,
@@ -135,16 +137,21 @@ export async function fetchShopPolicies(
   try {
     logger.info({ shop: shopDomain }, 'Fetching shop policies from Shopify');
 
+    // ✅ FIXED: Use correct Shopify Admin API query format
+    // shopPolicies returns an array of ShopPolicy objects with type and body
     const policiesQuery = `
       #graphql
       query getShopPolicies {
         shop {
           name
           email
-          refundPolicy { body }
-          shippingPolicy { body }
-          privacyPolicy { body }
-          termsOfService { body }
+          contactEmail
+          description
+        }
+        shopPolicies {
+          type
+          body
+          url
         }
       }
     `;
@@ -161,37 +168,53 @@ export async function fetchShopPolicies(
 
     const data = await response.json();
 
-    if (data?.data?.shop) {
-      const shop = data.data.shop;
-
-      const policies: Omit<CachedShopPolicies, 'fetchedAt'> = {
-        shopName: shop.name || null,
-        returns: shop.refundPolicy?.body || null,
-        shipping: shop.shippingPolicy?.body || null,
-        privacy: shop.privacyPolicy?.body || null,
-        termsOfService: shop.termsOfService?.body || null,
-        contactEmail: shop.email || null,
-        contactPhone: null, // Shopify API doesn't provide phone directly
-      };
-
-      // Cache the policies
-      setCachedPolicies(shopDomain, policies);
-
-      logger.info({
+    // Check for GraphQL errors
+    if (data?.errors) {
+      logger.error({
         shop: shopDomain,
-        hasReturns: !!policies.returns,
-        hasShipping: !!policies.shipping,
-        hasPrivacy: !!policies.privacy,
-      }, 'Shop policies fetched and cached');
-
-      return {
-        ...policies,
-        fetchedAt: Date.now(),
-      };
+        errors: data.errors,
+      }, 'GraphQL errors when fetching shop policies');
+      return null;
     }
 
-    logger.warn({ shop: shopDomain }, 'No shop data in GraphQL response');
-    return null;
+    // Parse shop info and policies
+    const shop = data?.data?.shop;
+    const shopPoliciesArray = data?.data?.shopPolicies || [];
+
+    // Map policy types to our structure
+    // Shopify policy types: REFUND_POLICY, PRIVACY_POLICY, TERMS_OF_SERVICE, SHIPPING_POLICY, etc.
+    const policyMap: Record<string, string | null> = {};
+    for (const policy of shopPoliciesArray) {
+      if (policy?.type && policy?.body) {
+        policyMap[policy.type] = policy.body;
+      }
+    }
+
+    const policies: Omit<CachedShopPolicies, 'fetchedAt'> = {
+      shopName: shop?.name || null,
+      returns: policyMap['REFUND_POLICY'] || null,
+      shipping: policyMap['SHIPPING_POLICY'] || null,
+      privacy: policyMap['PRIVACY_POLICY'] || null,
+      termsOfService: policyMap['TERMS_OF_SERVICE'] || null,
+      contactEmail: shop?.contactEmail || shop?.email || null,
+      contactPhone: null, // Shopify API doesn't provide phone directly
+    };
+
+    // Cache the policies
+    setCachedPolicies(shopDomain, policies);
+
+    logger.info({
+      shop: shopDomain,
+      hasReturns: !!policies.returns,
+      hasShipping: !!policies.shipping,
+      hasPrivacy: !!policies.privacy,
+      policiesFound: shopPoliciesArray.length,
+    }, 'Shop policies fetched and cached');
+
+    return {
+      ...policies,
+      fetchedAt: Date.now(),
+    };
   } catch (error) {
     logger.error({
       shop: shopDomain,
