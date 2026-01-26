@@ -11,6 +11,8 @@ import { personalizationService } from "../services/personalization.service";
 import { checkConversationLimit, getConversationUsage } from "../lib/conversation-usage.server";
 import { normalizePlanCode, PlanCode } from "../lib/plans.config";
 import type { WidgetSettings } from "../lib/types";
+import { fetchShopPolicies, toShopPoliciesFormat, type CachedShopPolicies } from "../services/policy-cache.service.server";
+import type { ShopPolicies } from "../services/n8n.service.server";
 
 // Default settings (same as in settings page)
 const DEFAULT_SETTINGS: Partial<WidgetSettings> = {
@@ -478,6 +480,32 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       // Continue processing the message
     }
 
+    // ========================================
+    // ✅ EARLY POLICY FETCH (for fallback support)
+    // ========================================
+    // Fetch shop policies early so they're available for BOTH:
+    // 1. Normal N8N operation (passed to AI)
+    // 2. Fallback processing (used when N8N fails/times out)
+    let shopPolicies: ShopPolicies | undefined;
+
+    try {
+      const { admin: policyAdmin } = await unauthenticated.admin(shopDomain);
+      const cachedPolicies = await fetchShopPolicies(shopDomain, (query) => policyAdmin.graphql(query));
+      shopPolicies = toShopPoliciesFormat(cachedPolicies);
+
+      routeLogger.debug({
+        shop: shopDomain,
+        hasReturns: !!shopPolicies?.returns,
+        hasShipping: !!shopPolicies?.shipping,
+      }, '✅ Shop policies fetched/cached for fallback support');
+    } catch (policyError) {
+      routeLogger.warn({
+        shop: shopDomain,
+        error: policyError instanceof Error ? policyError.message : String(policyError),
+      }, '⚠️ Failed to fetch shop policies early (non-blocking)');
+      // Continue without policies - fallback will use generic messages
+    }
+
     // ✅ IMPROVED: Detect intent, sentiment, and language
     const intent = detectIntent(finalMessage);
     const sentiment = analyzeSentiment(finalMessage);
@@ -771,6 +799,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       shopDomain: shopDomain,
       locale: detectedLanguage, // ✅ ADDED: Pass detected language to AI
       languageInstruction: `🌍 CRITICAL LANGUAGE INSTRUCTION: You MUST respond ONLY in ${languageName}. User's interface language: ${detectedLanguage}. NEVER respond in English unless the locale is 'en'. This is a strict requirement.`, // ✅ IMPROVED: More explicit language instruction
+      // ✅ NEW: Include shop policies for fallback processing
+      shopPolicies: shopPolicies,
       timestamp: new Date().toISOString(),
       userAgent: request.headers.get('user-agent') || undefined,
       referer: request.headers.get('referer') || undefined,
@@ -984,61 +1014,36 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       routeLogger.info({ intent: intent.type }, '✅ Sending support query to N8N with shop policies');
 
       try {
-        // 🏪 FETCH REAL SHOP POLICIES from Shopify
-        let shopPolicies: any = null;
-
-        try {
-          const { admin: shopAdmin } = await unauthenticated.admin(shopDomain);
-
-          const policiesQuery = `
-            #graphql
-            query getShopPolicies {
-              shop {
-                name
-                refundPolicy { body }
-                shippingPolicy { body }
-                privacyPolicy { body }
-              }
-            }
-          `;
-
-          // ✅ PERFORMANCE FIX: Add 10-second timeout to prevent hanging GraphQL requests
-          const policiesPromise = shopAdmin.graphql(policiesQuery);
-          const policiesTimeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Policies GraphQL query timeout')), 10000)
-          );
-
-          let policiesResponse;
-          try {
-            policiesResponse = await Promise.race([policiesPromise, policiesTimeoutPromise]) as any;
-          } catch (timeoutError: any) {
-            if (timeoutError.message === 'Policies GraphQL query timeout') {
-              routeLogger.warn({ shop: shopDomain }, 'Shop policies GraphQL query timed out after 10 seconds');
-              // Continue without policies rather than failing
-              shopPolicies = null;
-            } else {
-              throw timeoutError;
-            }
-          }
-
-          if (policiesResponse) {
-            const policiesData = await policiesResponse.json();
-
-            if (policiesData?.data?.shop) {
-              shopPolicies = {
-                shopName: policiesData.data.shop.name,
-                returns: policiesData.data.shop.refundPolicy?.body || null,
-                shipping: policiesData.data.shop.shippingPolicy?.body || null,
-                privacy: policiesData.data.shop.privacyPolicy?.body || null
-              };
-            }
-          }
-        } catch (policyError) {
-          console.error('⚠️ Failed to fetch shop policies, using defaults:', policyError);
-        }
+        // ✅ IMPROVED: Use pre-fetched and cached shop policies (fetched early in request)
+        // This avoids duplicate API calls and ensures fallback has the same data
 
         const { N8NService } = await import("../services/n8n.service.server");
         const customN8NService = new N8NService(webhookUrl);
+
+        // Generate localized default messages for missing policies
+        const getDefaultReturnPolicy = (locale: string): string => {
+          const defaults: Record<string, string> = {
+            fr: "Politique de retour non configurée. Veuillez contacter notre service client pour plus d'informations.",
+            es: "Política de devoluciones no configurada. Póngase en contacto con atención al cliente para más información.",
+            de: "Rückgaberichtlinie nicht konfiguriert. Bitte kontaktieren Sie unseren Kundenservice für weitere Informationen.",
+            pt: "Política de devolução não configurada. Entre em contato com nosso suporte para mais informações.",
+            it: "Politica di reso non configurata. Contatta il nostro servizio clienti per maggiori informazioni.",
+            en: "Return policy not configured. Please contact customer support for more information."
+          };
+          return defaults[locale] || defaults.en;
+        };
+
+        const getDefaultShippingPolicy = (locale: string): string => {
+          const defaults: Record<string, string> = {
+            fr: "Politique de livraison non configurée. Veuillez contacter notre service client pour plus d'informations.",
+            es: "Política de envío no configurada. Póngase en contacto con atención al cliente para más información.",
+            de: "Versandrichtlinie nicht konfiguriert. Bitte kontaktieren Sie unseren Kundenservice für weitere Informationen.",
+            pt: "Política de envio não configurada. Entre em contato com nosso suporte para mais informações.",
+            it: "Politica di spedizione non configurata. Contatta il nostro servizio clienti per maggiori informazioni.",
+            en: "Shipping policy not configured. Please contact customer support for more information."
+          };
+          return defaults[locale] || defaults.en;
+        };
 
         // Send to N8N with intent context so AI knows it's a support query
         // 🆘 CRITICAL FIX: Support questions don't need products - they need store policies
@@ -1049,27 +1054,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
           context: {
             ...enhancedContext,
             ...(({ supportCategory: intent.type }) as any), // SHIPPING_INFO, RETURNS, TRACK_ORDER, or HELP_FAQ
-            // ✅ Pass REAL shop policies from Shopify (or defaults if not available)
+            // ✅ Pass REAL shop policies from pre-fetched cache (or defaults if not available)
             storePolicies: {
               shopName: shopPolicies?.shopName || shopDomain,
-              returns: shopPolicies?.returns || (
-                enhancedContext.locale === 'fr'
-                  ? "Politique de retour non configurée. Veuillez contacter notre service client pour plus d'informations."
-                  : enhancedContext.locale === 'es'
-                  ? "Política de devoluciones no configurada. Póngase en contacto con atención al cliente para más información."
-                  : enhancedContext.locale === 'de'
-                  ? "Rückgaberichtlinie nicht konfiguriert. Bitte kontaktieren Sie unseren Kundenservice für weitere Informationen."
-                  : "Return policy not configured. Please contact customer support for more information."
-              ),
-              shipping: shopPolicies?.shipping || (
-                enhancedContext.locale === 'fr'
-                  ? "Politique de livraison non configurée. Veuillez contacter notre service client pour plus d'informations."
-                  : enhancedContext.locale === 'es'
-                  ? "Política de envío no configurada. Póngase en contacto con atención al cliente para más información."
-                  : enhancedContext.locale === 'de'
-                  ? "Versandrichtlinie nicht konfiguriert. Bitte kontaktieren Sie unseren Kundenservice für weitere Informationen."
-                  : "Shipping policy not configured. Please contact customer support for more information."
-              ),
+              returns: shopPolicies?.returns || getDefaultReturnPolicy(enhancedContext.locale as string),
+              shipping: shopPolicies?.shipping || getDefaultShippingPolicy(enhancedContext.locale as string),
               privacy: shopPolicies?.privacy || null
             }
           }

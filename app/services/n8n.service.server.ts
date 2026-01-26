@@ -55,6 +55,17 @@ export interface SuggestedAction {
   data?: string; // Product ID or custom data
 }
 
+// Shop policies interface for dynamic merchant-specific data
+export interface ShopPolicies {
+  shopName?: string;
+  returns?: string | null;       // Refund/return policy from Shopify
+  shipping?: string | null;      // Shipping policy from Shopify
+  privacy?: string | null;       // Privacy policy from Shopify
+  termsOfService?: string | null; // Terms of service
+  contactEmail?: string | null;  // Support email
+  contactPhone?: string | null;  // Support phone
+}
+
 // Enhanced N8N Request with richer context
 export interface N8NRequest {
   userMessage: string;
@@ -87,6 +98,9 @@ export interface N8NRequest {
 
     // Language instruction for AI
     languageInstruction?: string;
+
+    // ✅ NEW: Shop policies for dynamic merchant-specific responses
+    shopPolicies?: ShopPolicies;
 
     // Legacy fields (for backward compatibility)
     timestamp?: string;
@@ -219,15 +233,17 @@ export class N8NService {
 
   /**
    * Enhanced fallback processing with semantic search and personalization
+   * ✅ Now uses dynamic shop policies for merchant-specific responses
    */
   private async enhancedFallbackProcessing(request: N8NRequest): Promise<N8NWebhookResponse> {
     const { userMessage, products, context, sessionId } = request;
     const shop = context?.shopDomain || '';
+    const shopPolicies = context?.shopPolicies;
 
     try {
       // Detect language
       const lang = this.detectLanguage(userMessage, context);
-      const msgs = this.getFallbackMessages(lang);
+      const msgs = this.getFallbackMessages(lang, shopPolicies);
 
       // Classify intent and sentiment
       const intent = await personalizationService.classifyIntent(userMessage);
@@ -293,7 +309,8 @@ export class N8NService {
 
       // If no recommendations yet, use keyword-based search
       if (recommendations.length === 0 && hasProducts) {
-        const result = await this.keywordBasedSearch(userMessage, products, intent, context?.userPreferences);
+        // ✅ Pass shop policies for merchant-specific responses
+        const result = await this.keywordBasedSearch(userMessage, products, intent, context?.userPreferences, shopPolicies);
         recommendations = result.recommendations;
         message = result.message;
         confidence = result.confidence;
@@ -416,12 +433,14 @@ export class N8NService {
 
   /**
    * Keyword-based search (fallback when embeddings not available)
+   * ✅ Now accepts shop policies for merchant-specific responses
    */
   private async keywordBasedSearch(
     userMessage: string,
     products: any[],
     intent: string,
-    preferences?: UserPreferences
+    preferences?: UserPreferences,
+    shopPolicies?: ShopPolicies
   ): Promise<{ message: string; recommendations: ProductRecommendation[]; confidence: number }> {
     const lowerMessage = userMessage.toLowerCase();
     const keywords = lowerMessage.split(/\s+/).filter(word => word.length > 2);
@@ -476,10 +495,12 @@ export class N8NService {
     if (recommendations.length > 0) {
       // Detect language for appropriate message
       const lang = this.detectLanguage(userMessage);
-      const msgs = this.getFallbackMessages(lang);
+      const msgs = this.getFallbackMessages(lang, shopPolicies);
       message = msgs.showingProducts;
     } else {
-      message = this.getIntentBasedMessage(intent, lowerMessage);
+      // ✅ Pass shop policies for merchant-specific responses
+      const lang = this.detectLanguage(userMessage);
+      message = this.getIntentBasedMessage(intent, lowerMessage, shopPolicies, lang);
     }
 
     return {
@@ -490,13 +511,88 @@ export class N8NService {
   }
 
   /**
-   * Get intent-based response message
+   * Get intent-based response message with dynamic shop policies
+   * @param intent - The detected user intent
+   * @param message - The user's message
+   * @param policies - Optional shop policies for merchant-specific responses
+   * @param lang - Language code for localized responses
    */
-  private getIntentBasedMessage(intent: string, message: string): string {
+  private getIntentBasedMessage(
+    intent: string,
+    message: string,
+    policies?: ShopPolicies,
+    lang: string = 'en'
+  ): string {
+    // ✅ DYNAMIC: Use real shop policies if available, otherwise use helpful generic messages
+    const hasShippingPolicy = policies?.shipping && policies.shipping.length > 50;
+    const hasReturnPolicy = policies?.returns && policies.returns.length > 50;
+
+    // Generate shipping response based on actual policy
+    const getShippingResponse = (): string => {
+      if (hasShippingPolicy) {
+        // Truncate long policies to first ~500 chars for readability
+        const policyPreview = policies!.shipping!.length > 500
+          ? policies!.shipping!.substring(0, 500) + '...'
+          : policies!.shipping!;
+
+        const langPrefixes: Record<string, string> = {
+          en: "Here's our shipping policy:",
+          fr: "Voici notre politique de livraison :",
+          es: "Aquí está nuestra política de envío:",
+          de: "Hier ist unsere Versandrichtlinie:",
+          pt: "Aqui está nossa política de envio:",
+          it: "Ecco la nostra politica di spedizione:"
+        };
+        return `${langPrefixes[lang] || langPrefixes.en}\n\n${policyPreview}`;
+      }
+
+      // Generic helpful message when no policy is configured
+      const genericShipping: Record<string, string> = {
+        en: "For shipping information, please check our shipping page or contact customer support. Shipping times and costs vary by location.",
+        fr: "Pour les informations de livraison, veuillez consulter notre page d'expédition ou contacter le service client. Les délais et coûts varient selon la destination.",
+        es: "Para información de envío, consulte nuestra página de envíos o contacte atención al cliente. Los tiempos y costos varían según la ubicación.",
+        de: "Für Versandinformationen besuchen Sie bitte unsere Versandseite oder kontaktieren Sie den Kundenservice. Lieferzeiten und Kosten variieren je nach Standort.",
+        pt: "Para informações de envio, consulte nossa página de envio ou entre em contato com o suporte ao cliente. Prazos e custos variam por localização.",
+        it: "Per informazioni sulla spedizione, consulta la nostra pagina spedizioni o contatta l'assistenza clienti. Tempi e costi variano in base alla località."
+      };
+      return genericShipping[lang] || genericShipping.en;
+    };
+
+    // Generate return response based on actual policy
+    const getReturnResponse = (): string => {
+      if (hasReturnPolicy) {
+        // Truncate long policies to first ~500 chars for readability
+        const policyPreview = policies!.returns!.length > 500
+          ? policies!.returns!.substring(0, 500) + '...'
+          : policies!.returns!;
+
+        const langPrefixes: Record<string, string> = {
+          en: "Here's our return policy:",
+          fr: "Voici notre politique de retour :",
+          es: "Aquí está nuestra política de devoluciones:",
+          de: "Hier ist unsere Rückgaberichtlinie:",
+          pt: "Aqui está nossa política de devolução:",
+          it: "Ecco la nostra politica di reso:"
+        };
+        return `${langPrefixes[lang] || langPrefixes.en}\n\n${policyPreview}`;
+      }
+
+      // Generic helpful message when no policy is configured
+      const genericReturn: Record<string, string> = {
+        en: "For return and refund information, please check our returns page or contact customer support. We're happy to help with any return requests.",
+        fr: "Pour les informations de retour et remboursement, veuillez consulter notre page retours ou contacter le service client. Nous sommes heureux de vous aider.",
+        es: "Para información sobre devoluciones y reembolsos, consulte nuestra página de devoluciones o contacte atención al cliente. Estaremos encantados de ayudarle.",
+        de: "Für Rückgabe- und Erstattungsinformationen besuchen Sie bitte unsere Rückgabeseite oder kontaktieren Sie den Kundenservice. Wir helfen Ihnen gerne.",
+        pt: "Para informações sobre devoluções e reembolsos, consulte nossa página de devoluções ou entre em contato com o suporte ao cliente. Teremos prazer em ajudar.",
+        it: "Per informazioni su resi e rimborsi, consulta la nostra pagina resi o contatta l'assistenza clienti. Saremo lieti di aiutarti."
+      };
+      return genericReturn[lang] || genericReturn.en;
+    };
+
     const responses: Record<string, string> = {
       PRICE_INQUIRY: "I can help you find products within your budget. What price range are you looking for?",
-      SHIPPING: "Let me check the shipping options for you. Most of our products offer free shipping on orders over $50.",
-      RETURNS: "Our return policy allows returns within 30 days of purchase. Would you like me to help you with a specific product return?",
+      SHIPPING: getShippingResponse(),
+      RETURNS: getReturnResponse(),
       SIZE_FIT: "I can help you find the right size. What type of product are you looking for, and what are your measurements?",
       SUPPORT: "I'm here to help with any issues you're experiencing. Can you tell me more about what you need assistance with?",
       GREETING: "Hello! I'm your AI shopping assistant. I can help you find products, answer questions about pricing and shipping, and provide personalized recommendations. What are you looking for today?",
@@ -554,9 +650,80 @@ export class N8NService {
   }
 
   /**
-   * Get fallback messages in multiple languages
+   * Get fallback messages in multiple languages with dynamic shop policies
+   * @param lang - Language code
+   * @param policies - Optional shop policies for merchant-specific messages
    */
-  private getFallbackMessages(lang: string) {
+  private getFallbackMessages(lang: string, policies?: ShopPolicies) {
+    // ✅ DYNAMIC: Generate shipping and return info from real policies
+    const generateShippingInfo = (langCode: string): string => {
+      if (policies?.shipping && policies.shipping.length > 50) {
+        // Has real policy - show preview
+        const preview = policies.shipping.length > 300
+          ? policies.shipping.substring(0, 300) + '...'
+          : policies.shipping;
+
+        const prefixes: Record<string, string> = {
+          en: "Shipping Policy:",
+          fr: "Politique de livraison :",
+          es: "Política de envío:",
+          de: "Versandrichtlinie:",
+          pt: "Política de envio:",
+          it: "Politica di spedizione:",
+          zh: "配送政策：",
+          ja: "配送ポリシー："
+        };
+        return `${prefixes[langCode] || prefixes.en} ${preview}`;
+      }
+
+      // No policy configured - return helpful generic message
+      const genericMessages: Record<string, string> = {
+        en: "For shipping information, please contact us or check our store policies.",
+        fr: "Pour les informations de livraison, veuillez nous contacter ou consulter nos politiques.",
+        es: "Para información de envío, contáctenos o consulte nuestras políticas.",
+        de: "Für Versandinformationen kontaktieren Sie uns bitte oder prüfen Sie unsere Richtlinien.",
+        pt: "Para informações de envio, entre em contato ou consulte nossas políticas.",
+        it: "Per informazioni sulla spedizione, contattaci o consulta le nostre politiche.",
+        zh: "如需配送信息，请联系我们或查看我们的政策。",
+        ja: "配送情報については、お問い合わせいただくか、ストアポリシーをご確認ください。"
+      };
+      return genericMessages[langCode] || genericMessages.en;
+    };
+
+    const generateReturnInfo = (langCode: string): string => {
+      if (policies?.returns && policies.returns.length > 50) {
+        // Has real policy - show preview
+        const preview = policies.returns.length > 300
+          ? policies.returns.substring(0, 300) + '...'
+          : policies.returns;
+
+        const prefixes: Record<string, string> = {
+          en: "Return Policy:",
+          fr: "Politique de retour :",
+          es: "Política de devoluciones:",
+          de: "Rückgaberichtlinie:",
+          pt: "Política de devolução:",
+          it: "Politica di reso:",
+          zh: "退货政策：",
+          ja: "返品ポリシー："
+        };
+        return `${prefixes[langCode] || prefixes.en} ${preview}`;
+      }
+
+      // No policy configured - return helpful generic message
+      const genericMessages: Record<string, string> = {
+        en: "For return and refund information, please contact us or check our store policies.",
+        fr: "Pour les informations de retour et remboursement, veuillez nous contacter ou consulter nos politiques.",
+        es: "Para información sobre devoluciones, contáctenos o consulte nuestras políticas.",
+        de: "Für Rückgabeinformationen kontaktieren Sie uns bitte oder prüfen Sie unsere Richtlinien.",
+        pt: "Para informações de devolução, entre em contato ou consulte nossas políticas.",
+        it: "Per informazioni sui resi, contattaci o consulta le nostre politiche.",
+        zh: "如需退货信息，请联系我们或查看我们的政策。",
+        ja: "返品情報については、お問い合わせいただくか、ストアポリシーをご確認ください。"
+      };
+      return genericMessages[langCode] || genericMessages.en;
+    };
+
     const messages: Record<string, any> = {
       en: {
         simplifiedMode: "I'm currently working in simplified mode. You can still browse products, search items, and get information.",
@@ -568,8 +735,8 @@ export class N8NService {
         newArrivals: "New arrivals",
         bestSellers: "Best sellers",
         priceInfo: "I can help you find products within your budget. What price range are you looking for?",
-        shippingInfo: "Most of our products offer free shipping on orders over $50.",
-        returnInfo: "Our return policy allows returns within 30 days of purchase.",
+        shippingInfo: generateShippingInfo('en'),
+        returnInfo: generateReturnInfo('en'),
         featuredProducts: "Check out our featured products:",
         noProducts: "I don't have product information available at the moment. Please contact us for assistance.",
         helpOptions: "I can help you with:\n• Browse products\n• Search by keyword\n• View categories\n• Check prices and availability\n\nWhat would you like to explore?"
@@ -584,8 +751,8 @@ export class N8NService {
         newArrivals: "Nouveautés",
         bestSellers: "Meilleures ventes",
         priceInfo: "Je peux vous aider à trouver des produits dans votre budget. Quelle gamme de prix recherchez-vous ?",
-        shippingInfo: "La plupart de nos produits bénéficient de la livraison gratuite pour les commandes de plus de 50 $.",
-        returnInfo: "Notre politique de retour permet les retours dans les 30 jours suivant l'achat.",
+        shippingInfo: generateShippingInfo('fr'),
+        returnInfo: generateReturnInfo('fr'),
         featuredProducts: "Découvrez nos produits en vedette :",
         noProducts: "Je n'ai pas d'informations sur les produits disponibles pour le moment. Veuillez nous contacter pour obtenir de l'aide.",
         helpOptions: "Je peux vous aider avec :\n• Parcourir les produits\n• Rechercher par mot-clé\n• Voir les catégories\n• Vérifier les prix et la disponibilité\n\nQue souhaitez-vous explorer ?"
@@ -600,8 +767,8 @@ export class N8NService {
         newArrivals: "Novedades",
         bestSellers: "Más vendidos",
         priceInfo: "Puedo ayudarte a encontrar productos dentro de tu presupuesto. ¿Qué rango de precio buscas?",
-        shippingInfo: "La mayoría de nuestros productos ofrecen envío gratis en pedidos superiores a $50.",
-        returnInfo: "Nuestra política de devoluciones permite devoluciones dentro de los 30 días posteriores a la compra.",
+        shippingInfo: generateShippingInfo('es'),
+        returnInfo: generateReturnInfo('es'),
         featuredProducts: "Echa un vistazo a nuestros productos destacados:",
         noProducts: "No tengo información de productos disponible en este momento. Por favor contáctenos para obtener ayuda.",
         helpOptions: "Puedo ayudarte con:\n• Explorar productos\n• Buscar por palabra clave\n• Ver categorías\n• Consultar precios y disponibilidad\n\n¿Qué te gustaría explorar?"
@@ -616,8 +783,8 @@ export class N8NService {
         newArrivals: "Neuankömmlinge",
         bestSellers: "Bestseller",
         priceInfo: "Ich kann Ihnen helfen, Produkte in Ihrem Budget zu finden. Welche Preisspanne suchen Sie?",
-        shippingInfo: "Die meisten unserer Produkte bieten kostenlosen Versand bei Bestellungen über 50 $.",
-        returnInfo: "Unsere Rückgaberichtlinie erlaubt Rückgaben innerhalb von 30 Tagen nach dem Kauf.",
+        shippingInfo: generateShippingInfo('de'),
+        returnInfo: generateReturnInfo('de'),
         featuredProducts: "Schauen Sie sich unsere ausgewählten Produkte an:",
         noProducts: "Ich habe derzeit keine Produktinformationen verfügbar. Bitte kontaktieren Sie uns für Hilfe.",
         helpOptions: "Ich kann Ihnen helfen mit:\n• Produkte durchsuchen\n• Nach Stichwort suchen\n• Kategorien anzeigen\n• Preise und Verfügbarkeit prüfen\n\nWas möchten Sie erkunden?"
@@ -632,8 +799,8 @@ export class N8NService {
         newArrivals: "Novidades",
         bestSellers: "Mais vendidos",
         priceInfo: "Posso ajudá-lo a encontrar produtos dentro do seu orçamento. Que faixa de preço você está procurando?",
-        shippingInfo: "A maioria dos nossos produtos oferece frete grátis em pedidos acima de $50.",
-        returnInfo: "Nossa política de devolução permite devoluções dentro de 30 dias após a compra.",
+        shippingInfo: generateShippingInfo('pt'),
+        returnInfo: generateReturnInfo('pt'),
         featuredProducts: "Confira nossos produtos em destaque:",
         noProducts: "Não tenho informações de produtos disponíveis no momento. Entre em contato conosco para obter ajuda.",
         helpOptions: "Posso ajudá-lo com:\n• Navegar produtos\n• Pesquisar por palavra-chave\n• Ver categorias\n• Verificar preços e disponibilidade\n\nO que você gostaria de explorar?"
@@ -648,8 +815,8 @@ export class N8NService {
         newArrivals: "Novità",
         bestSellers: "Bestseller",
         priceInfo: "Posso aiutarti a trovare prodotti nel tuo budget. Quale fascia di prezzo stai cercando?",
-        shippingInfo: "La maggior parte dei nostri prodotti offre spedizione gratuita per ordini superiori a $50.",
-        returnInfo: "La nostra politica di reso consente resi entro 30 giorni dall'acquisto.",
+        shippingInfo: generateShippingInfo('it'),
+        returnInfo: generateReturnInfo('it'),
         featuredProducts: "Dai un'occhiata ai nostri prodotti in evidenza:",
         noProducts: "Non ho informazioni sui prodotti disponibili al momento. Contattaci per assistenza.",
         helpOptions: "Posso aiutarti con:\n• Sfogliare prodotti\n• Cercare per parola chiave\n• Visualizzare categorie\n• Controllare prezzi e disponibilità\n\nCosa vorresti esplorare?"
@@ -664,8 +831,8 @@ export class N8NService {
         newArrivals: "新品上市",
         bestSellers: "畅销产品",
         priceInfo: "我可以帮助您找到符合您预算的产品。您在寻找什么价格范围？",
-        shippingInfo: "我们大多数产品在订单超过50美元时提供免费送货。",
-        returnInfo: "我们的退货政策允许在购买后30天内退货。",
+        shippingInfo: generateShippingInfo('zh'),
+        returnInfo: generateReturnInfo('zh'),
         featuredProducts: "查看我们的精选产品：",
         noProducts: "目前没有产品信息可用。请联系我们获取帮助。",
         helpOptions: "我可以帮助您：\n• 浏览产品\n• 按关键词搜索\n• 查看分类\n• 检查价格和库存\n\n您想探索什么？"
@@ -680,8 +847,8 @@ export class N8NService {
         newArrivals: "新着商品",
         bestSellers: "ベストセラー",
         priceInfo: "ご予算内で製品を見つけるお手伝いをします。どの価格帯をお探しですか？",
-        shippingInfo: "ほとんどの製品は50ドル以上のご注文で送料無料です。",
-        returnInfo: "当社の返品ポリシーでは、購入後30日以内の返品を受け付けています。",
+        shippingInfo: generateShippingInfo('ja'),
+        returnInfo: generateReturnInfo('ja'),
         featuredProducts: "おすすめ製品をチェック：",
         noProducts: "現在、製品情報が利用できません。サポートについてはお問い合わせください。",
         helpOptions: "お手伝いできること：\n• 製品の閲覧\n• キーワード検索\n• カテゴリ表示\n• 価格と在庫確認\n\n何を探索しますか？"
@@ -728,14 +895,16 @@ export class N8NService {
   /**
    * Enhanced simple fallback processing - ALWAYS shows products when available
    * This ensures the chatbot provides value even when ALL AI services are down
+   * ✅ Now uses dynamic shop policies for merchant-specific responses
    */
   private simpleFallbackProcessing(request: N8NRequest): N8NWebhookResponse {
     const { userMessage, products, context } = request;
     const lowerMessage = userMessage.toLowerCase();
+    const shopPolicies = context?.shopPolicies;
 
     // Detect language from message and context
     const lang = this.detectLanguage(userMessage, context);
-    const msgs = this.getFallbackMessages(lang);
+    const msgs = this.getFallbackMessages(lang, shopPolicies);
 
     let message = "";
     let recommendations: ProductRecommendation[] = [];
