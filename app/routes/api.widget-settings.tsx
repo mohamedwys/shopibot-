@@ -489,16 +489,25 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     let shopPolicies: ShopPolicies | undefined;
 
     try {
+      routeLogger.info({ shop: shopDomain }, '🔄 Attempting to fetch shop policies...');
       const { session } = await unauthenticated.admin(shopDomain);
+
+      routeLogger.info({
+        shop: shopDomain,
+        hasSession: !!session,
+        hasAccessToken: !!session?.accessToken
+      }, '🔑 Session retrieved for policy fetch');
+
       // Use REST API for policies with direct fetch (GraphQL doesn't expose policy fields)
       if (session?.accessToken) {
         const cachedPolicies = await fetchShopPolicies(shopDomain, session.accessToken);
         shopPolicies = toShopPoliciesFormat(cachedPolicies);
 
-        routeLogger.debug({
+        routeLogger.info({
           shop: shopDomain,
           hasReturns: !!shopPolicies?.returns,
           hasShipping: !!shopPolicies?.shipping,
+          hasPolicies: !!shopPolicies,
         }, '✅ Shop policies fetched/cached for fallback support');
       } else {
         routeLogger.warn({ shop: shopDomain }, '⚠️ No access token available for policy fetch');
@@ -507,6 +516,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       routeLogger.warn({
         shop: shopDomain,
         error: policyError instanceof Error ? policyError.message : String(policyError),
+        stack: policyError instanceof Error ? policyError.stack : undefined,
       }, '⚠️ Failed to fetch shop policies early (non-blocking)');
       // Continue without policies - fallback will use generic messages
     }
