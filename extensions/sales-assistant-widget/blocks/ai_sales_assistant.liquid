@@ -169,8 +169,8 @@
   };
 </script>
 
-<!-- 3. Load widget assets from Vercel -->
-<link rel="stylesheet" href="https://shopibot.vercel.app/widget.css">
-<script src="https://shopibot.vercel.app/widget.js" defer></script>
+<!-- 3. Load widget assets from extension -->
+{{ 'ai-sales-assistant.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'ai-sales-assistant.js' | asset_url }}" defer></script>
 
 {% endif %}
