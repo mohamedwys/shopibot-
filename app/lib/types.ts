@@ -30,7 +30,36 @@ export interface WidgetSettings {
   workflowType?: 'DEFAULT' | 'CUSTOM';
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  // Quick Button Visibility Settings
+  bestSellersVisible?: boolean;
+  newArrivalsVisible?: boolean;
+  onSaleVisible?: boolean;
+  recommendationsVisible?: boolean;
+  shippingVisible?: boolean;
+  returnsVisible?: boolean;
+  trackOrderVisible?: boolean;
+  helpVisible?: boolean;
 }
+
+/**
+ * Quick Button Visibility Configuration
+ * Used for structured access to button visibility settings
+ */
+export interface QuickButtonVisibility {
+  bestSellers: boolean;
+  newArrivals: boolean;
+  onSale: boolean;
+  recommendations: boolean;
+  shipping: boolean;
+  returns: boolean;
+  trackOrder: boolean;
+  help: boolean;
+}
+
+/**
+ * Quick Button ID type for type-safe button references
+ */
+export type QuickButtonId = keyof QuickButtonVisibility;
 
 /**
  * Conversation Usage Data

@@ -51,6 +51,16 @@ model WidgetSettings {
   ratingEnabled       Boolean  @default(true)
   ratingCustomTitle   String?
   ratingCustomThankYou String?
+
+  // Quick Button Visibility Settings (all default to true for backward compatibility)
+  bestSellersVisible     Boolean  @default(true)
+  newArrivalsVisible     Boolean  @default(true)
+  onSaleVisible          Boolean  @default(true)
+  recommendationsVisible Boolean  @default(true)
+  shippingVisible        Boolean  @default(true)
+  returnsVisible         Boolean  @default(true)
+  trackOrderVisible      Boolean  @default(true)
+  helpVisible            Boolean  @default(true)
 }
 
 model ProductEmbedding {

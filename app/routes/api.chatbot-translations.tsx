@@ -36,7 +36,9 @@ const translations: Record<string, any> = {
     ratingThankYou: "Thank you for your feedback!",
     ratingAriaLabel: "Rate {{stars}} star",
     // 👋 Welcome popup
-    welcomeMessage: "👋 I'm here to help"
+    welcomeMessage: "👋 I'm here to help",
+    // 💬 Fallback message when all quick buttons are hidden
+    typeYourQuestion: "Type your question below to get started"
   },
   es: {
     online: "En línea",
@@ -71,7 +73,9 @@ const translations: Record<string, any> = {
     ratingThankYou: "¡Gracias por tu comentario!",
     ratingAriaLabel: "Calificar {{stars}} estrella",
     // 👋 Welcome popup
-    welcomeMessage: "👋 Estoy aquí para ayudarte"
+    welcomeMessage: "👋 Estoy aquí para ayudarte",
+    // 💬 Fallback message when all quick buttons are hidden
+    typeYourQuestion: "Escribe tu pregunta abajo para comenzar"
   },
   fr: {
     online: "En ligne",
@@ -106,7 +110,9 @@ const translations: Record<string, any> = {
     ratingThankYou: "Merci pour votre retour !",
     ratingAriaLabel: "Noter {{stars}} étoile",
     // 👋 Welcome popup
-    welcomeMessage: "👋 Je suis là pour vous aider"
+    welcomeMessage: "👋 Je suis là pour vous aider",
+    // 💬 Fallback message when all quick buttons are hidden
+    typeYourQuestion: "Tapez votre question ci-dessous pour commencer"
   },
   de: {
     online: "Online",
@@ -141,7 +147,9 @@ const translations: Record<string, any> = {
     ratingThankYou: "Vielen Dank für Ihr Feedback!",
     ratingAriaLabel: "{{stars}} Stern bewerten",
     // 👋 Welcome popup
-    welcomeMessage: "👋 Ich bin hier, um Ihnen zu helfen"
+    welcomeMessage: "👋 Ich bin hier, um Ihnen zu helfen",
+    // 💬 Fallback message when all quick buttons are hidden
+    typeYourQuestion: "Geben Sie Ihre Frage unten ein, um zu beginnen"
   },
   ja: {
     online: "オンライン",
@@ -176,7 +184,9 @@ const translations: Record<string, any> = {
     ratingThankYou: "フィードバックありがとうございます！",
     ratingAriaLabel: "{{stars}}つ星を評価",
     // 👋 Welcome popup
-    welcomeMessage: "👋 お手伝いさせていただきます"
+    welcomeMessage: "👋 お手伝いさせていただきます",
+    // 💬 Fallback message when all quick buttons are hidden
+    typeYourQuestion: "下にご質問を入力してください"
   },
   it: {
     online: "Online",
@@ -211,7 +221,9 @@ const translations: Record<string, any> = {
     ratingThankYou: "Grazie per il tuo feedback!",
     ratingAriaLabel: "Valuta {{stars}} stella",
     // 👋 Welcome popup
-    welcomeMessage: "👋 Sono qui per aiutarti"
+    welcomeMessage: "👋 Sono qui per aiutarti",
+    // 💬 Fallback message when all quick buttons are hidden
+    typeYourQuestion: "Scrivi la tua domanda qui sotto per iniziare"
   },
   pt: {
     online: "Online",
@@ -246,7 +258,9 @@ const translations: Record<string, any> = {
     ratingThankYou: "Obrigado pelo seu feedback!",
     ratingAriaLabel: "Avaliar {{stars}} estrela",
     // 👋 Welcome popup
-    welcomeMessage: "👋 Estou aqui para ajudar"
+    welcomeMessage: "👋 Estou aqui para ajudar",
+    // 💬 Fallback message when all quick buttons are hidden
+    typeYourQuestion: "Digite sua pergunta abaixo para começar"
   },
   zh: {
     online: "在线",
@@ -281,7 +295,9 @@ const translations: Record<string, any> = {
     ratingThankYou: "感谢您的反馈！",
     ratingAriaLabel: "评价{{stars}}星",
     // 👋 Welcome popup
-    welcomeMessage: "👋 我在这里帮助您"
+    welcomeMessage: "👋 我在这里帮助您",
+    // 💬 Fallback message when all quick buttons are hidden
+    typeYourQuestion: "在下方输入您的问题开始"
   }
 };
 

@@ -113,7 +113,7 @@
     },
     {
       "type": "paragraph",
-      "content": "Quick action button labels will automatically use the selected Interface Language. You can override them below with custom text if needed."
+      "content": "Quick action button labels will automatically use the selected Interface Language. You can override them below with custom text if needed. Button visibility is controlled from the app admin settings."
     },
     {
       "type": "text",
@@ -218,6 +218,16 @@
     returnsText: {{ block.settings.returns_text | json }},
     trackOrderText: {{ block.settings.track_order_text | json }},
     helpText: {{ block.settings.help_text | json }},
+
+    // Quick button visibility - defaults to true, will be overridden by API settings
+    bestSellersVisible: true,
+    newArrivalsVisible: true,
+    onSaleVisible: true,
+    recommendationsVisible: true,
+    shippingVisible: true,
+    returnsVisible: true,
+    trackOrderVisible: true,
+    helpVisible: true,
 
     // Shop data
     shopDomain: {{ shop.permanent_domain | json }},

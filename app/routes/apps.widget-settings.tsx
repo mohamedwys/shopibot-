@@ -18,6 +18,15 @@ const DEFAULT_SETTINGS = {
   inputPlaceholder: "Ask me anything about our products...",
   primaryColor: "#e620e6",
   interfaceLanguage: "en",
+  // Quick Button Visibility - all enabled by default
+  bestSellersVisible: true,
+  newArrivalsVisible: true,
+  onSaleVisible: true,
+  recommendationsVisible: true,
+  shippingVisible: true,
+  returnsVisible: true,
+  trackOrderVisible: true,
+  helpVisible: true,
 };
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {

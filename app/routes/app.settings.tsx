@@ -20,6 +20,7 @@ import {
   Spinner,
   Badge,
   Box,
+  Checkbox,
 } from "@shopify/polaris";
 import { CheckCircleIcon, AlertCircleIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
@@ -47,6 +48,15 @@ const DEFAULT_SETTINGS = {
   interfaceLanguage: "en",
   plan: PlanCode.STARTER, // ✅ Use standardized plan code
   openaiApiKey: "",
+  // Quick Button Visibility - all enabled by default
+  bestSellersVisible: true,
+  newArrivalsVisible: true,
+  onSaleVisible: true,
+  recommendationsVisible: true,
+  shippingVisible: true,
+  returnsVisible: true,
+  trackOrderVisible: true,
+  helpVisible: true,
 };
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -250,6 +260,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
   }
 
+  // Helper to safely parse boolean from form data
+  const parseBooleanField = (fieldName: string, defaultValue: boolean = true): boolean => {
+    const value = formData.get(fieldName);
+    if (value === null) return defaultValue; // Field not submitted, use default
+    return value === "true";
+  };
+
   // Prepare base settings data
   const settingsData: any = {
     enabled: formData.get("enabled") === "true",
@@ -264,6 +281,15 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     webhookUrl: normalizedWebhookUrl,
     plan: plan,
     openaiApiKey: encryptedApiKey,
+    // Quick Button Visibility Settings
+    bestSellersVisible: parseBooleanField("bestSellersVisible"),
+    newArrivalsVisible: parseBooleanField("newArrivalsVisible"),
+    onSaleVisible: parseBooleanField("onSaleVisible"),
+    recommendationsVisible: parseBooleanField("recommendationsVisible"),
+    shippingVisible: parseBooleanField("shippingVisible"),
+    returnsVisible: parseBooleanField("returnsVisible"),
+    trackOrderVisible: parseBooleanField("trackOrderVisible"),
+    helpVisible: parseBooleanField("helpVisible"),
   };
 
   // Update apiKeyLastUpdated if API key was changed
@@ -596,6 +622,128 @@ export default function SettingsPage() {
                   </Text>
                 </InlineStack>
               </BlockStack>
+            </BlockStack>
+          </Card>
+        </Layout.Section>
+
+        {/* Quick Button Visibility Settings */}
+        <Layout.Section>
+          <Card>
+            <BlockStack gap="500">
+              <BlockStack gap="200">
+                <Text variant="headingMd" as="h2">
+                  Quick Action Buttons
+                </Text>
+                <Text variant="bodyMd" as="p" tone="subdued">
+                  Control which quick action buttons are displayed on the chatbot welcome screen. Hidden buttons will not be rendered or accessible to customers.
+                </Text>
+              </BlockStack>
+
+              <Divider />
+
+              {/* Product Discovery Buttons */}
+              <BlockStack gap="300">
+                <Text variant="headingSm" as="h3">
+                  Product Discovery
+                </Text>
+                <Box paddingInlineStart="200">
+                  <BlockStack gap="200">
+                    <Checkbox
+                      label="Best Sellers"
+                      helpText="Show popular products button"
+                      checked={settings.bestSellersVisible ?? true}
+                      onChange={(checked) =>
+                        setSettings((prev) => ({ ...prev, bestSellersVisible: checked }))
+                      }
+                    />
+                    <Checkbox
+                      label="New Arrivals"
+                      helpText="Show new products button"
+                      checked={settings.newArrivalsVisible ?? true}
+                      onChange={(checked) =>
+                        setSettings((prev) => ({ ...prev, newArrivalsVisible: checked }))
+                      }
+                    />
+                    <Checkbox
+                      label="On Sale"
+                      helpText="Show discounted products button"
+                      checked={settings.onSaleVisible ?? true}
+                      onChange={(checked) =>
+                        setSettings((prev) => ({ ...prev, onSaleVisible: checked }))
+                      }
+                    />
+                    <Checkbox
+                      label="Recommendations"
+                      helpText="Show personalized recommendations button"
+                      checked={settings.recommendationsVisible ?? true}
+                      onChange={(checked) =>
+                        setSettings((prev) => ({ ...prev, recommendationsVisible: checked }))
+                      }
+                    />
+                  </BlockStack>
+                </Box>
+              </BlockStack>
+
+              <Divider />
+
+              {/* Support Buttons */}
+              <BlockStack gap="300">
+                <Text variant="headingSm" as="h3">
+                  Customer Support
+                </Text>
+                <Box paddingInlineStart="200">
+                  <BlockStack gap="200">
+                    <Checkbox
+                      label="Shipping"
+                      helpText="Show shipping information button"
+                      checked={settings.shippingVisible ?? true}
+                      onChange={(checked) =>
+                        setSettings((prev) => ({ ...prev, shippingVisible: checked }))
+                      }
+                    />
+                    <Checkbox
+                      label="Returns"
+                      helpText="Show return policy button"
+                      checked={settings.returnsVisible ?? true}
+                      onChange={(checked) =>
+                        setSettings((prev) => ({ ...prev, returnsVisible: checked }))
+                      }
+                    />
+                    <Checkbox
+                      label="Track Order"
+                      helpText="Show order tracking button"
+                      checked={settings.trackOrderVisible ?? true}
+                      onChange={(checked) =>
+                        setSettings((prev) => ({ ...prev, trackOrderVisible: checked }))
+                      }
+                    />
+                    <Checkbox
+                      label="Help"
+                      helpText="Show general help button"
+                      checked={settings.helpVisible ?? true}
+                      onChange={(checked) =>
+                        setSettings((prev) => ({ ...prev, helpVisible: checked }))
+                      }
+                    />
+                  </BlockStack>
+                </Box>
+              </BlockStack>
+
+              {/* Warning when all buttons are hidden */}
+              {!(settings.bestSellersVisible ?? true) &&
+               !(settings.newArrivalsVisible ?? true) &&
+               !(settings.onSaleVisible ?? true) &&
+               !(settings.recommendationsVisible ?? true) &&
+               !(settings.shippingVisible ?? true) &&
+               !(settings.returnsVisible ?? true) &&
+               !(settings.trackOrderVisible ?? true) &&
+               !(settings.helpVisible ?? true) && (
+                <Banner tone="warning">
+                  <Text variant="bodyMd" as="p">
+                    All quick action buttons are hidden. Customers will only see the welcome message with the chat input. Consider enabling at least one button for better user experience.
+                  </Text>
+                </Banner>
+              )}
             </BlockStack>
           </Card>
         </Layout.Section>

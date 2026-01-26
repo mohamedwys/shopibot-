@@ -78,7 +78,8 @@ async function loadTranslations(lang) {
       bestSellersPrompt: 'Show me your popular products',
       newArrivalsPrompt: 'Show me new arrivals',
       onSalePrompt: 'What products are on sale?',
-      recommendedPrompt: 'Show me recommendations for me'
+      recommendedPrompt: 'Show me recommendations for me',
+      typeYourQuestion: 'Type your question below to get started'
     };
     return translations;
   }
@@ -1845,6 +1846,91 @@ function sendAIMessage() {
 // Setup & Init
 // ======================
 
+// Generate quick actions HTML based on visibility settings
+function getQuickActionsHTML() {
+  // Check if visibility settings exist (default to true for backward compatibility)
+  const isVisible = (key) => widgetSettings[key] !== false;
+
+  // Build discovery section buttons
+  const discoveryButtons = [];
+  if (isVisible('bestSellersVisible')) {
+    discoveryButtons.push(`<button class="quick-action-btn" data-prompt="${escapeHTML(t('bestSellersPrompt'))}">
+      <span class="quick-action-text">${escapeHTML(widgetSettings.bestSellersText || t('bestSellers'))}</span>
+    </button>`);
+  }
+  if (isVisible('newArrivalsVisible')) {
+    discoveryButtons.push(`<button class="quick-action-btn" data-prompt="${escapeHTML(t('newArrivalsPrompt'))}">
+      <span class="quick-action-text">${escapeHTML(widgetSettings.newArrivalsText || t('newArrivals'))}</span>
+    </button>`);
+  }
+  if (isVisible('onSaleVisible')) {
+    discoveryButtons.push(`<button class="quick-action-btn" data-prompt="${escapeHTML(t('onSalePrompt'))}">
+      <span class="quick-action-text">${escapeHTML(widgetSettings.onSaleText || t('onSale'))}</span>
+    </button>`);
+  }
+  if (isVisible('recommendationsVisible')) {
+    discoveryButtons.push(`<button class="quick-action-btn" data-prompt="${escapeHTML(t('recommendedPrompt'))}">
+      <span class="quick-action-text">${escapeHTML(widgetSettings.recommendationsText || t('recommended'))}</span>
+    </button>`);
+  }
+
+  // Build support section buttons
+  const supportButtons = [];
+  if (isVisible('shippingVisible')) {
+    supportButtons.push(`<button class="quick-action-btn" data-prompt="${escapeHTML(t('shippingPrompt'))}">
+      <span class="quick-action-text">${escapeHTML(widgetSettings.shippingText || t('shipping'))}</span>
+    </button>`);
+  }
+  if (isVisible('returnsVisible')) {
+    supportButtons.push(`<button class="quick-action-btn" data-prompt="${escapeHTML(t('returnsPrompt'))}">
+      <span class="quick-action-text">${escapeHTML(widgetSettings.returnsText || t('returns'))}</span>
+    </button>`);
+  }
+  if (isVisible('trackOrderVisible')) {
+    supportButtons.push(`<button class="quick-action-btn" data-prompt="${escapeHTML(t('trackOrderPrompt'))}">
+      <span class="quick-action-text">${escapeHTML(widgetSettings.trackOrderText || t('trackOrder'))}</span>
+    </button>`);
+  }
+  if (isVisible('helpVisible')) {
+    supportButtons.push(`<button class="quick-action-btn" data-prompt="I need help with something">
+      <span class="quick-action-text">${escapeHTML(widgetSettings.helpText || t('help'))}</span>
+    </button>`);
+  }
+
+  // Check if all buttons are hidden
+  const hasNoButtons = discoveryButtons.length === 0 && supportButtons.length === 0;
+
+  if (hasNoButtons) {
+    // Show fallback message when all buttons are hidden
+    return `<div class="quick-actions-fallback">
+      <p class="fallback-text">${escapeHTML(t('typeYourQuestion') || 'Type your question below to get started')}</p>
+    </div>`;
+  }
+
+  // Build sections HTML
+  let html = '';
+
+  if (discoveryButtons.length > 0) {
+    html += `<div class="quick-actions-section">
+      <div class="section-label"><span>${escapeHTML(widgetSettings.sectionDiscoveryLabel || t('discover'))}</span></div>
+      <div class="quick-actions-grid">
+        ${discoveryButtons.join('\n')}
+      </div>
+    </div>`;
+  }
+
+  if (supportButtons.length > 0) {
+    html += `<div class="quick-actions-section">
+      <div class="section-label"><span>${escapeHTML(widgetSettings.sectionSupportLabel || t('support'))}</span></div>
+      <div class="quick-actions-grid">
+        ${supportButtons.join('\n')}
+      </div>
+    </div>`;
+  }
+
+  return html;
+}
+
 function createWidget() {
   if (!widgetSettings?.enabled) return;
 
@@ -1911,40 +1997,7 @@ function createWidget() {
                 <div class="welcome-header">
                   <h2 class="welcome-title">${escapeHTML(widgetSettings.welcomeMessage || 'Hello! How can I assist you?')}</h2>
                 </div>
-                <div class="quick-actions-section">
-                  <div class="section-label"><span>${escapeHTML(widgetSettings.sectionDiscoveryLabel || t('discover'))}</span></div>
-                  <div class="quick-actions-grid">
-                    <button class="quick-action-btn" data-prompt="${escapeHTML(t('bestSellersPrompt'))}">
-                      <span class="quick-action-text">${escapeHTML(widgetSettings.bestSellersText || t('bestSellers'))}</span>
-                    </button>
-                    <button class="quick-action-btn" data-prompt="${escapeHTML(t('newArrivalsPrompt'))}">
-                      <span class="quick-action-text">${escapeHTML(widgetSettings.newArrivalsText || t('newArrivals'))}</span>
-                    </button>
-                    <button class="quick-action-btn" data-prompt="${escapeHTML(t('onSalePrompt'))}">
-                      <span class="quick-action-text">${escapeHTML(widgetSettings.onSaleText || t('onSale'))}</span>
-                    </button>
-                    <button class="quick-action-btn" data-prompt="${escapeHTML(t('recommendedPrompt'))}">
-                      <span class="quick-action-text">${escapeHTML(widgetSettings.recommendationsText || t('recommended'))}</span>
-                    </button>
-                  </div>
-                </div>
-                <div class="quick-actions-section">
-                  <div class="section-label"><span>${escapeHTML(widgetSettings.sectionSupportLabel || t('support'))}</span></div>
-                  <div class="quick-actions-grid">
-                    <button class="quick-action-btn" data-prompt="${escapeHTML(t('shippingPrompt'))}">
-                      <span class="quick-action-text">${escapeHTML(widgetSettings.shippingText || t('shipping'))}</span>
-                    </button>
-                    <button class="quick-action-btn" data-prompt="${escapeHTML(t('returnsPrompt'))}">
-                      <span class="quick-action-text">${escapeHTML(widgetSettings.returnsText || t('returns'))}</span>
-                    </button>
-                    <button class="quick-action-btn" data-prompt="${escapeHTML(t('trackOrderPrompt'))}">
-                      <span class="quick-action-text">${escapeHTML(widgetSettings.trackOrderText || t('trackOrder'))}</span>
-                    </button>
-                    <button class="quick-action-btn" data-prompt="I need help with something">
-                      <span class="quick-action-text">${escapeHTML(widgetSettings.helpText || t('help'))}</span>
-                    </button>
-                  </div>
-                </div>
+                ${getQuickActionsHTML()}
               </div>
             </div>
           </div>
@@ -2013,6 +2066,22 @@ function setupEventListeners() {
 // Initialize
 // ======================
 
+// Fetch visibility settings from backend API
+async function fetchVisibilitySettings(shopDomain) {
+  try {
+    const response = await fetch(`https://shopibot.vercel.app/apps/widget-settings?shop=${encodeURIComponent(shopDomain)}`);
+    if (!response.ok) {
+      console.warn('Failed to fetch visibility settings, using defaults');
+      return null;
+    }
+    const data = await response.json();
+    return data.settings || null;
+  } catch (error) {
+    console.warn('Error fetching visibility settings:', error);
+    return null;
+  }
+}
+
 // FINAL SAFE INIT — waits for container to appear
 async function safeInit(retries = 20) {
   if (!window.aiSalesAssistantSettings?.enabled) {
@@ -2024,6 +2093,23 @@ async function safeInit(retries = 20) {
   if (container) {
     // Proceed only if container exists
     widgetSettings = window.aiSalesAssistantSettings;
+
+    // Fetch visibility settings from backend API and merge with Liquid settings
+    const shopDomain = widgetSettings.shopDomain;
+    if (shopDomain) {
+      const apiSettings = await fetchVisibilitySettings(shopDomain);
+      if (apiSettings) {
+        // Merge visibility settings from API (they take precedence)
+        widgetSettings.bestSellersVisible = apiSettings.bestSellersVisible ?? true;
+        widgetSettings.newArrivalsVisible = apiSettings.newArrivalsVisible ?? true;
+        widgetSettings.onSaleVisible = apiSettings.onSaleVisible ?? true;
+        widgetSettings.recommendationsVisible = apiSettings.recommendationsVisible ?? true;
+        widgetSettings.shippingVisible = apiSettings.shippingVisible ?? true;
+        widgetSettings.returnsVisible = apiSettings.returnsVisible ?? true;
+        widgetSettings.trackOrderVisible = apiSettings.trackOrderVisible ?? true;
+        widgetSettings.helpVisible = apiSettings.helpVisible ?? true;
+      }
+    }
 
     // Load translations based on interfaceLanguage setting
     const lang = widgetSettings.interfaceLanguage || 'en';
