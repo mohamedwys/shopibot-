@@ -1849,7 +1849,11 @@ function sendAIMessage() {
 // Generate quick actions HTML based on visibility settings
 function getQuickActionsHTML() {
   // Check if visibility settings exist (default to true for backward compatibility)
-  const isVisible = (key) => widgetSettings[key] !== false;
+  // Only hide if explicitly set to false (not null, undefined, or missing)
+  const isVisible = (key) => {
+    const value = widgetSettings[key];
+    return value !== false; // null/undefined/true all show the button
+  };
 
   // Build discovery section buttons
   const discoveryButtons = [];

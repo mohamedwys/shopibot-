@@ -154,14 +154,15 @@
     welcomePopupMessage: null,
 
     // Quick button visibility - controlled from Theme Editor
-    bestSellersVisible: {{ block.settings.best_sellers_visible | default: true | json }},
-    newArrivalsVisible: {{ block.settings.new_arrivals_visible | default: true | json }},
-    onSaleVisible: {{ block.settings.on_sale_visible | default: true | json }},
-    recommendationsVisible: {{ block.settings.recommendations_visible | default: true | json }},
-    shippingVisible: {{ block.settings.shipping_visible | default: true | json }},
-    returnsVisible: {{ block.settings.returns_visible | default: true | json }},
-    trackOrderVisible: {{ block.settings.track_order_visible | default: true | json }},
-    helpVisible: {{ block.settings.help_visible | default: true | json }},
+    // Note: Don't use | default filter here as it treats false as falsy
+    bestSellersVisible: {{ block.settings.best_sellers_visible | json }},
+    newArrivalsVisible: {{ block.settings.new_arrivals_visible | json }},
+    onSaleVisible: {{ block.settings.on_sale_visible | json }},
+    recommendationsVisible: {{ block.settings.recommendations_visible | json }},
+    shippingVisible: {{ block.settings.shipping_visible | json }},
+    returnsVisible: {{ block.settings.returns_visible | json }},
+    trackOrderVisible: {{ block.settings.track_order_visible | json }},
+    helpVisible: {{ block.settings.help_visible | json }},
 
     // Shop data
     shopDomain: {{ shop.permanent_domain | json }},
