@@ -109,74 +109,126 @@
     },
     {
       "type": "header",
-      "content": "Welcome Screen - Quick Actions"
+      "content": "Product Discovery Buttons"
     },
     {
       "type": "paragraph",
-      "content": "Quick action button labels will automatically use the selected Interface Language. You can override them below with custom text if needed. Button visibility is controlled from the app admin settings."
+      "content": "Toggle visibility and customize labels for product discovery quick actions."
     },
     {
       "type": "text",
       "id": "section_discovery_label",
-      "label": "Product Discovery Section Label (optional)",
+      "label": "Section Label (optional)",
       "info": "Leave empty to use translated text"
+    },
+    {
+      "type": "checkbox",
+      "id": "best_sellers_visible",
+      "label": "Show Best Sellers Button",
+      "default": true
     },
     {
       "type": "text",
       "id": "best_sellers_text",
-      "label": "Best Sellers Button (optional)",
+      "label": "Best Sellers Button Text (optional)",
       "info": "Leave empty to use translated text"
+    },
+    {
+      "type": "checkbox",
+      "id": "new_arrivals_visible",
+      "label": "Show New Arrivals Button",
+      "default": true
     },
     {
       "type": "text",
       "id": "new_arrivals_text",
-      "label": "New Arrivals Button (optional)",
+      "label": "New Arrivals Button Text (optional)",
       "info": "Leave empty to use translated text"
+    },
+    {
+      "type": "checkbox",
+      "id": "on_sale_visible",
+      "label": "Show On Sale Button",
+      "default": true
     },
     {
       "type": "text",
       "id": "on_sale_text",
-      "label": "On Sale Button (optional)",
+      "label": "On Sale Button Text (optional)",
       "info": "Leave empty to use translated text"
+    },
+    {
+      "type": "checkbox",
+      "id": "recommendations_visible",
+      "label": "Show Recommendations Button",
+      "default": true
     },
     {
       "type": "text",
       "id": "recommendations_text",
-      "label": "Recommendations Button (optional)",
+      "label": "Recommendations Button Text (optional)",
       "info": "Leave empty to use translated text"
     },
     {
       "type": "header",
-      "content": "Welcome Screen - Support Actions"
+      "content": "Customer Support Buttons"
+    },
+    {
+      "type": "paragraph",
+      "content": "Toggle visibility and customize labels for customer support quick actions."
     },
     {
       "type": "text",
       "id": "section_support_label",
-      "label": "Support Section Label (optional)",
+      "label": "Section Label (optional)",
       "info": "Leave empty to use translated text"
+    },
+    {
+      "type": "checkbox",
+      "id": "shipping_visible",
+      "label": "Show Shipping Button",
+      "default": true
     },
     {
       "type": "text",
       "id": "shipping_text",
-      "label": "Shipping Button (optional)",
+      "label": "Shipping Button Text (optional)",
       "info": "Leave empty to use translated text"
+    },
+    {
+      "type": "checkbox",
+      "id": "returns_visible",
+      "label": "Show Returns Button",
+      "default": true
     },
     {
       "type": "text",
       "id": "returns_text",
-      "label": "Returns Button (optional)",
+      "label": "Returns Button Text (optional)",
       "info": "Leave empty to use translated text"
+    },
+    {
+      "type": "checkbox",
+      "id": "track_order_visible",
+      "label": "Show Track Order Button",
+      "default": true
     },
     {
       "type": "text",
       "id": "track_order_text",
-      "label": "Track Order Button (optional)",
+      "label": "Track Order Button Text (optional)",
       "info": "Leave empty to use translated text"
+    },
+    {
+      "type": "checkbox",
+      "id": "help_visible",
+      "label": "Show Help Button",
+      "default": true
     },
     {
       "type": "text",
       "id": "help_text",
-      "label": "Help Button (optional)",
+      "label": "Help Button Text (optional)",
       "info": "Leave empty to use translated text"
     }
   ]
@@ -219,15 +271,15 @@
     trackOrderText: {{ block.settings.track_order_text | json }},
     helpText: {{ block.settings.help_text | json }},
 
-    // Quick button visibility - defaults to true, will be overridden by API settings
-    bestSellersVisible: true,
-    newArrivalsVisible: true,
-    onSaleVisible: true,
-    recommendationsVisible: true,
-    shippingVisible: true,
-    returnsVisible: true,
-    trackOrderVisible: true,
-    helpVisible: true,
+    // Quick button visibility - controlled from Theme Editor
+    bestSellersVisible: {{ block.settings.best_sellers_visible | default: true | json }},
+    newArrivalsVisible: {{ block.settings.new_arrivals_visible | default: true | json }},
+    onSaleVisible: {{ block.settings.on_sale_visible | default: true | json }},
+    recommendationsVisible: {{ block.settings.recommendations_visible | default: true | json }},
+    shippingVisible: {{ block.settings.shipping_visible | default: true | json }},
+    returnsVisible: {{ block.settings.returns_visible | default: true | json }},
+    trackOrderVisible: {{ block.settings.track_order_visible | default: true | json }},
+    helpVisible: {{ block.settings.help_visible | default: true | json }},
 
     // Shop data
     shopDomain: {{ shop.permanent_domain | json }},

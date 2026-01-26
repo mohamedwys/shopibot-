@@ -2066,22 +2066,6 @@ function setupEventListeners() {
 // Initialize
 // ======================
 
-// Fetch visibility settings from backend API
-async function fetchVisibilitySettings(shopDomain) {
-  try {
-    const response = await fetch(`https://shopibot.vercel.app/apps/widget-settings?shop=${encodeURIComponent(shopDomain)}`);
-    if (!response.ok) {
-      console.warn('Failed to fetch visibility settings, using defaults');
-      return null;
-    }
-    const data = await response.json();
-    return data.settings || null;
-  } catch (error) {
-    console.warn('Error fetching visibility settings:', error);
-    return null;
-  }
-}
-
 // FINAL SAFE INIT — waits for container to appear
 async function safeInit(retries = 20) {
   if (!window.aiSalesAssistantSettings?.enabled) {
@@ -2092,24 +2076,8 @@ async function safeInit(retries = 20) {
   const container = document.getElementById('ai-sales-assistant-container');
   if (container) {
     // Proceed only if container exists
+    // Visibility settings come directly from Liquid/Theme Editor (no API call needed)
     widgetSettings = window.aiSalesAssistantSettings;
-
-    // Fetch visibility settings from backend API and merge with Liquid settings
-    const shopDomain = widgetSettings.shopDomain;
-    if (shopDomain) {
-      const apiSettings = await fetchVisibilitySettings(shopDomain);
-      if (apiSettings) {
-        // Merge visibility settings from API (they take precedence)
-        widgetSettings.bestSellersVisible = apiSettings.bestSellersVisible ?? true;
-        widgetSettings.newArrivalsVisible = apiSettings.newArrivalsVisible ?? true;
-        widgetSettings.onSaleVisible = apiSettings.onSaleVisible ?? true;
-        widgetSettings.recommendationsVisible = apiSettings.recommendationsVisible ?? true;
-        widgetSettings.shippingVisible = apiSettings.shippingVisible ?? true;
-        widgetSettings.returnsVisible = apiSettings.returnsVisible ?? true;
-        widgetSettings.trackOrderVisible = apiSettings.trackOrderVisible ?? true;
-        widgetSettings.helpVisible = apiSettings.helpVisible ?? true;
-      }
-    }
 
     // Load translations based on interfaceLanguage setting
     const lang = widgetSettings.interfaceLanguage || 'en';
