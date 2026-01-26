@@ -489,16 +489,20 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     let shopPolicies: ShopPolicies | undefined;
 
     try {
-      const { admin: policyAdmin } = await unauthenticated.admin(shopDomain);
-      // Use REST API for policies (GraphQL doesn't expose policy fields)
-      const cachedPolicies = await fetchShopPolicies(shopDomain, policyAdmin.rest);
-      shopPolicies = toShopPoliciesFormat(cachedPolicies);
+      const { session } = await unauthenticated.admin(shopDomain);
+      // Use REST API for policies with direct fetch (GraphQL doesn't expose policy fields)
+      if (session?.accessToken) {
+        const cachedPolicies = await fetchShopPolicies(shopDomain, session.accessToken);
+        shopPolicies = toShopPoliciesFormat(cachedPolicies);
 
-      routeLogger.debug({
-        shop: shopDomain,
-        hasReturns: !!shopPolicies?.returns,
-        hasShipping: !!shopPolicies?.shipping,
-      }, '✅ Shop policies fetched/cached for fallback support');
+        routeLogger.debug({
+          shop: shopDomain,
+          hasReturns: !!shopPolicies?.returns,
+          hasShipping: !!shopPolicies?.shipping,
+        }, '✅ Shop policies fetched/cached for fallback support');
+      } else {
+        routeLogger.warn({ shop: shopDomain }, '⚠️ No access token available for policy fetch');
+      }
     } catch (policyError) {
       routeLogger.warn({
         shop: shopDomain,

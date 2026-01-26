@@ -126,7 +126,7 @@ export function getPolicyCacheStats(): { size: number; shops: string[] } {
  */
 export async function fetchShopPolicies(
   shopDomain: string,
-  adminRest: { get: (params: { path: string }) => Promise<any> },
+  accessToken: string,
   shopName?: string
 ): Promise<CachedShopPolicies | null> {
   // Check cache first
@@ -136,44 +136,37 @@ export async function fetchShopPolicies(
   }
 
   // Create abort controller for timeout
-  let timeoutId: NodeJS.Timeout | null = null;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
 
   try {
     logger.info({ shop: shopDomain }, 'Fetching shop policies from Shopify REST API');
 
-    // Use REST API endpoint for policies with proper timeout handling
-    const responsePromise = adminRest.get({
-      path: 'policies',
-    });
-
-    // Create a timeout that we can cancel
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      timeoutId = setTimeout(() => {
-        reject(new Error('Policy fetch timeout'));
-      }, 10000);
-    });
-
-    let response: any;
-    try {
-      response = await Promise.race([responsePromise, timeoutPromise]);
-    } finally {
-      // Always clear the timeout to prevent unhandled rejection
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-        timeoutId = null;
+    // Use direct fetch to REST API endpoint for policies
+    const response = await fetch(
+      `https://${shopDomain}/admin/api/2024-01/policies.json`,
+      {
+        method: 'GET',
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+          'Content-Type': 'application/json',
+        },
+        signal: controller.signal,
       }
+    );
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      logger.error({
+        shop: shopDomain,
+        status: response.status,
+        statusText: response.statusText,
+      }, 'REST API error when fetching shop policies');
+      return null;
     }
 
     const data = await response.json();
-
-    // Check for errors
-    if (data?.errors) {
-      logger.error({
-        shop: shopDomain,
-        errors: data.errors,
-      }, 'REST API errors when fetching shop policies');
-      return null;
-    }
 
     // Parse policies array
     // Each policy has: id, title, body, url, created_at, updated_at
@@ -203,7 +196,7 @@ export async function fetchShopPolicies(
       shipping: policyMap['shipping'] || null,
       privacy: policyMap['privacy'] || null,
       termsOfService: policyMap['termsOfService'] || null,
-      contactEmail: null, // Will be fetched separately if needed
+      contactEmail: null,
       contactPhone: null,
     };
 
@@ -223,15 +216,19 @@ export async function fetchShopPolicies(
       fetchedAt: Date.now(),
     };
   } catch (error) {
-    // Clear timeout on error too
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
+    clearTimeout(timeoutId);
 
-    logger.error({
-      shop: shopDomain,
-      error: error instanceof Error ? error.message : String(error),
-    }, 'Failed to fetch shop policies');
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    // Don't log abort errors as they're expected on timeout
+    if (errorMessage !== 'This operation was aborted') {
+      logger.error({
+        shop: shopDomain,
+        error: errorMessage,
+      }, 'Failed to fetch shop policies');
+    } else {
+      logger.warn({ shop: shopDomain }, 'Shop policies fetch timed out');
+    }
 
     // Try to return stale cached data if available
     const stale = getCachedPolicies(shopDomain);
