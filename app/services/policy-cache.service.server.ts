@@ -135,23 +135,34 @@ export async function fetchShopPolicies(
     return cached;
   }
 
+  // Create abort controller for timeout
+  let timeoutId: NodeJS.Timeout | null = null;
+
   try {
     logger.info({ shop: shopDomain }, 'Fetching shop policies from Shopify REST API');
 
-    // Add timeout to prevent hanging
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Policy fetch timeout')), 10000)
-    );
-
-    // Use REST API endpoint for policies
+    // Use REST API endpoint for policies with proper timeout handling
     const responsePromise = adminRest.get({
       path: 'policies',
     });
 
-    const response = await Promise.race([
-      responsePromise,
-      timeoutPromise,
-    ]) as any;
+    // Create a timeout that we can cancel
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(new Error('Policy fetch timeout'));
+      }, 10000);
+    });
+
+    let response: any;
+    try {
+      response = await Promise.race([responsePromise, timeoutPromise]);
+    } finally {
+      // Always clear the timeout to prevent unhandled rejection
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    }
 
     const data = await response.json();
 
@@ -212,6 +223,11 @@ export async function fetchShopPolicies(
       fetchedAt: Date.now(),
     };
   } catch (error) {
+    // Clear timeout on error too
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+
     logger.error({
       shop: shopDomain,
       error: error instanceof Error ? error.message : String(error),
