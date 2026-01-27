@@ -59,6 +59,12 @@
       "default": "Ask AI Assistant"
     },
     {
+      "type": "text",
+      "id": "chat_title",
+      "label": "Chat Window Title",
+      "default": "AI Sales Assistant"
+    },
+    {
       "type": "header",
       "content": "Welcome Popup"
     },
@@ -141,7 +147,7 @@
     enabled: {{ block.settings.enabled | default: true | json }},
     position: {{ block.settings.position | default: "bottom-right" | json }},
     buttonText: {{ block.settings.button_text | default: "Ask AI Assistant" | json }},
-    chatTitle: "AI Sales Assistant",
+    chatTitle: {{ block.settings.chat_title | default: "AI Sales Assistant" | json }},
     statusText: "Online",
     closeButtonLabel: "Close",
     welcomeMessage: {{ block.settings.welcome_message | default: "Hello! I'm your AI sales assistant. How can I help you today?" | json }},
